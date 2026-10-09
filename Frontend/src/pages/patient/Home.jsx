@@ -209,7 +209,7 @@ const Home = () => {
           </span>
         </div>
 
-        <p className="hero__eyebrow">Your care companion</p>
+        <p className="hero__eyebrow" >Your care companion</p>
         <h1 className="hero__title">Hi {user.name.split(' ')[0]}, how are you feeling?</h1>
         <p className="hero__lead">
           I'm your MediSync AI assistant. I can help you find appropriate care at your
@@ -227,7 +227,6 @@ const Home = () => {
           </div>
         </div>
 
-        <p className="hero__try">Try telling me...</p>
         <div className="suggestions">
           {SUGGESTIONS.map((s) => (
             <button key={s.text} className="suggestion" onClick={() => setMessage(s.text)}>
