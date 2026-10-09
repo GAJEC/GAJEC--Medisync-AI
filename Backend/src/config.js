@@ -1,6 +1,4 @@
 import dotenv from 'dotenv';
-import fs from 'fs';
-import path from 'path';
 dotenv.config();
 
 export const MODE = process.env.STAGE || 'development';
@@ -18,3 +16,17 @@ export const DB_CONFIG = {
     port: process.env.DB_PORT,
 };
 
+export const JWT_CONFIG = {
+    secret: process.env.JWT_SECRET,
+    expiresIn: process.env.JWT_EXPIRES_IN || '1h',
+};
+
+if (!JWT_CONFIG.secret || JWT_CONFIG.secret.length < 32) {
+    throw new Error('JWT_SECRET must be set in .env and be at least 32 characters long');
+}
+
+// Comma-separated list of allowed frontend origins, e.g. "http://localhost:5173,https://medisync.app"
+export const CORS_ORIGINS = (process.env.CORS_ORIGINS || 'http://localhost:5173')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);

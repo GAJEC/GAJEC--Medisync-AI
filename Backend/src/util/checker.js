@@ -22,18 +22,17 @@ export async function verifyPassword(password, stored) {
 }
 
 // Email Related Functions
-export async function isValidEmail(email) {
+export function isValidEmail(email) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
+    return typeof email === 'string' && emailRegex.test(email);
 }
 
-export async function EmailSanitizer(email) {
-    isValidEmail(email);
-    return email.toLowerCase().trim();
+export function EmailSanitizer(email) {
+    return String(email).toLowerCase().trim();
 }
 
 export async function isEmailRegistered(email) {
-    email = await EmailSanitizer(email);
+    email = EmailSanitizer(email);
     try {
         const [rows] = await db.execute('SELECT 1 FROM users WHERE email = ? LIMIT 1', [email]);
         return rows.length > 0;

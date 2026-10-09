@@ -1,16 +1,25 @@
 // Configurations
-import { PORT } from "./src/config.js";
+import { PORT, JWT_CONFIG, CORS_ORIGINS } from "./src/config.js";
 
 // Fastify server setup
 import Fastify from "fastify";
 import cors from "@fastify/cors";
+import jwt from "@fastify/jwt";
+import rateLimit from "@fastify/rate-limit";
 
 // Import routes
 import routes from "./src/routes.js";
 
-const app = Fastify({ logger: false });
+const app = Fastify({ logger: true });
 
-await app.register(cors);
+await app.register(cors, { origin: CORS_ORIGINS });
+await app.register(jwt, {
+  secret: JWT_CONFIG.secret,
+  sign: { expiresIn: JWT_CONFIG.expiresIn },
+});
+
+await app.register(rateLimit, { max: 100, timeWindow: "1 minute" });
+
 await app.register(routes, { prefix: "/api" });
 
 try {
