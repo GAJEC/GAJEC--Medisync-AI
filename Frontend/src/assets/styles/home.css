@@ -29,10 +29,14 @@
   padding: 74px 24px 24px; text-align: center;
 }
 
+.hero > * { flex-shrink: 0; }
+
 .hero__logo {
   position: relative; display: grid; place-items: center;
   width: 62px; height: 62px; border-radius: 18px; background: var(--primary);
   box-shadow: 0 8px 20px rgba(15, 117, 102, 0.22);
+  flex: none;
+  aspect-ratio: 1;
 }
 .hero__badge {
   position: absolute; top: -6px; right: -6px;
@@ -112,6 +116,51 @@
 }
 .composer__send:hover { background: var(--primary); color: #fff; }
 .disclaimer { margin: 8px 0 6px; font-size: 9px; color: var(--faint); }
+
+/* Attach menu */
+.attach { position: relative; display: flex; }
+.attach__menu {
+  position: absolute; left: -10px; bottom: calc(100% + 14px); z-index: 20;
+  width: 276px; padding: 6px; text-align: left;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  box-shadow: var(--shadow);
+}
+.attach__item {
+  display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px;
+  border: 0; border-radius: 8px; background: none; color: var(--text); text-align: left;
+}
+.attach__item:hover,
+.attach__item:focus-visible { background: var(--surface-hover); }
+.attach__icon {
+  display: grid; place-items: center; flex: none; width: 34px; height: 34px;
+  border-radius: 9px; background: var(--primary-soft); color: var(--primary);
+}
+.attach__title { display: block; font-size: 13px; font-weight: 600; }
+.attach__sub { display: block; margin-top: 2px; font-size: 11px; color: var(--muted); }
+
+/* Attachment chips */
+.attachments {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  width: 100%; max-width: 776px; margin: 0 auto 10px; padding: 0; list-style: none;
+}
+.chip {
+  display: flex; align-items: center; gap: 8px; max-width: 230px; padding: 5px 6px;
+  border: 1px solid var(--border); border-radius: 10px; background: var(--surface); font-size: 12px;
+}
+.chip__thumb { width: 28px; height: 28px; border-radius: 6px; object-fit: cover; }
+.chip__icon {
+  display: grid; place-items: center; width: 28px; height: 28px;
+  border-radius: 6px; background: var(--primary-soft); color: var(--primary);
+}
+.chip__name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.composer__error { max-width: 776px; margin: 0 auto 8px; font-size: 12px; text-align: left; color: var(--danger); }
+
+/* Recording state */
+.rec-dot { width: 10px; height: 10px; flex: none; border-radius: 50%; background: var(--danger); animation: rec-blink 1.2s ease-in-out infinite; }
+.rec-time { flex: 1; text-align: left; font-size: 14px; }
+.composer__send--stop { background: var(--danger); color: #fff; }
+.composer__send--stop:hover { background: var(--danger); filter: brightness(0.92); }
+@keyframes rec-blink { 50% { opacity: 0.25; } }
 
 @media (max-width: 800px) {
   .hero { padding-top: 40px; }

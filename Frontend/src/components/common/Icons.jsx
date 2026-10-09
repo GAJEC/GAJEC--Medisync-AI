@@ -145,3 +145,54 @@ export const FileTextIcon = (props) => {
     </svg>
   )
 }
+
+export const MicIcon = (props) => {
+  return (
+    <svg {...svgProps} {...props}>
+      <rect x="9" y="3" width="6" height="11" rx="3" />
+      <path d="M5 11a7 7 0 0 0 14 0" />
+      <path d="M12 18v3" />
+    </svg>
+  )
+}
+
+export const MicOffIcon = (props) => {
+  return (
+    <svg {...svgProps} {...props}>
+      <rect x="9" y="3" width="6" height="11" rx="3" />
+      <path d="M5 11a7 7 0 0 0 14 0" />
+      <path d="M12 18v3" />
+      <path d="m3 3 18 18" />
+    </svg>
+  )
+}
+
+export const UploadIcon = (props) => {
+  return (
+    <svg {...svgProps} {...props}>
+      <path d="M12 16V4" />
+      <path d="m7 9 5-5 5 5" />
+      <path d="M5 20h14" />
+    </svg>
+  )
+}
+
+export const WaveIcon = (props) => {
+  return (
+    <svg {...svgProps} {...props}>
+      <path d="M4 10v4" />
+      <path d="M8 6v12" />
+      <path d="M12 3v18" />
+      <path d="M16 8v8" />
+      <path d="M20 10v4" />
+    </svg>
+  )
+}
+
+export const StopIcon = (props) => {
+  return (
+    <svg {...svgProps} {...props} fill="currentColor" stroke="none">
+      <rect x="6" y="6" width="12" height="12" rx="2" />
+    </svg>
+  )
+}
