@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
-import "./Login.css";
+import "../../assets/styles/Login.css";
 import { useAuth, homeFor } from "../../auth/AuthContext";
 
 import heartIcon from "../../assets/images/medisync-logo.png";
