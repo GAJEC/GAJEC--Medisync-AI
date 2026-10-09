@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { NavLink } from 'react-router-dom'
 import { PngIcon, ChatIcon, ChevronLeftIcon, MoreIcon, HelpIcon } from '../common/Icons'
 
 import heartIcon from '../../assets/icons/heart.png'
@@ -57,15 +58,24 @@ const PatientSidebar = ({
       </button>
 
       <nav className="sidebar__nav" aria-label="Main">
-        <button className="nav-item">
-          <PngIcon src={scheduleIcon} className="icon-muted" />
-          <span className="hide-collapsed">Schedule</span>
-        </button>
+        <NavLink
+          to="/patient/schedule"
+          className={({ isActive }) => `nav-item ${isActive ? 'nav-item--active' : ''}`}
+        >
+          {({ isActive }) => (
+            <>
+              <PngIcon src={scheduleIcon} className={isActive ? 'icon-teal' : 'icon-muted'} />
+              <span className="hide-collapsed">Schedule</span>
+            </>
+          )}
+        </NavLink>
+
         <button className="nav-item">
           <PngIcon src={notificationIcon} className="icon-muted" />
           <span className="hide-collapsed">Notifications</span>
           {unreadCount > 0 && <span className="badge">{unreadCount}</span>}
         </button>
+
         <button className="nav-item">
           <PngIcon src={historyIcon} className="icon-muted" />
           <span className="hide-collapsed">Appointment history</span>

@@ -88,3 +88,20 @@ export const PngIcon = ({ src, size = 16, className = '', alt = '' }) => {
     />
   )
 }
+
+export const ChevronRightIcon = (props) => {
+  return (
+    <svg {...svgProps} {...props}>
+      <path d="m9 18 6-6-6-6" />
+    </svg>
+  )
+}
+
+export const PlusIcon = (props) => {
+  return (
+    <svg {...svgProps} {...props}>
+      <path d="M12 5v14" />
+      <path d="M5 12h14" />
+    </svg>
+  )
+}
