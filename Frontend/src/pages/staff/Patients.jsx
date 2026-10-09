@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import "./Staff.css";
+
 import searchIcon from "../../assets/icons/search.png";
 import settingsIcon from "../../assets/icons/settings.png";
+import "../../assets/styles/Staff.css";
 
 const initialPatients = [
   { id: "P-20481", name: "Sofia Reyes", contact: "+63 917 ••• 0142", registered: "Jun 12, 2024", appointments: 4, lastVisit: "Mar 18, 2025", status: "Active", notes: "" },

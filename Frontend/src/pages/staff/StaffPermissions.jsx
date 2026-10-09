@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
-import "./Staff.css";
+
 import searchIcon from "../../assets/icons/search.png";
 import settingsIcon from "../../assets/icons/settings.png";
 import insuranceIcon from "../../assets/icons/insurance.png";
-
+import "../../assets/styles/Staff.css";
 const initialStaff = [
   { id: 1, name: "Ana Mendoza", role: "Hospital Administrator", department: "Operations", lastActive: "Now", account: "Active", mfa: "Enabled", notes: "" },
   { id: 2, name: "Carlo Lim", role: "Appointment Coordinator", department: "Patient Services", lastActive: "12 min ago", account: "Active", mfa: "Enabled", notes: "" },

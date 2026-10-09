@@ -1,5 +1,7 @@
 import { useState } from "react";
+import { Navigate, useNavigate } from "react-router-dom";
 import "./Login.css";
+import { useAuth, homeFor } from "../../auth/AuthContext";
 
 import heartIcon from "../../assets/images/medisync-logo.png";
 import aiIcon from "../../assets/icons/ai.png";
@@ -41,7 +43,7 @@ const VIEWS = {
     eyebrow: "Patient portal",
     title: "Welcome back",
     subtitle: "Sign in to continue to your workspace.",
-    submit: "Sign in ",
+    submit: "Sign in",
   },
   signup: {
     eyebrow: "Patient portal",
@@ -53,9 +55,12 @@ const VIEWS = {
     eyebrow: "Authorized personnel",
     title: "Hospital staff sign in",
     subtitle: "Sign in to continue to your workspace.",
-    submit: "Sign in ",
+    submit: "Sign in",
   },
 };
+
+// Demo staff identity used by the "Hospital staff access" shortcut
+const DEMO_STAFF = { role: "staff", email: "staff@stgabriel.demo", name: "Ana Mendoza" };
 
 function Logo({ name, className = "" }) {
   return <img src={LOGOS[name]} alt="" className={`logo-img ${className}`} />;
@@ -85,6 +90,9 @@ function PasswordField({ id, value, onChange, autoComplete }) {
 }
 
 export default function Login({ onLogin, onSignup }) {
+  const { session, login } = useAuth();
+  const navigate = useNavigate();
+
   const [view, setView] = useState("signin");
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -92,21 +100,33 @@ export default function Login({ onLogin, onSignup }) {
 
   const content = VIEWS[view];
 
+  // Already signed in -> go straight to the right home (staff -> /staff -> dashboard)
+  if (session) return <Navigate to={homeFor(session.role)} replace />;
+
   const switchView = (next) => {
     setView(next);
     setPassword("");
+  };
+
+  // "Hospital staff access" button: sign in as staff and open the staff Dashboard
+  const openStaffDashboard = () => {
+    login(DEMO_STAFF);
+    navigate("/staff/dashboard", { replace: true });
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (view === "signup") {
       onSignup?.({ fullName, email, password });
+      return;
+    }
+
+    const role = view === "staff" ? "staff" : "patient";
+    if (onLogin) {
+      onLogin({ role, email, password });
     } else {
-      onLogin?.({
-        role: view === "staff" ? "staff" : "patient",
-        email,
-        password,
-      });
+      login({ role, email, name: email });
+      navigate(role === "staff" ? "/staff/dashboard" : homeFor(role), { replace: true });
     }
   };
 
@@ -242,7 +262,7 @@ export default function Login({ onLogin, onSignup }) {
             <button
               type="button"
               className="role-card"
-              onClick={() => switchView("staff")}
+              onClick={openStaffDashboard}
             >
               <Logo name="staff" className="role-icon" />
               <span>Hospital staff access</span>
@@ -261,8 +281,6 @@ export default function Login({ onLogin, onSignup }) {
               </button>
             </p>
           )}
-
-          
         </div>
       </main>
     </div>

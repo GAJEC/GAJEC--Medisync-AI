@@ -1,9 +1,10 @@
 import { useMemo, useState } from "react";
-import "./Staff.css";
+
 import searchIcon from "../../assets/icons/search.png";
 import scheduleIcon from "../../assets/icons/schedule.png";
 import historyIcon from "../../assets/icons/history.png";
 import patientsIcon from "../../assets/icons/patients.png";
+import "../../assets/styles/Staff.css";
 
 const stats = [
   { label: "Completion rate", value: "88.4%", note: "↑ 2.3% month over month", tone: "teal", glyph: "✓" },
