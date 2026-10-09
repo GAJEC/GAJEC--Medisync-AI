@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import PatientSidebar from './PatientSidebar'
 import { MenuIcon } from '../common/Icons'
+import { useAuth } from '../../auth/AuthContext'
 
 const USER = { name: 'Sofia Reyes', initials: 'SR', role: 'Patient', id: 'P-20481' }
 
@@ -35,6 +36,7 @@ const MOBILE_QUERY = '(max-width: 800px)'
 const PatientLayout = () => {
   const navigate = useNavigate()
   const { pathname } = useLocation()
+  const { logout } = useAuth()
   const [collapsed, setCollapsed] = useState(false)
   const [dark, setDark] = useState(false)
   const [activeId, setActiveId] = useState(1)
@@ -89,6 +91,11 @@ const PatientLayout = () => {
     navigate('/patient')
   }
 
+  const handleLogout = () => {
+    logout()
+    navigate('/login', { replace: true })
+  }
+
   return (
     <div className="app-shell">
       <button
@@ -114,7 +121,7 @@ const PatientLayout = () => {
         onSelectConversation={openConversation}
         darkMode={dark}
         onToggleDark={toggleDark}
-        onLogout={() => console.log('logout')}
+        onLogout={handleLogout}
         unreadCount={unreadCount}
       />
 
