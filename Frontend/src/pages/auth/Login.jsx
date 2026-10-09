@@ -94,7 +94,9 @@ export default function Login({ onLogin, onSignup }) {
   const navigate = useNavigate();
 
   const [view, setView] = useState("signin");
-  const [fullName, setFullName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [gender, setGender] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -117,7 +119,16 @@ export default function Login({ onLogin, onSignup }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (view === "signup") {
-      onSignup?.({ fullName, email, password });
+      const normalizedFirstName = firstName.trim();
+      const normalizedLastName = lastName.trim();
+      onSignup?.({
+        firstName: normalizedFirstName,
+        lastName: normalizedLastName,
+        fullName: `${normalizedFirstName} ${normalizedLastName}`.trim(),
+        gender,
+        email,
+        password,
+      });
       return;
     }
 
@@ -176,19 +187,54 @@ export default function Login({ onLogin, onSignup }) {
 
           <form onSubmit={handleSubmit}>
             {view === "signup" && (
-              <div className="field">
-                <label htmlFor="fullName">Full name</label>
-                <div className="input-wrap">
-                  <input
-                    id="fullName"
-                    type="text"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    autoComplete="name"
-                    required
-                  />
+              <>
+                <div className="name-fields">
+                  <div className="field">
+                    <label htmlFor="firstName">First name</label>
+                    <div className="input-wrap">
+                      <input
+                        id="firstName"
+                        type="text"
+                        placeholder="First name"
+                        value={firstName}
+                        onChange={(e) => setFirstName(e.target.value)}
+                        autoComplete="given-name"
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div className="field">
+                    <label htmlFor="lastName">Last name</label>
+                    <div className="input-wrap">
+                      <input
+                        id="lastName"
+                        type="text"
+                        placeholder="Last name"
+                        value={lastName}
+                        onChange={(e) => setLastName(e.target.value)}
+                        autoComplete="family-name"
+                        required
+                      />
+                    </div>
+                  </div>
                 </div>
-              </div>
+
+                <div className="field gender-field">
+                  <label htmlFor="gender">Gender</label>
+                  <div className="input-wrap">
+                    <select
+                      id="gender"
+                      value={gender}
+                      onChange={(e) => setGender(e.target.value)}
+                      required
+                    >
+                      <option value="" disabled>Select gender</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                    </select>
+                  </div>
+                </div>
+              </>
             )}
 
             <div className="field">
