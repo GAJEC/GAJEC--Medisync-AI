@@ -119,3 +119,8 @@
 .sidebar--collapsed .badge { position: absolute; top: 4px; right: 2px; margin: 0; }
 .sidebar--collapsed .sidebar__recent { visibility: hidden; }
 .sidebar--collapsed .footer-row { justify-content: center; }
+
+/* Active route link */
+a.nav-item { text-decoration: none; }
+.nav-item--active,
+.nav-item--active:hover { background: var(--primary-soft); color: var(--primary); font-weight: 500; }

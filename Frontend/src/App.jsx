@@ -1,9 +1,15 @@
 import React from 'react'
-import Home from './pages/patient/Home'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import PatientRoutes from './routes/PatientRoutes'
 
 const App = () => {
   return (
-    <Home />
+    <BrowserRouter>
+      <Routes>
+        <Route path="/patient/*" element={<PatientRoutes />} />
+        <Route path="*" element={<Navigate to="/patient" replace />} />
+      </Routes>
+    </BrowserRouter>
   )
 }
 
