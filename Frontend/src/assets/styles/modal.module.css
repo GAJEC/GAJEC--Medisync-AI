@@ -30,6 +30,32 @@
 }
 .modal__notice > svg { flex: none; }
 
+/* Confirmation (e.g. delete conversation) */
+.modal__summary-plain {
+  display: flex; flex-direction: column; gap: 4px;
+  padding: 12px 14px; border-radius: 12px; background: var(--bg);
+}
+.modal__label { font-size: 9px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.modal__value { font-size: 14px; font-weight: 500; overflow-wrap: anywhere; }
+.btn-danger {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  height: 37px; padding: 0 18px;
+  border: 0; border-radius: 8px;
+  background: var(--danger); color: #fff;
+  font-size: 12px; font-weight: 600;
+}
+.btn-danger:hover { filter: brightness(0.92); }
+.btn-danger:disabled { opacity: 0.55; cursor: default; filter: none; }
+
+/* Open animation */
+.modal-overlay { animation: overlay-in 0.18s ease-out both; }
+.modal { animation: modal-in 0.22s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+@keyframes overlay-in { from { opacity: 0; } }
+@keyframes modal-in { from { opacity: 0; transform: translateY(10px) scale(0.98); } }
+@media (prefers-reduced-motion: reduce) {
+  .modal-overlay, .modal { animation: none; }
+}
+
 @media (max-width: 800px) {
   .modal-overlay { padding: 0; place-items: end stretch; }
   .modal {
@@ -39,6 +65,10 @@
   .modal__eyebrow { font-size: 11px; }
   .modal__title { font-size: 20px; }
   .modal__text { font-size: 13px; }
+  .modal__label { font-size: 11px; }
+  .modal__value { font-size: 15px; }
+  .btn-danger { min-height: 44px; font-size: 14px; }
+  @keyframes modal-in { from { opacity: 0; transform: translateY(24px); } }
   .modal__meta { font-size: 12px; }
   .modal__notice { font-size: 12px; }
   .modal__foot { padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); }

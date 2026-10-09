@@ -4,7 +4,7 @@ import { CloseIcon } from './Icons'
 import ModalStyle from '../../assets/styles/modal.module.css'
 import SidebarStyle from '../../assets/styles/sidebar.module.css'
 
-const Modal = ({ eyebrow = 'HealthLocal AI', title, onClose, footer, children }) => {
+const Modal = ({ eyebrow = 'MediSync AI', title, onClose, footer, children }) => {
   const titleId = useId()
 
   useEffect(() => {

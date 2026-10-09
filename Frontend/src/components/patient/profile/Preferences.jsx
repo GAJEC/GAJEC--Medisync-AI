@@ -4,7 +4,7 @@ import ProfileStyle from '../../../assets/styles/profile.module.css'
 
 const Preferences = ({ form, onChange, darkMode, onToggleDark }) => {
   return (
-    <SectionCard title="Preferences" subtitle="Customize your HealthLocal experience." flush>
+    <SectionCard title="Preferences" subtitle="Customize your MediSync AI experience." flush>
       <div className={ProfileStyle['pref-row']}>
         <div>
           <div className={ProfileStyle['pref-row__title']}>Dark appearance</div>

@@ -139,7 +139,7 @@ function ModalShell({ titleId, title, onClose, children, footer }) {
       <div className={StaffStyle['st-modal']} role="dialog" aria-modal="true" aria-labelledby={titleId}>
         <header className={StaffStyle['st-modal__head']}>
           <div>
-            <p className={StaffStyle['st-modal__brand']}>HealthLocal AI</p>
+            <p className={StaffStyle['st-modal__brand']}>MediSync AI</p>
             <h2 id={titleId} className={StaffStyle['st-modal__title']}>{title}</h2>
           </div>
           <button type="button" className={StaffStyle['st-modal__close']} onClick={onClose} aria-label="Close">✕</button>

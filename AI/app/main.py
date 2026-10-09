@@ -1,4 +1,5 @@
-"""Internal AI inference service (FastAPI). Not for public exposure.
+"""MediSync AI internal inference service (FastAPI) behind Syncia, the patient-facing assistant.
+Not for public exposure.
 
 Run (single worker so each model is loaded once):
     .venv\\Scripts\\python -m app.main
@@ -27,6 +28,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import ValidationError
 
+from . import progress
 from .config import get_settings
 from .audio import preprocess_audio
 from .errors import ServiceError, bad_input
@@ -53,7 +55,7 @@ def create_app(manager: ModelManager | None = None) -> FastAPI:
         yield
         log.info("AI service shutting down")
 
-    app = FastAPI(title="Medisync internal AI service", version="0.1.0", lifespan=lifespan,
+    app = FastAPI(title="MediSync AI internal service (Syncia)", version="0.1.0", lifespan=lifespan,
                   docs_url=None, redoc_url=None, openapi_url=None)
 
     # ------------------------------------------------------------ middleware
@@ -115,10 +117,26 @@ def create_app(manager: ModelManager | None = None) -> FastAPI:
     async def model_status(request: Request):
         return models(request).status()
 
+    async def tracked(request: Request, kind: str, fn, *args):
+        """Run a MedGemma call in the threadpool with live progress under the request id."""
+        tracker = progress.start(request.state.rid, kind)
+
+        def run():
+            with progress.bound(tracker):
+                return fn(*args)
+
+        try:
+            result = await run_in_threadpool(run)
+        except Exception:
+            progress.finish(tracker, "failed")
+            raise
+        progress.finish(tracker)
+        return result
+
     @app.post("/internal/medical/chat", dependencies=auth)
     async def medical_chat(request: Request, body: ChatRequest):
         svc = await run_in_threadpool(models(request).get, "medgemma")
-        return await run_in_threadpool(svc.chat, body)
+        return await tracked(request, "chat", svc.chat, body)
 
     @app.post("/internal/medical/analyze-image", dependencies=auth)
     async def analyze_image(request: Request, image: UploadFile = File(...), context: str = Form("{}")):
@@ -129,7 +147,15 @@ def create_app(manager: ModelManager | None = None) -> FastAPI:
         data = await _read_limited(image, settings.max_image_bytes)
         img = await run_in_threadpool(decode_image, data, settings.max_image_bytes, settings.max_image_pixels)
         svc = await run_in_threadpool(models(request).get, "medgemma")
-        return await run_in_threadpool(svc.analyze_image, img, ctx)
+        return await tracked(request, "image", svc.analyze_image, img, ctx)
+
+    @app.get("/internal/progress/{request_id}", dependencies=auth)
+    async def request_progress(request: Request, request_id: str):
+        # Live stage of an in-flight chat/image request (see app/progress.py). 404 until it starts.
+        snapshot = progress.get(request_id[:64])
+        if snapshot is None:
+            raise ServiceError(404, "UNKNOWN_REQUEST", "No inference is running for that request id.")
+        return snapshot
 
     @app.post("/internal/audio/transcribe", dependencies=auth)
     async def transcribe(request: Request, audio: UploadFile = File(...), language: str = Form("auto")):

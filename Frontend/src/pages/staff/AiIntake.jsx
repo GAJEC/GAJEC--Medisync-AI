@@ -310,7 +310,7 @@ export default function AIIntake() {
           >
             <header className={StaffStyle['ai-modal-header']}>
               <div>
-                <p className={StaffStyle['st-eyebrow']}>HealthLocal AI</p>
+                <p className={StaffStyle['st-eyebrow']}>MediSync AI</p>
                 <h2 id="ai-action-title">
                   AI Intake &amp; Matching action
                 </h2>

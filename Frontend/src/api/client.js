@@ -9,7 +9,9 @@ export class ApiError extends Error {
 
 export async function apiRequest(path, { method = 'GET', body, token } = {}) {
   const headers = {}
-  if (body !== undefined) headers['Content-Type'] = 'application/json'
+  // FormData (file uploads) sets its own multipart Content-Type with the boundary.
+  const isForm = body instanceof FormData
+  if (body !== undefined && !isForm) headers['Content-Type'] = 'application/json'
   if (token) headers.Authorization = `Bearer ${token}`
 
   let res
@@ -17,7 +19,7 @@ export async function apiRequest(path, { method = 'GET', body, token } = {}) {
     res = await fetch(`${API_URL}${path}`, {
       method,
       headers,
-      body: body !== undefined ? JSON.stringify(body) : undefined,
+      body: body === undefined ? undefined : isForm ? body : JSON.stringify(body),
     })
   } catch {
     throw new ApiError('Cannot reach the server. Please try again later.', 0)
@@ -56,6 +58,8 @@ export const authApi = {
     apiRequest('/auth/password', { method: 'PUT', token, body: { currentPassword, newPassword } }),
   sessions: (token) => apiRequest('/auth/sessions', { token }),
   signOutOtherSessions: (token) => apiRequest('/auth/sessions/others', { method: 'DELETE', token }),
+  // theme: 'light' | 'dark'
+  updateTheme: (token, theme) => apiRequest('/auth/theme', { method: 'PUT', token, body: { theme } }),
 }
 
 const toQuery = (params = {}) => {
@@ -86,8 +90,27 @@ export const patientApi = {
     apiRequest('/patient/conversations', { method: 'POST', token, body: { message } }),
   sendMessage: (token, id, message) =>
     apiRequest(`/patient/conversations/${id}/messages`, { method: 'POST', token, body: { message } }),
+  requestReply: (token, id, image, progressId) => {
+    let body
+    if (image) {
+      body = new FormData()
+      body.append('image', image, image.name)
+    }
+    const query = progressId ? `?progress=${encodeURIComponent(progressId)}` : ''
+    return apiRequest(`/patient/conversations/${id}/reply${query}`, { method: 'POST', token, body })
+  },
+  replyProgress: (token, progressId) =>
+    apiRequest(`/patient/ai-progress/${encodeURIComponent(progressId)}`, { token }),
+  transcribe: (token, audio, language = 'auto') => {
+    const body = new FormData()
+    body.append('audio', audio, audio.name)
+    body.append('language', language)
+    return apiRequest('/patient/transcribe', { method: 'POST', token, body })
+  },
   renameConversation: (token, id, title) =>
     apiRequest(`/patient/conversations/${id}`, { method: 'PATCH', token, body: { title } }),
+  updateConversation: (token, id, changes) =>
+    apiRequest(`/patient/conversations/${id}`, { method: 'PATCH', token, body: changes }),
   deleteConversation: (token, id) => apiRequest(`/patient/conversations/${id}`, { method: 'DELETE', token }),
 
   consents: (token) => apiRequest('/patient/consents', { token }),

@@ -178,7 +178,7 @@ function ScheduleActionModal({ doctors, initialId, onClose, onSave }) {
       <div className={StaffStyle['st-modal']} role="dialog" aria-modal="true" aria-labelledby="sched-title">
         <header className={StaffStyle['st-modal__head']}>
           <div>
-            <p className={StaffStyle['st-modal__brand']}>HealthLocal AI</p>
+            <p className={StaffStyle['st-modal__brand']}>MediSync AI</p>
             <h2 id="sched-title" className={StaffStyle['st-modal__title']}>Doctor Scheduling &amp; Availability action</h2>
           </div>
           <button type="button" className={StaffStyle['st-modal__close']} onClick={onClose} aria-label="Close">✕</button>

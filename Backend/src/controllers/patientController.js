@@ -6,10 +6,7 @@ import {
     WithUniqueReference,
 } from '../util/reference.js';
 
-// ---------------------------------------------------------------------------
 // Profile
-// ---------------------------------------------------------------------------
-
 const PROFILE_FIELDS = {
     dob: 'date_of_birth',
     sex: 'sex',
@@ -41,7 +38,6 @@ export async function GetProfile(userId) {
     return rows[0] || null;
 }
 
-// Empty strings are stored as NULL so "cleared" and "never set" look the same.
 const blankToNull = (value) => (typeof value === 'string' && value.trim() === '' ? null : value);
 
 export async function UpdateProfile(userId, changes) {
@@ -83,10 +79,7 @@ export async function UpdateProfile(userId, changes) {
     return GetProfile(userId);
 }
 
-// ---------------------------------------------------------------------------
-// Appointments
-// ---------------------------------------------------------------------------
-
+// Appointments and doctors
 const APPOINTMENT_SELECT = `
     SELECT a.id, a.reference AS ref, a.reason, a.visit_type AS type, a.mode,
            a.scheduled_at AS date, a.status, a.created_at AS createdAt,
@@ -164,10 +157,7 @@ export async function ListDoctors() {
     return rows;
 }
 
-// ---------------------------------------------------------------------------
 // Notifications
-// ---------------------------------------------------------------------------
-
 export async function ListNotifications(userId) {
     const [rows] = await db.execute(
         `SELECT id, category, type, title, body, read_at IS NOT NULL AS \`read\`, created_at AS createdAt
@@ -206,20 +196,20 @@ export async function CreateNotification(userId, { category, type, title, body }
     return result.insertId;
 }
 
-// ---------------------------------------------------------------------------
-// Conversations (AI intake history)
-// ---------------------------------------------------------------------------
+// Conversations and AI assistant
 
+// Pinned first (most recently pinned on top), then by last activity.
 export async function ListConversations(userId) {
     const [rows] = await db.execute(
-        `SELECT id, title, created_at AS createdAt, updated_at AS updatedAt
+        `SELECT id, title, pinned_at IS NOT NULL AS pinned, archived_at IS NOT NULL AS archived,
+                created_at AS createdAt, updated_at AS updatedAt
            FROM conversations
           WHERE user_id = ?
-          ORDER BY updated_at DESC, id DESC
+          ORDER BY pinned_at IS NULL, pinned_at DESC, updated_at DESC, id DESC
           LIMIT 100`,
         [userId],
     );
-    return rows;
+    return rows.map((row) => ({ ...row, pinned: Boolean(row.pinned), archived: Boolean(row.archived) }));
 }
 
 export async function GetConversation(userId, conversationId) {
@@ -282,12 +272,151 @@ export async function AddConversationMessage(userId, conversationId, body) {
     return rows[0];
 }
 
-export async function RenameConversation(userId, conversationId, title) {
-    const [result] = await db.execute(
-        'UPDATE conversations SET title = ? WHERE id = ? AND user_id = ?',
-        [title.trim(), conversationId, userId],
+// AI Assistant integration
+
+// Limits from ChatRequest in AI/app/schemas.py. The AI service itself only uses
+// the last MEDGEMMA_MAX_HISTORY_MESSAGES turns (10 by default).
+const AI_MAX_HISTORY = 20;
+const AI_MAX_CHARS = 8000;
+const AI_SEX = { Female: 'female', Male: 'male', 'Prefer not to say': 'unspecified' };
+
+function ageFrom(dob) {
+    if (!dob) return undefined;
+    const birth = new Date(`${dob}T00:00:00`);
+    if (Number.isNaN(birth.getTime())) return undefined;
+    const now = new Date();
+    let age = now.getFullYear() - birth.getFullYear();
+    if (now.getMonth() < birth.getMonth() || (now.getMonth() === birth.getMonth() && now.getDate() < birth.getDate())) age -= 1;
+    return age >= 0 && age <= 120 ? age : undefined;
+}
+
+// Builds the patient_context object from the patient's own profile (PatientContext in AI/app/schemas.py).
+async function PatientContextFor(userId) {
+    const [rows] = await db.execute(
+        `SELECT DATE_FORMAT(date_of_birth, '%Y-%m-%d') AS dob, sex, medical_history AS history, language
+           FROM patient_profiles WHERE user_id = ?`,
+        [userId],
     );
-    return result.affectedRows > 0;
+    const profile = rows[0];
+    if (!profile) return { context: undefined, language: 'auto' };
+
+    const context = {};
+    const age = ageFrom(profile.dob);
+    if (age !== undefined) context.age_years = age;
+    if (AI_SEX[profile.sex]) context.sex = AI_SEX[profile.sex];
+    if (profile.history) {
+        const conditions = profile.history
+            .split(/[\n,;]+/)
+            .map((c) => c.trim().slice(0, 200))
+            .filter(Boolean)
+            .slice(0, 20);
+        if (conditions.length) context.known_conditions = conditions;
+    }
+
+    return {
+        context: Object.keys(context).length ? context : undefined,
+        language: profile.language === 'Filipino' ? 'fil' : 'auto',
+    };
+}
+
+// Formats the AI service's reply into a single string for the patient. The AI service may return
+function replyText(result) {
+    const parts = [result.reply.trim()];
+    if (Array.isArray(result.visual_observations) && result.visual_observations.length) {
+        parts.push(`What I can see in the photo:\n${result.visual_observations.map((o) => `• ${o}`).join('\n')}`);
+    }
+    if (typeof result.limitations === 'string' && result.limitations.trim()) {
+        parts.push(result.limitations.trim());
+    }
+    if (Array.isArray(result.follow_up_questions) && result.follow_up_questions.length) {
+        parts.push(result.follow_up_questions.map((q) => `• ${q}`).join('\n'));
+    }
+    return parts.filter(Boolean).join('\n\n') || 'I could not produce a reply. Please try again.';
+}
+
+// Generates an AI assistant reply to the patients pending messages in a conversation.
+export async function GenerateAssistantReply(userId, conversationId, { chat, analyzeImage, image, requestId }) {
+    const conversation = await GetConversation(userId, conversationId);
+    if (!conversation) return null;
+
+    const messages = conversation.messages;
+    let split = messages.length;
+    while (split > 0 && messages[split - 1].sender === 'patient') split -= 1;
+    const pending = messages.slice(split);
+    if (pending.length === 0) return { pending: false };
+
+    const history = messages
+        .slice(0, split)
+        .slice(-AI_MAX_HISTORY)
+        .map((m) => ({ role: m.sender === 'patient' ? 'user' : 'assistant', content: m.body.slice(0, AI_MAX_CHARS) }));
+
+    const { context, language } = await PatientContextFor(userId);
+    const text = pending.map((m) => m.body).join('\n');
+
+    let ai;
+    if (image) {
+        const imageContext = { description: text.slice(0, 4000), history, reply_language: language };
+        if (context) imageContext.patient_context = context;
+        ai = await analyzeImage(image, imageContext, requestId);
+    } else {
+        const body = { message: text.slice(0, AI_MAX_CHARS), history, reply_language: language };
+        if (context) body.patient_context = context;
+        ai = await chat(body, requestId);
+    }
+
+    const [result] = await db.execute(
+        "INSERT INTO conversation_messages (conversation_id, sender, body) VALUES (?, 'assistant', ?)",
+        [conversationId, replyText(ai.result)],
+    );
+    await db.execute('UPDATE conversations SET updated_at = NOW() WHERE id = ?', [conversationId]);
+    const [rows] = await db.execute(
+        'SELECT id, sender, body, created_at AS createdAt FROM conversation_messages WHERE id = ?',
+        [result.insertId],
+    );
+
+    return {
+        pending: true,
+        message: rows[0],
+        triage: {
+            urgency: ai.result.suggested_urgency,
+            redFlags: ai.result.red_flags_identified,
+            specialties: ai.result.recommended_specialties,
+            careAdvice: ai.result.care_advice,
+            outputValid: ai.output_valid === true,
+            ...(image && { imageQuality: ai.result.image_quality }),
+        },
+    };
+}
+
+// Updates the conversation's title, pinned, and archived status
+export async function UpdateConversation(userId, conversationId, { title, pinned, archived }) {
+    const sets = [];
+    const params = [];
+    if (title !== undefined) { sets.push('title = ?'); params.push(title.trim()); }
+    if (pinned !== undefined) {
+        sets.push(pinned ? 'pinned_at = COALESCE(pinned_at, NOW())' : 'pinned_at = NULL');
+        if (pinned && archived === undefined) sets.push('archived_at = NULL');
+    }
+    if (archived !== undefined) {
+        sets.push(archived ? 'archived_at = COALESCE(archived_at, NOW())' : 'archived_at = NULL');
+        if (archived && pinned === undefined) sets.push('pinned_at = NULL');
+    }
+    sets.push('updated_at = updated_at');
+
+    const [result] = await db.execute(
+        `UPDATE conversations SET ${sets.join(', ')} WHERE id = ? AND user_id = ?`,
+        [...params, conversationId, userId],
+    );
+    if (result.affectedRows === 0) return null;
+
+    const [rows] = await db.execute(
+        `SELECT id, title, pinned_at IS NOT NULL AS pinned, archived_at IS NOT NULL AS archived,
+                created_at AS createdAt, updated_at AS updatedAt
+           FROM conversations WHERE id = ? AND user_id = ?`,
+        [conversationId, userId],
+    );
+    const row = rows[0];
+    return row ? { ...row, pinned: Boolean(row.pinned), archived: Boolean(row.archived) } : null;
 }
 
 export async function DeleteConversation(userId, conversationId) {
@@ -295,10 +424,7 @@ export async function DeleteConversation(userId, conversationId) {
     return result.affectedRows > 0;
 }
 
-// ---------------------------------------------------------------------------
-// Privacy: consents and data requests
-// ---------------------------------------------------------------------------
-
+// Consents and data requests
 const DEFAULT_CONSENTS = { routing: true, staff: true, history: false, reminders: true };
 
 export async function GetConsents(userId) {
@@ -318,7 +444,6 @@ export async function GetConsents(userId) {
     };
 }
 
-// `routing` is required for the service and cannot be turned off.
 export async function UpdateConsents(userId, { staff, history, reminders }) {
     await db.execute(
         `INSERT INTO patient_consents (user_id, routing, staff_review, history_personalization, reminders)

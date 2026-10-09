@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { PngIcon, ChatIcon, ChevronLeftIcon, MoreIcon, HelpIcon, CloseIcon } from '../common/Icons'
+import DeleteConversationModal from './DeleteConversationModal'
 
 import scheduleIcon from '../../assets/icons/schedule.png'
 import notificationIcon from '../../assets/icons/notification.png'
@@ -29,11 +30,9 @@ const PatientSidebar = ({
   activeId,
   onNewConversation,
   onSelectConversation,
-<<<<<<< HEAD
   onUpdateConversation,
-=======
   onDeleteConversation,
->>>>>>> 1936436307949cccdd901a1cc6c35d360653ae72
+  conversationError = '',
   darkMode,
   onToggleDark,
   onLogout,
@@ -42,21 +41,19 @@ const PatientSidebar = ({
   const [query, setQuery] = useState('')
   const [openMenuId, setOpenMenuId] = useState(null)
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 })
+  const [showArchived, setShowArchived] = useState(false)
+  const [pendingDelete, setPendingDelete] = useState(null)
   const navigate = useNavigate()
   const onProfile = useLocation().pathname.startsWith('/patient/profile')
 
   const filtered = conversations.filter((c) =>
     c.title.toLowerCase().includes(query.trim().toLowerCase())
   )
-<<<<<<< HEAD
   const pinned = filtered.filter((c) => c.pinned && !c.archived)
   const recent = filtered.filter((c) => !c.pinned && !c.archived)
-  const groups = ['Today', 'Yesterday', 'Previous 7 days']
-    .map((label) => ({ label, items: recent.filter((c) => c.group === label) }))
-=======
+  const archived = filtered.filter((c) => c.archived)
   const groups = ['Today', 'Yesterday', 'Previous 7 days', 'Older']
-    .map((label) => ({ label, items: filtered.filter((c) => c.group === label) }))
->>>>>>> 1936436307949cccdd901a1cc6c35d360653ae72
+    .map((label) => ({ label, items: recent.filter((c) => c.group === label) }))
     .filter((g) => g.items.length > 0)
 
   const closeMenu = () => setOpenMenuId(null)
@@ -67,7 +64,7 @@ const PatientSidebar = ({
     }
 
     const rect = event.currentTarget.getBoundingClientRect()
-    const menuHeight = 92
+    const menuHeight = 128
     const menuWidth = 156
     const spaceBelow = window.innerHeight - rect.bottom
     const top = spaceBelow >= menuHeight + 8
@@ -88,6 +85,10 @@ const PatientSidebar = ({
   const toggleArchived = (conversation) => {
     onUpdateConversation(conversation.id, { archived: !conversation.archived, pinned: false })
     closeMenu()
+  }
+  const deleteConversation = (conversation) => {
+    closeMenu()
+    setPendingDelete(conversation)
   }
 
   const renderConversation = (conversation) => (
@@ -116,13 +117,19 @@ const PatientSidebar = ({
               role="menu"
               style={{ position: 'fixed', top: menuPosition.top, left: menuPosition.left }}
             >
-              <button role="menuitem" onClick={() => togglePinned(conversation)}>
-                <span aria-hidden="true">{conversation.pinned ? '' : ''}</span>
-                {conversation.pinned ? 'Unpin' : 'Pin'}
-              </button>
+              {!conversation.archived && (
+                <button role="menuitem" onClick={() => togglePinned(conversation)}>
+                  <span aria-hidden="true">📌</span>
+                  {conversation.pinned ? 'Unpin' : 'Pin'}
+                </button>
+              )}
               <button role="menuitem" onClick={() => toggleArchived(conversation)}>
                 <span aria-hidden="true">▣</span>
                 {conversation.archived ? 'Unarchive' : 'Archive'}
+              </button>
+              <button role="menuitem" onClick={() => deleteConversation(conversation)}>
+                <CloseIcon width={12} height={12} aria-hidden="true" />
+                Delete
               </button>
             </div>
           </>
@@ -132,6 +139,7 @@ const PatientSidebar = ({
   )
 
   return (
+    <>
     <aside className={`${SidebarStyle['sidebar']} ${collapsed ? SidebarStyle['sidebar--collapsed'] : ''} ${mobileOpen ? SidebarStyle['sidebar--open'] : ''}`}>
       <div className={SidebarStyle['sidebar__brand']}>
         <span className={SidebarStyle['logo-mark']}>
@@ -197,45 +205,37 @@ const PatientSidebar = ({
         )}
 
         <div className={SidebarStyle['convo-list']}>
-<<<<<<< HEAD
           {groups.map((group) => (
             <div key={group.label}>
               <h3 className={SidebarStyle['convo-group']}>{group.label}</h3>
               {group.items.map(renderConversation)}
-=======
-          {conversations.length === 0 && (
-            <h3 className={SidebarStyle['convo-group']}>No conversations yet</h3>
-          )}
-          {groups.map((g) => (
-            <div key={g.label}>
-              <h3 className={SidebarStyle['convo-group']}>{g.label}</h3>
-              {g.items.map((c) => (
-                <div
-                  key={c.id}
-                  className={`${SidebarStyle['convo']} ${c.id === activeId ? SidebarStyle['convo--active'] : ''}`}
-                >
-                  <button className={SidebarStyle['convo__title']} onClick={() => onSelectConversation(c.id)}>
-                    {c.title}
-                  </button>
-                  <button
-                    className={SidebarStyle['icon-btn']}
-                    aria-label={`Delete conversation "${c.title}"`}
-                    title="Delete conversation"
-                    onClick={() => {
-                      if (window.confirm(`Delete "${c.title}"? This cannot be undone.`)) onDeleteConversation(c.id)
-                    }}
-                  >
-                    <CloseIcon width={14} height={14} />
-                  </button>
-                </div>
-              ))}
->>>>>>> 1936436307949cccdd901a1cc6c35d360653ae72
             </div>
           ))}
           {recent.length === 0 && pinned.length === 0 && (
-            <p className={SidebarStyle['convo-empty']}>No conversations found.</p>
+            <p className={SidebarStyle['convo-empty']}>
+              {conversations.length === 0 ? 'No conversations yet.' : 'No conversations found.'}
+            </p>
           )}
         </div>
+
+        {archived.length > 0 && (
+          <section className={SidebarStyle['convo-section']} aria-label="Archived conversations">
+            <button
+              className={SidebarStyle['convo-archive-toggle']}
+              onClick={() => setShowArchived((v) => !v)}
+              aria-expanded={showArchived}
+            >
+              <span aria-hidden="true">▣</span>
+              Archived ({archived.length})
+              <span aria-hidden="true" className={SidebarStyle['convo-archive-caret']}>{showArchived ? '▾' : '▸'}</span>
+            </button>
+            {showArchived && <div className={SidebarStyle['convo-list']}>{archived.map(renderConversation)}</div>}
+          </section>
+        )}
+
+        {conversationError && (
+          <p className={SidebarStyle['convo-error']} role="alert">{conversationError}</p>
+        )}
       </div>
 
       <div className={SidebarStyle['sidebar__footer']}>
@@ -255,9 +255,14 @@ const PatientSidebar = ({
         </button>
 
         <div className={SidebarStyle['footer-row']}>
-          <button className={`${SidebarStyle['nav-item']} ${SidebarStyle['nav-item--small']}`} onClick={onToggleDark}>
+          <button
+            className={`${SidebarStyle['nav-item']} ${SidebarStyle['nav-item--small']}`}
+            onClick={onToggleDark}
+            aria-pressed={darkMode}
+            aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
             <PngIcon src={moonIcon} size={15} className={SidebarStyle['icon-muted']} />
-            <span className={SidebarStyle['hide-collapsed']}>{darkMode ? '' : ''}</span>
+            <span className={SidebarStyle['hide-collapsed']}>{darkMode ? 'Light mode' : 'Dark mode'}</span>
           </button>
           <span className={`${SidebarStyle['footer-row__actions']} ${SidebarStyle['hide-collapsed']}`}>
             <button className={SidebarStyle['icon-btn']} aria-label="Help">
@@ -270,6 +275,15 @@ const PatientSidebar = ({
         </div>
       </div>
     </aside>
+
+    {pendingDelete && (
+      <DeleteConversationModal
+        conversation={pendingDelete}
+        onConfirm={onDeleteConversation}
+        onClose={() => setPendingDelete(null)}
+      />
+    )}
+    </>
   )
 }
 

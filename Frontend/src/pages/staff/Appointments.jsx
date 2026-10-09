@@ -5,11 +5,11 @@ import settingsIcon from "../../assets/icons/settings.png";
 import StaffStyle from "../../assets/styles/Staff.module.css";
 
 const initialAppointments = [
-  { id: 1, patient: "Sofia Reyes", pid: "P-8821", ref: "HL-250624-8821", doctor: "Dr. Maria Santos", specialty: "Internal Medicine", department: "Internal Medicine", when: "Jun 25 · 9:30 AM", source: "AI Intake", status: "Pending Review" },
-  { id: 2, patient: "Luis Garcia", pid: "P-8819", ref: "HL-250624-8819", doctor: "Dr. Daniel Reyes", specialty: "Family Medicine", department: "Primary Care", when: "Jun 25 · 10:00 AM", source: "Patient Portal", status: "Confirmed" },
-  { id: 3, patient: "Amelia Torres", pid: "P-8814", ref: "HL-250624-8814", doctor: "Dr. Angela Cruz", specialty: "Pediatrics", department: "Pediatrics", when: "Jun 25 · 10:30 AM", source: "Front Desk", status: "Checked In" },
-  { id: 4, patient: "Noel Bautista", pid: "P-8807", ref: "HL-250624-8807", doctor: "Unassigned", specialty: "Neurology", department: "Neurology", when: "Jun 25 · 11:00 AM", source: "AI Intake", status: "Pending Review" },
-  { id: 5, patient: "Clara Ramos", pid: "P-8798", ref: "HL-250624-8798", doctor: "Dr. Maria Santos", specialty: "Internal Medicine", department: "Internal Medicine", when: "Jun 25 · 1:30 PM", source: "Patient Portal", status: "Completed" },
+  { id: 1, patient: "Sofia Reyes", pid: "P-8821", ref: "MS-250624-8821", doctor: "Dr. Maria Santos", specialty: "Internal Medicine", department: "Internal Medicine", when: "Jun 25 · 9:30 AM", source: "AI Intake", status: "Pending Review" },
+  { id: 2, patient: "Luis Garcia", pid: "P-8819", ref: "MS-250624-8819", doctor: "Dr. Daniel Reyes", specialty: "Family Medicine", department: "Primary Care", when: "Jun 25 · 10:00 AM", source: "Patient Portal", status: "Confirmed" },
+  { id: 3, patient: "Amelia Torres", pid: "P-8814", ref: "MS-250624-8814", doctor: "Dr. Angela Cruz", specialty: "Pediatrics", department: "Pediatrics", when: "Jun 25 · 10:30 AM", source: "Front Desk", status: "Checked In" },
+  { id: 4, patient: "Noel Bautista", pid: "P-8807", ref: "MS-250624-8807", doctor: "Unassigned", specialty: "Neurology", department: "Neurology", when: "Jun 25 · 11:00 AM", source: "AI Intake", status: "Pending Review" },
+  { id: 5, patient: "Clara Ramos", pid: "P-8798", ref: "MS-250624-8798", doctor: "Dr. Maria Santos", specialty: "Internal Medicine", department: "Internal Medicine", when: "Jun 25 · 1:30 PM", source: "Patient Portal", status: "Completed" },
 ];
 
 const samplePatients = [
@@ -65,7 +65,7 @@ export default function Appointments() {
         id: Date.now(),
         patient: known ? known.name : form.patient.trim(),
         pid: known ? known.pid : `P-${number}`,
-        ref: `HL-250624-${number}`,
+        ref: `MS-250624-${number}`,
         doctor: doc.name,
         specialty: doc.specialty,
         department: doc.department,
@@ -190,7 +190,7 @@ function NewAppointmentModal({ onClose, onCreate }) {
       <div className={StaffStyle['st-modal']} role="dialog" aria-modal="true" aria-labelledby="new-appt-title">
         <header className={StaffStyle['st-modal__head']}>
           <div>
-            <p className={StaffStyle['st-modal__brand']}>HealthLocal AI</p>
+            <p className={StaffStyle['st-modal__brand']}>MediSync AI</p>
             <h2 id="new-appt-title" className={StaffStyle['st-modal__title']}>New appointment</h2>
           </div>
           <button type="button" className={StaffStyle['st-modal__close']} onClick={onClose} aria-label="Close">✕</button>

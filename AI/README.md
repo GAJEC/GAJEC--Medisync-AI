@@ -1,6 +1,7 @@
-# Local AI inference service
+# MediSync AI: local inference service (Syncia)
 
-This service runs MedGemma, Whisper Small, and optional MERaLiON locally. It
+Syncia is the patient-facing name of the MediSync AI assistant. This service powers it by running
+MedGemma, Whisper Small, and optional MERaLiON locally. It
 does not download models or call hosted inference services at runtime. Models
 load only from `AI/weights` (or an explicitly configured local weights path).
 All red-flag rules and prompt templates are local files.

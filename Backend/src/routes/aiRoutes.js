@@ -1,3 +1,4 @@
+// Direct access to Syncia (the MediSync AI assistant) for signed-in users: /api/ai/*.
 import {
   chatWithAI,
   getAIModelStatus,

@@ -38,3 +38,22 @@
   --shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
   --icon-filter: invert(1) brightness(1.1);
 }
+
+/* Light / dark switch animation (see animateTheme in src/auth/AuthContext.jsx).
+   The new theme is revealed in a growing circle from the toggle; the old snapshot stays put. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+::view-transition-new(root) { z-index: 2; }
+::view-transition-old(root) { z-index: 1; }
+
+/* Fallback for browsers without View Transitions: crossfade colours briefly. */
+:root.theme-fade,
+:root.theme-fade *,
+:root.theme-fade *::before,
+:root.theme-fade *::after {
+  transition: background-color 0.4s ease, border-color 0.4s ease, color 0.4s ease, fill 0.4s ease,
+    box-shadow 0.4s ease !important;
+}

@@ -30,3 +30,8 @@ export const CORS_ORIGINS = (process.env.CORS_ORIGINS || 'http://localhost:5173'
     .split(',')
     .map((origin) => origin.trim())
     .filter(Boolean);
+
+export const AI_CONFIG = {
+    serviceUrl: (process.env.AI_SERVICE_URL || 'http://127.0.0.1:8001').replace(/\/+$/, ''),
+    internalToken: process.env.AI_INTERNAL_TOKEN || '',
+};

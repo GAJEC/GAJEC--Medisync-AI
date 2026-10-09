@@ -21,15 +21,12 @@ async function verify(request, reply) {
     return true;
 }
 
-// Requires a valid JWT. On success, the token payload ({ id, email, role, sid }) is on request.user.
-//   fastify.get('/me', { preHandler: authenticate }, handler)
+// Authenticates the request by verifying the JWT and session
 export async function authenticate(request, reply) {
     await verify(request, reply);
 }
 
-// Requires a valid JWT AND one of the given roles.
-//   fastify.get('/patients', { preHandler: authorize('staff') }, handler)
-//   fastify.addHook('preHandler', authorize('staff'))   // whole plugin
+// Validates the JWT and checks that the user has one of the specified roles
 export function authorize(...roles) {
     return async function (request, reply) {
         if (!(await verify(request, reply))) return;

@@ -1,4 +1,4 @@
-import { Login, Register, GetUserById, ChangePassword } from '../controllers/authController.js';
+import { Login, Register, GetUserById, ChangePassword, UpdateTheme } from '../controllers/authController.js';
 import { authenticate } from '../middlewares/middleware.js';
 import {
   NewSessionId,
@@ -41,6 +41,15 @@ const changePasswordSchema = {
       currentPassword: { type: 'string', minLength: 1, maxLength: 128 },
       newPassword: { type: 'string', minLength: 8, maxLength: 128 },
     },
+  },
+};
+
+const themeSchema = {
+  body: {
+    type: 'object',
+    required: ['theme'],
+    additionalProperties: false,
+    properties: { theme: { type: 'string', enum: ['light', 'dark'] } },
   },
 };
 
@@ -92,6 +101,19 @@ export default async function authRoutes(fastify) {
       return { user };
     } catch (error) {
       request.log.error(error, 'Fetching current user failed');
+      return reply.code(500).send({ error: 'Internal server error' });
+    }
+  });
+
+  // Saves the light / dark appearance for the signed-in account (any role).
+  fastify.put('/theme', { preHandler: authenticate, schema: themeSchema }, async (request, reply) => {
+    try {
+      if (!(await UpdateTheme(request.user.id, request.body.theme))) {
+        return reply.code(404).send({ error: 'User not found' });
+      }
+      return { message: 'Appearance saved', theme: request.body.theme };
+    } catch (error) {
+      request.log.error(error, 'Saving theme failed');
       return reply.code(500).send({ error: 'Internal server error' });
     }
   });

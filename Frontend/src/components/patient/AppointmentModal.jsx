@@ -53,7 +53,7 @@ const AppointmentModal = ({ appointment, onClose, onBookAgain, onCancel }) => {
       >
         <header className={ModalStyle['modal__head']}>
           <div>
-            <p className={ModalStyle['modal__eyebrow']}>HealthLocal AI</p>
+            <p className={ModalStyle['modal__eyebrow']}>MediSync AI</p>
             <h2 id="modal-title" className={ModalStyle['modal__title']}>{appointment.ref}</h2>
           </div>
           <button className={SidebarStyle['icon-btn']} onClick={onClose} aria-label="Close">

@@ -20,6 +20,7 @@ import nextIcon from '../../assets/icons/next.png'
 import aiIcon from '../../assets/icons/ai.png'
 
 import { patientApi } from '../../api/client'
+import { AssistantAvatar, AssistantThinking, TypewriterText } from '../../components/patient/AssistantTyping'
 
 import HomeStyle from '../../assets/styles/home.module.css'
 import SidebarStyle from '../../assets/styles/sidebar.module.css'
@@ -31,9 +32,12 @@ const SUGGESTIONS = [
   { icon: scheduleIcon, text: 'I want to book a follow-up appointment.' },
 ]
 
-const MAX_FILES = 5
+// Limits match the AI service (AI/app/media.py, AI/app/config.py):
+// MedGemma analyses one JPEG/PNG/WebP photo up to 10 MB; Whisper takes up to 120 s of audio.
+const MAX_FILES = 1
 const MAX_MB = 10
 const MAX_RECORD_S = 120
+const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp']
 
 const formatTime = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
 
@@ -42,12 +46,21 @@ const Home = () => {
   const [message, setMessage] = useState('')
   const [loaded, setLoaded] = useState({ id: null, messages: [] })
   const [sending, setSending] = useState(false)
+  const [thinking, setThinking] = useState(false)
+  const [triage, setTriage] = useState(null)
   const [attachments, setAttachments] = useState([])
+  const [sentFiles, setSentFiles] = useState({})
   const [menuOpen, setMenuOpen] = useState(false)
   const [recording, setRecording] = useState(false)
   const [seconds, setSeconds] = useState(0)
   const [error, setError] = useState('')
+  const [notice, setNotice] = useState('')
+  const [pendingImage, setPendingImage] = useState(null)
+  const [transcribing, setTranscribing] = useState(false)
+  const [typingId, setTypingId] = useState(null)
 
+  const threadRef = useRef(null)
+  const stickRef = useRef(true)
   const menuRef = useRef(null)
   const fileRef = useRef(null)
   const recorderRef = useRef(null)
@@ -57,8 +70,11 @@ const Home = () => {
   const discardRef = useRef(false)
   const attachmentsRef = useRef([])
   attachmentsRef.current = attachments
+  const sentFilesRef = useRef({})
+  useEffect(() => {
+    sentFilesRef.current = sentFiles
+  }, [sentFiles])
 
-  // Close the attach menu on outside click or Escape
   useEffect(() => {
     if (!menuOpen) return
     const onDown = (e) => {
@@ -73,12 +89,10 @@ const Home = () => {
     }
   }, [menuOpen])
 
-  // Auto-stop long recordings
   useEffect(() => {
     if (recording && seconds >= MAX_RECORD_S) stopRecording()
   }, [recording, seconds])
 
-  // Cleanup on leaving the page
   useEffect(() => {
     return () => {
       clearInterval(timerRef.current)
@@ -86,6 +100,7 @@ const Home = () => {
       if (recorderRef.current?.state === 'recording') recorderRef.current.stop()
       streamRef.current?.getTracks().forEach((t) => t.stop())
       attachmentsRef.current.forEach((a) => URL.revokeObjectURL(a.url))
+      Object.values(sentFilesRef.current).flat().forEach((a) => URL.revokeObjectURL(a.url))
     }
   }, [])
 
@@ -96,8 +111,12 @@ const Home = () => {
 
     for (const file of Array.from(fileList)) {
       if (next.length >= room) {
-        problem = `You can attach up to ${MAX_FILES} files.`
+        problem = 'You can attach one photo per message.'
         break
+      }
+      if (!IMAGE_TYPES.includes(file.type)) {
+        problem = `${file.name} is not a JPEG, PNG or WebP photo.`
+        continue
       }
       if (file.size > MAX_MB * 1024 * 1024) {
         problem = `${file.name} is larger than ${MAX_MB} MB.`
@@ -126,7 +145,25 @@ const Home = () => {
 
   const onPickFiles = (e) => {
     addFiles(e.target.files)
-    e.target.value = '' // allow picking the same file again
+    e.target.value = ''
+  }
+
+  const transcribeRecording = async (audio) => {
+    setTranscribing(true)
+    setError('')
+    try {
+      const { text, warnings } = await patientApi.transcribe(token, audio)
+      if (!text.trim()) {
+        setError(warnings?.[warnings.length - 1] || 'No speech was recognised. Please try again.')
+        return
+      }
+      setMessage((current) => [current.trim(), text.trim()].filter(Boolean).join(' ').slice(0, 4000))
+      setNotice('Check the transcript before sending. Speech recognition can mishear words.')
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setTranscribing(false)
+    }
   }
 
   const startRecording = async () => {
@@ -155,7 +192,7 @@ const Home = () => {
         if (discardRef.current) return
         const type = recorder.mimeType || 'audio/webm'
         const ext = type.includes('mp4') ? 'm4a' : type.includes('ogg') ? 'ogg' : 'webm'
-        addFiles([new File(chunksRef.current, `voice-note-${Date.now()}.${ext}`, { type })])
+        transcribeRecording(new File(chunksRef.current, `voice-note-${Date.now()}.${ext}`, { type }))
       }
 
       recorder.start()
@@ -178,8 +215,22 @@ const Home = () => {
     stopRecording()
   }
 
-  // Messages of the conversation picked in the sidebar; empty for a new conversation
   const thread = activeConversationId && loaded.id === activeConversationId ? loaded.messages : []
+
+  const onThreadScroll = () => {
+    const el = threadRef.current
+    if (el) stickRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80
+  }
+
+  const scrollToBottom = (smooth = false) => {
+    const el = threadRef.current
+    if (el && stickRef.current) el.scrollTo({ top: el.scrollHeight, behavior: smooth ? 'smooth' : 'auto' })
+  }
+
+  useEffect(() => {
+    const el = threadRef.current
+    if (el && stickRef.current) el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' })
+  }, [thread.length, thinking, loaded.id])
 
   useEffect(() => {
     if (!activeConversationId) return
@@ -193,35 +244,76 @@ const Home = () => {
     }
   }, [token, activeConversationId])
 
-  const send = async (text) => {
-    const value = text.trim()
-    if (sending) return
-    if (!value) {
-      if (attachments.length) setError('Add a short description to go with your attachments.')
-      return
-    }
-    // Attachments are not uploaded yet: there is no file endpoint on the backend.
-    setSending(true)
+  const askAssistant = async (conversationId, image) => {
+    const progressId = crypto.randomUUID()
+    setThinking(progressId)
     setError('')
     try {
-      if (activeConversationId) {
-        const { message: saved } = await patientApi.sendMessage(token, activeConversationId, value)
+      const { message: reply, triage: result } = await patientApi.requestReply(token, conversationId, image, progressId)
+      setTypingId(reply.id)
+      setLoaded((l) => (l.id === conversationId ? { ...l, messages: [...l.messages, reply] } : l))
+      setTriage({ conversationId, ...result })
+      setPendingImage(null)
+      reloadConversations()
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setThinking(false)
+    }
+  }
+
+  const send = async (text) => {
+    const value = text.trim()
+    if (sending || thinking || transcribing) return
+    if (!value) {
+      if (attachments.length) setError('Describe what the photo shows or how you feel, then send.')
+      return
+    }
+    const image = attachments.find((a) => a.kind === 'image')?.file || null
+    setSending(true)
+    setError('')
+    setNotice('')
+    stickRef.current = true
+    let conversationId = activeConversationId
+    let savedId
+    try {
+      if (conversationId) {
+        const { message: saved } = await patientApi.sendMessage(token, conversationId, value)
+        savedId = saved.id
         setLoaded((l) => ({ ...l, messages: [...l.messages, saved] }))
       } else {
         const { conversation } = await patientApi.startConversation(token, value)
+        conversationId = conversation.id
+        savedId = conversation.messages[conversation.messages.length - 1]?.id
         setLoaded({ id: conversation.id, messages: conversation.messages })
         setActiveConversationId(conversation.id)
       }
       reloadConversations()
       setMessage('')
-      attachments.forEach((a) => URL.revokeObjectURL(a.url))
+      if (attachments.length && savedId != null) {
+        const files = attachments.map(({ id, kind, url, file }) => ({ id, kind, url, name: file.name }))
+        setSentFiles((map) => ({ ...map, [savedId]: files }))
+      } else {
+        attachments.forEach((a) => URL.revokeObjectURL(a.url))
+      }
       setAttachments([])
     } catch (err) {
       setError(err.message)
-    } finally {
       setSending(false)
+      return
     }
+    setSending(false)
+    setPendingImage(image ? { conversationId, file: image } : null)
+    await askAssistant(conversationId, image)
   }
+
+  const retryReply = () => {
+    const image = pendingImage?.conversationId === activeConversationId ? pendingImage.file : null
+    askAssistant(activeConversationId, image)
+  }
+
+  const awaitingReply = thread.length > 0 && thread[thread.length - 1].sender === 'patient'
+  const shownTriage = triage && triage.conversationId === activeConversationId ? triage : null
 
   return (
     <>
@@ -240,17 +332,72 @@ const Home = () => {
       </header>
 
       {thread.length > 0 ? (
-        <main className={HomeStyle['thread']} aria-live="polite">
-          {thread.map((m) => (
-            <div
-              key={m.id}
-              className={`${HomeStyle['bubble']} ${m.sender === 'patient' ? HomeStyle['bubble--me'] : ''}`}
-            >
-              {m.body}
+        <main className={HomeStyle['thread']} ref={threadRef} onScroll={onThreadScroll} aria-live="polite">
+          {thread.map((m) => {
+            const files = sentFiles[m.id]
+            const mine = m.sender === 'patient'
+            if (!mine) {
+              return (
+                <div key={m.id} className={`${HomeStyle['msg']} ${HomeStyle['msg--ai']} ${HomeStyle['msg--enter']}`}>
+                  <AssistantAvatar />
+                  <div className={HomeStyle['bubble']}>
+                    <span className={HomeStyle['sr-only']}>Syncia: </span>
+                    {m.id === typingId ? (
+                      <TypewriterText text={m.body} onProgress={scrollToBottom} onDone={() => setTypingId(null)} />
+                    ) : (
+                      m.body
+                    )}
+                  </div>
+                </div>
+              )
+            }
+            return (
+              <div key={m.id} className={`${HomeStyle['msg']} ${HomeStyle['msg--me']} ${HomeStyle['msg--enter']}`}>
+                {files?.length > 0 && (
+                  <div className={HomeStyle['msg__files']}>
+                    {files.map((f) =>
+                      f.kind === 'image' ? (
+                        <a key={f.id} href={f.url} target="_blank" rel="noreferrer" className={HomeStyle['msg__image']}>
+                          <img src={f.url} alt={f.name} />
+                        </a>
+                      ) : f.kind === 'audio' ? (
+                        <audio key={f.id} src={f.url} controls className={HomeStyle['msg__audio']} />
+                      ) : (
+                        <a key={f.id} href={f.url} target="_blank" rel="noreferrer" className={HomeStyle['msg__file']}>
+                          <FileTextIcon width={15} height={15} />
+                          <span>{f.name}</span>
+                        </a>
+                      ),
+                    )}
+                  </div>
+                )}
+                <div className={`${HomeStyle['bubble']} ${mine ? HomeStyle['bubble--me'] : ''}`}>{m.body}</div>
+              </div>
+            )
+          })}
+
+          {shownTriage?.urgency === 'emergency' && !typingId && (
+            <div className={HomeStyle['triage-alert']} role="alert">
+              <strong>This may be an emergency.</strong>
+              <span>
+                Contact your local emergency services or go to the nearest emergency department now.
+                {shownTriage.redFlags?.length > 0 && ` Warning signs: ${shownTriage.redFlags.join(', ')}.`}
+              </span>
             </div>
-          ))}
+          )}
+
+          {thinking && (
+            <AssistantThinking key={thinking} token={token} progressId={thinking} withImage={Boolean(pendingImage)} />
+          )}
+
+          {!thinking && !sending && awaitingReply && (
+            <button className={HomeStyle['thread__retry']} onClick={retryReply}>
+              Get Syncia's reply
+            </button>
+          )}
+
           <p className={HomeStyle['thread__note']}>
-            Your message was saved. Syncia's AI replies will appear here once the assistant service is connected.
+            Syncia gives preliminary guidance only. It is not a diagnosis.
           </p>
         </main>
       ) : (
@@ -262,10 +409,10 @@ const Home = () => {
           </span>
         </div>
 
-        <p className={HomeStyle['hero__eyebrow']} >Your care companion</p>
+        <p className={HomeStyle['hero__eyebrow']} >Syncia · Your care companion</p>
         <h1 className={HomeStyle['hero__title']}>Hi {user.name.split(' ')[0] || 'there'}, how are you feeling?</h1>
         <p className={HomeStyle['hero__lead']}>
-          I'm your MediSync AI assistant. I can help you find appropriate care at your
+          I'm Syncia, the MediSync AI care assistant. I can help you find appropriate care at your
           hospital and arrange a visit.
         </p>
 
@@ -295,31 +442,42 @@ const Home = () => {
       )}
 
       <footer className={HomeStyle['composer-wrap']}>
+        {error && <p className={HomeStyle['composer__error']} role="alert">{error}</p>}
+        {!error && notice && <p className={HomeStyle['composer__notice']} role="status">{notice}</p>}
+
+        <div className={HomeStyle['composer-box']}>
         {attachments.length > 0 && (
           <ul className={HomeStyle['attachments']} aria-label="Attachments">
-            {attachments.map((a) => (
-              <li key={a.id} className={HomeStyle['chip']}>
-                {a.kind === 'image' ? (
-                  <img src={a.url} alt="" className={HomeStyle['chip__thumb']} />
-                ) : (
+            {attachments.map((a) =>
+              a.kind === 'image' ? (
+                <li key={a.id} className={HomeStyle['preview']}>
+                  <img src={a.url} alt={a.file.name} className={HomeStyle['preview__img']} />
+                  <button
+                    className={HomeStyle['preview__remove']}
+                    onClick={() => removeAttachment(a.id)}
+                    aria-label={`Remove ${a.file.name}`}
+                  >
+                    <CloseIcon width={12} height={12} />
+                  </button>
+                </li>
+              ) : (
+                <li key={a.id} className={`${HomeStyle['preview']} ${HomeStyle['preview--file']}`}>
                   <span className={HomeStyle['chip__icon']}>
                     {a.kind === 'audio' ? <MicIcon width={15} height={15} /> : <FileTextIcon width={15} height={15} />}
                   </span>
-                )}
-                <span className={HomeStyle['chip__name']}>{a.file.name}</span>
-                <button
-                  className={SidebarStyle['icon-btn']}
-                  onClick={() => removeAttachment(a.id)}
-                  aria-label={`Remove ${a.file.name}`}
-                >
-                  <CloseIcon width={14} height={14} />
-                </button>
-              </li>
-            ))}
+                  <span className={HomeStyle['chip__name']}>{a.file.name}</span>
+                  <button
+                    className={HomeStyle['preview__remove']}
+                    onClick={() => removeAttachment(a.id)}
+                    aria-label={`Remove ${a.file.name}`}
+                  >
+                    <CloseIcon width={12} height={12} />
+                  </button>
+                </li>
+              ),
+            )}
           </ul>
         )}
-
-        {error && <p className={HomeStyle['composer__error']} role="alert">{error}</p>}
 
         <div className={HomeStyle['composer']}>
           {recording ? (
@@ -332,10 +490,14 @@ const Home = () => {
               <button
                 className={`${HomeStyle['composer__send']} ${HomeStyle['composer__send--stop']}`}
                 onClick={stopRecording}
-                aria-label="Stop and attach recording"
+                aria-label="Stop and transcribe recording"
               >
                 <StopIcon width={16} height={16} />
               </button>
+            </>
+          ) : transcribing ? (
+            <>
+              <span className={HomeStyle['rec-time']} role="status">Transcribing your voice note…</span>
             </>
           ) : (
             <>
@@ -362,15 +524,15 @@ const Home = () => {
                     >
                       <span className={HomeStyle['attach__icon']}><UploadIcon width={17} height={17} /></span>
                       <span>
-                        <span className={HomeStyle['attach__title']}>Upload files or images</span>
-                        <span className={HomeStyle['attach__sub']}>JPG, PNG, PDF · up to {MAX_MB} MB</span>
+                        <span className={HomeStyle['attach__title']}>Add a photo</span>
+                        <span className={HomeStyle['attach__sub']}>JPG, PNG, WebP · up to {MAX_MB} MB · Syncia will look at it</span>
                       </span>
                     </button>
                     <button role="menuitem" className={HomeStyle['attach__item']} onClick={startRecording}>
                       <span className={HomeStyle['attach__icon']}><MicIcon width={17} height={17} /></span>
                       <span>
-                        <span className={HomeStyle['attach__title']}>Record audio</span>
-                        <span className={HomeStyle['attach__sub']}>Add a voice note, up to 2 minutes</span>
+                        <span className={HomeStyle['attach__title']}>Speak your message</span>
+                        <span className={HomeStyle['attach__sub']}>Up to 2 minutes · turned into text you can edit</span>
                       </span>
                     </button>
                   </div>
@@ -381,24 +543,26 @@ const Home = () => {
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && send(message)}
-                placeholder="Describe your symptoms or ask about an appointment…"
+                placeholder={thinking ? 'Syncia is replying…' : 'Tell Syncia your symptoms or ask about an appointment…'}
                 maxLength={4000}
-                disabled={sending}
+                disabled={sending || thinking}
               />
               <button
-                className={HomeStyle['composer__send']}
+                className={`${HomeStyle['composer__send']} ${message.trim() && !sending && !thinking ? HomeStyle['composer__send--ready'] : ''}`}
                 onClick={() => send(message)}
-                aria-label="Send"
-                disabled={sending}
+                aria-label={thinking ? 'Waiting for Syncia' : 'Send'}
+                aria-busy={Boolean(sending || thinking)}
+                disabled={sending || thinking || transcribing}
               >
-                <SendIcon width={16} height={16} />
+                {sending || thinking ? <span className={HomeStyle['spinner']} aria-hidden="true" /> : <SendIcon width={16} height={16} />}
               </button>
             </>
           )}
         </div>
+        </div>
 
-        <input ref={fileRef} type="file" hidden multiple accept="image/*,.pdf" onChange={onPickFiles} />
-        <p className={HomeStyle['disclaimer']}>AI guidance does not replace professional medical advice.</p>
+        <input ref={fileRef} type="file" hidden accept="image/jpeg,image/png,image/webp" onChange={onPickFiles} />
+        <p className={HomeStyle['disclaimer']}>Syncia's guidance does not replace professional medical advice.</p>
       </footer>
     </>
   )

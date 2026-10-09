@@ -1,6 +1,7 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import StaffLayoutStyle from "../../assets/styles/StaffLayout.module.css";
 import { useAuth } from "../../auth/AuthContext";
+import { animateTheme, originOf } from "../../auth/theme";
 
 import heartIcon from "../../assets/icons/heart.png";
 import hospitalIcon from "../../assets/icons/hospital.png";
@@ -50,8 +51,20 @@ const currentUser = { name: "Ana Mendoza", role: "Hospital Administrator", initi
 const workspace = "St. Gabriel Medical";
 
 export default function StaffLayout({ onLogout, onToggleTheme, hasNotifications = true }) {
-  const { logout } = useAuth();
+  const { logout, session, setTheme } = useAuth();
   const navigate = useNavigate();
+
+  // Light / dark is saved per account (users.theme). Without a signed-in session (dev preview) it
+  // only switches the page.
+  const toggleTheme = (event) => {
+    if (onToggleTheme) return onToggleTheme();
+    const dark = document.documentElement.dataset.theme === "dark";
+    if (session) {
+      setTheme(dark ? "light" : "dark", originOf(event)).catch(() => {});
+    } else {
+      animateTheme(dark ? "light" : "dark", originOf(event));
+    }
+  };
 
   // The route renders <StaffLayout /> with no props, so logout is handled here.
   const handleLogout = () => {
@@ -68,7 +81,7 @@ export default function StaffLayout({ onLogout, onToggleTheme, hasNotifications 
           <span className={StaffLayoutStyle['sx-brand__logo']}>
             <img src={heartIcon} alt="" className={StaffLayoutStyle['sx-ico']} />
           </span>
-          <span className={StaffLayoutStyle['sx-brand__name']}>HealthLocal <em>AI</em></span>
+          <span className={StaffLayoutStyle['sx-brand__name']}>MediSync <em>AI</em></span>
         </div>
 
         <button className={StaffLayoutStyle['sx-workspace']} type="button">
@@ -125,7 +138,7 @@ export default function StaffLayout({ onLogout, onToggleTheme, hasNotifications 
           <div className={StaffLayoutStyle['sx-header__right']}>
             <span className={StaffLayoutStyle['sx-chip']}>Sample data</span>
 
-            <button type="button" className={StaffLayoutStyle['sx-iconbtn']} onClick={onToggleTheme} aria-label="Toggle dark mode">
+            <button type="button" className={StaffLayoutStyle['sx-iconbtn']} onClick={toggleTheme} aria-label="Toggle dark mode">
               <img src={moonIcon} alt="" className={`${StaffLayoutStyle['sx-ico']} ${StaffLayoutStyle['sx-ico--dark']}`} />
             </button>
 

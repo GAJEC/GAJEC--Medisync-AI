@@ -18,6 +18,7 @@ import nextIcon from "../../assets/icons/next.png";
 const BRAND = {
   name: "MediSync",
   accent: "AI",
+  full: "MediSync AI",
 };
 
 const LOGOS = {
@@ -33,7 +34,7 @@ const LOGOS = {
 const HERO = {
   badge: "AI-guided hospital care",
   title: ["Care starts with", "being heard."],
-  text: "Describe how you feel, find the right hospital doctor, and arrange your visit—all in one secure conversation.",
+  text: "Describe how you feel to Syncia, find the right hospital doctor, and arrange your visit—all in one secure conversation.",
 };
 
 const FEATURES = [
@@ -299,7 +300,7 @@ export default function Login() {
 
           {view === "signin" && (
             <p className={AuthenticationStyle['switch-text']}>
-              New to {BRAND.name}?{" "}
+              New to {BRAND.full}?{" "}
               <button
                 type="button"
                 className={AuthenticationStyle['link-btn']}

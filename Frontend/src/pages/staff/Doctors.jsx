@@ -441,7 +441,7 @@ function DoctorModal({
       >
         <header className={StaffStyle['st-modal__head']}>
           <div>
-            <p className={StaffStyle['st-modal__brand']}>HealthLocal AI</p>
+            <p className={StaffStyle['st-modal__brand']}>MediSync AI</p>
             <h2 id="doctor-modal-title" className={StaffStyle['st-modal__title']}>
               {title}
             </h2>

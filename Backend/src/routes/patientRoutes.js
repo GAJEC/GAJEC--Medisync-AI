@@ -13,14 +13,23 @@ import {
   GetConversation,
   CreateConversation,
   AddConversationMessage,
-  RenameConversation,
+  UpdateConversation,
   DeleteConversation,
+  GenerateAssistantReply,
   GetConsents,
   UpdateConsents,
   CreateDataRequest,
   ListDataRequests,
 } from '../controllers/patientController.js';
 import { authorize } from '../middlewares/middleware.js';
+import {
+  medicalChat,
+  analyzeImage,
+  transcribeAudio,
+  getProgress,
+  AIServiceError,
+  patientMessageFor,
+} from '../services/aiClient.js';
 
 // ---------------------------------------------------------------------------
 // Schemas
@@ -104,13 +113,17 @@ const addMessageSchema = {
   body: createConversationSchema.body,
 };
 
-const renameConversationSchema = {
+const updateConversationSchema = {
   params: idParams,
   body: {
     type: 'object',
-    required: ['title'],
     additionalProperties: false,
-    properties: { title: { type: 'string', minLength: 1, maxLength: 120, pattern: '\\S' } },
+    minProperties: 1,
+    properties: {
+      title: { type: 'string', minLength: 1, maxLength: 120, pattern: '\\S' },
+      pinned: { type: 'boolean' },
+      archived: { type: 'boolean' },
+    },
   },
 };
 
@@ -141,6 +154,74 @@ const dataRequestSchema = {
 };
 
 const dataRequestRateLimit = { max: 5, timeWindow: '1 hour' };
+// One MedGemma reply takes ~45-60 s and the GPU handles one request at a time.
+const aiReplyRateLimit = { max: 8, timeWindow: '1 minute' };
+
+// Upload limits match AI/app/config.py (AI_MAX_IMAGE_BYTES, AI_MAX_AUDIO_BYTES) and AI/app/media.py.
+const IMAGE_MAX_BYTES = 10 * 1024 * 1024;
+const AUDIO_MAX_BYTES = 15 * 1024 * 1024;
+const IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
+
+// The browser picks a random progress id per reply request and polls /ai-progress/:id while it runs.
+// It is prefixed with the user id so a patient can only read progress of their own requests.
+const progressIdPattern = '^[A-Za-z0-9-]{8,40}$';
+const progressQuery = {
+  type: 'object',
+  additionalProperties: false,
+  properties: { progress: { type: 'string', pattern: progressIdPattern } },
+};
+const aiRequestId = (userId, progressId) => `p${userId}-${progressId}`;
+// Polled about once a second during a ~1 minute reply; above the 100/min global limit on purpose.
+const progressRateLimit = { max: 240, timeWindow: '1 minute' };
+
+class UploadError extends Error {
+  constructor(status, message) {
+    super(message);
+    this.status = status;
+  }
+}
+
+// Reads a single uploaded file from a multipart request. Returns { file, fields } where file is
+// { buffer, mimetype, filename } or null when the request is not multipart or has no file.
+async function readUpload(request, fieldName, maxBytes) {
+  if (!request.isMultipart()) return { file: null, fields: {} };
+  const fields = {};
+  let file = null;
+  try {
+    for await (const part of request.parts({ limits: { fileSize: maxBytes, files: 1 } })) {
+      if (part.type === 'file') {
+        if (part.fieldname !== fieldName) {
+          part.file.resume();
+          continue;
+        }
+        const buffer = await part.toBuffer();
+        file = { buffer, mimetype: part.mimetype, filename: part.filename };
+      } else {
+        fields[part.fieldname] = String(part.value ?? '');
+      }
+    }
+  } catch (error) {
+    if (error.code === 'FST_REQ_FILE_TOO_LARGE') {
+      throw new UploadError(413, `The file is larger than ${Math.round(maxBytes / 1024 / 1024)} MB.`);
+    }
+    if (error.code === 'FST_FILES_LIMIT') throw new UploadError(400, 'Attach one file at a time.');
+    throw error;
+  }
+  return { file, fields };
+}
+
+function sendAIFailure(request, reply, error, label) {
+  if (error instanceof UploadError) return reply.code(error.status).send({ error: error.message });
+  if (error instanceof AIServiceError) {
+    request.log.warn({ statusCode: error.status, code: error.code }, `${label} failed`);
+    // 422 = the AI service rejected the patient's input (bad photo, too long, ...): show it as such.
+    // Other 4xx from the AI service are backend/service problems (e.g. wrong token): report 502.
+    const status = error.status === 422 ? 422 : error.status >= 500 ? error.status : 502;
+    return reply.code(status).send({ error: patientMessageFor(error), code: error.code });
+  }
+  request.log.error(error, `${label} failed`);
+  return reply.code(500).send({ error: 'Internal server error' });
+}
 
 // Wraps a handler so unexpected errors are logged and returned as a generic 500.
 const handle = (label, fn) => async (request, reply) => {
@@ -244,11 +325,95 @@ export default async function patientRoutes(fastify) {
     return reply.code(201).send({ message });
   }));
 
-  fastify.patch('/conversations/:id', { schema: renameConversationSchema }, handle('Renaming conversation', async (request, reply) => {
-    if (!(await RenameConversation(request.user.id, request.params.id, request.body.title))) {
-      return reply.code(404).send({ error: 'Conversation not found' });
+  // Asks the AI assistant to answer the patient's latest message(s) and stores the reply.
+  // Send no body for a text reply, or multipart/form-data with an `image` (JPEG/PNG/WebP, max 10 MB)
+  // to have MedGemma look at the photo together with the patient's latest message.
+  fastify.post(
+    '/conversations/:id/reply',
+    { schema: { params: idParams, querystring: progressQuery }, config: { rateLimit: aiReplyRateLimit } },
+    async (request, reply) => {
+      try {
+        const { file: image } = await readUpload(request, 'image', IMAGE_MAX_BYTES);
+        if (image && !IMAGE_TYPES.has(image.mimetype)) {
+          return reply.code(415).send({ error: 'Only JPEG, PNG and WebP photos can be analysed.' });
+        }
+        const progressId = request.query.progress;
+        const result = await GenerateAssistantReply(request.user.id, request.params.id, {
+          chat: medicalChat,
+          analyzeImage,
+          image,
+          requestId: progressId ? aiRequestId(request.user.id, progressId) : request.id,
+        });
+        if (!result) return reply.code(404).send({ error: 'Conversation not found' });
+        if (!result.pending) return reply.code(409).send({ error: 'There is no new message to reply to.' });
+        return reply.code(201).send({ message: result.message, triage: result.triage });
+      } catch (error) {
+        return sendAIFailure(request, reply, error, 'AI reply');
+      }
+    },
+  );
+
+  // Live progress of a reply started with ?progress=<id>. { stage: 'waiting' } until the AI service
+  // starts working on it; afterwards the AI's stage (preparing, queued, reading, writing, checking, done).
+  fastify.get(
+    '/ai-progress/:progressId',
+    {
+      schema: {
+        params: {
+          type: 'object',
+          required: ['progressId'],
+          properties: { progressId: { type: 'string', pattern: progressIdPattern } },
+        },
+      },
+      config: { rateLimit: progressRateLimit },
+    },
+    async (request, reply) => {
+      try {
+        const progress = await getProgress(aiRequestId(request.user.id, request.params.progressId));
+        if (!progress) return { stage: 'waiting' };
+        return {
+          stage: progress.stage,
+          kind: progress.kind,
+          attempt: progress.attempt,
+          tokens: progress.tokens,
+          maxTokens: progress.max_tokens,
+          section: progress.section,
+          elapsedSeconds: progress.elapsed_seconds,
+        };
+      } catch (error) {
+        return sendAIFailure(request, reply, error, 'Progress check');
+      }
+    },
+  );
+
+  // Speech-to-text with Whisper. multipart/form-data: `audio` (webm/ogg/mp4/wav/mp3, max 15 MB, max 120 s)
+  // and optional `language` = auto | en | fil. The transcript is returned for the patient to review;
+  // it is not stored or sent to the assistant automatically.
+  fastify.post('/transcribe', { config: { rateLimit: aiReplyRateLimit } }, async (request, reply) => {
+    try {
+      const { file: audio, fields } = await readUpload(request, 'audio', AUDIO_MAX_BYTES);
+      if (!audio) return reply.code(400).send({ error: 'Attach a voice recording.' });
+      if (!audio.mimetype.startsWith('audio/') && audio.mimetype !== 'video/webm') {
+        return reply.code(415).send({ error: 'The file is not an audio recording.' });
+      }
+      const language = ['auto', 'en', 'fil'].includes(fields.language) ? fields.language : 'auto';
+      const result = await transcribeAudio(audio, language, request.id);
+      return {
+        text: result.text,
+        language: result.language,
+        durationSeconds: result.duration_seconds,
+        warnings: Array.isArray(result.warnings) ? result.warnings : [],
+      };
+    } catch (error) {
+      return sendAIFailure(request, reply, error, 'Transcription');
     }
-    return { message: 'Conversation renamed' };
+  });
+
+  // Rename, pin/unpin, archive/unarchive. Body: any of { title, pinned, archived }.
+  fastify.patch('/conversations/:id', { schema: updateConversationSchema }, handle('Updating conversation', async (request, reply) => {
+    const conversation = await UpdateConversation(request.user.id, request.params.id, request.body);
+    if (!conversation) return reply.code(404).send({ error: 'Conversation not found' });
+    return { message: 'Conversation updated', conversation };
   }));
 
   fastify.delete('/conversations/:id', { schema: { params: idParams } }, handle('Deleting conversation', async (request, reply) => {

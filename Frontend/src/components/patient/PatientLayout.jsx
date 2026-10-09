@@ -3,40 +3,11 @@ import { Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import PatientSidebar from './PatientSidebar'
 import { MenuIcon } from '../common/Icons'
 import { useAuth } from '../../auth/AuthContext'
+import { originOf } from '../../auth/theme'
 import { patientApi } from '../../api/client'
 import HomeStyle from '../../assets/styles/home.module.css'
 import SidebarStyle from '../../assets/styles/sidebar.module.css'
 
-<<<<<<< HEAD
-const USER = { name: 'Sofia Reyes', initials: 'SR', role: 'Patient', id: 'P-20481' }
-
-const INITIAL_CONVERSATIONS = [
-  { id: 1, title: 'Recurring headache concern', group: 'Today', pinned: false, archived: false },
-  { id: 2, title: 'General checkup request', group: 'Yesterday', pinned: false, archived: false },
-  { id: 3, title: 'Follow-up appointment', group: 'Previous 7 days', pinned: false, archived: false },
-]
-
-// Mock data. Replace with your backend later.
-const NOTIFICATIONS = [
-  {
-    id: 1, category: 'appointments', type: 'reminder', read: false, time: 'Just now',
-    title: 'Upcoming appointment reminder',
-    body: 'Your annual checkup is tomorrow at 10:30 AM.',
-  },
-  {
-    id: 2, category: 'appointments', type: 'profile', read: false, time: '2 hours ago',
-    title: 'Complete your patient profile',
-    body: 'Add an emergency contact before your next hospital visit.',
-  },
-  {
-    id: 3, category: 'hospital', type: 'hospital', read: true, time: 'Yesterday',
-    title: 'Hospital hours update',
-    body: 'Outpatient services will follow adjusted hours this Friday.',
-  },
-]
-
-=======
->>>>>>> 1936436307949cccdd901a1cc6c35d360653ae72
 const MOBILE_QUERY = '(max-width: 800px)'
 
 const initialsOf = (name) =>
@@ -75,21 +46,15 @@ const PatientLayout = () => {
 const PatientShell = ({ session }) => {
   const navigate = useNavigate()
   const { pathname } = useLocation()
-  const { logout, updateSessionUser } = useAuth()
+  const { logout, updateSessionUser, setTheme } = useAuth()
   const token = session.token
   const [collapsed, setCollapsed] = useState(false)
-<<<<<<< HEAD
-  const [dark, setDark] = useState(false)
-  const [activeId, setActiveId] = useState(1)
-  const [user, setUser] = useState(USER)
-  const [conversations, setConversations] = useState(INITIAL_CONVERSATIONS)
-  const [notifications, setNotifications] = useState(NOTIFICATIONS)
-=======
-  const [dark, setDark] = useState(() => document.documentElement.dataset.theme === 'dark')
+  // Saved per account in users.theme; applied to the document by AuthContext.
+  const dark = session.theme === 'dark'
   const [activeId, setActiveId] = useState(null)
   const [conversations, setConversations] = useState([])
   const [notifications, setNotifications] = useState([])
->>>>>>> 1936436307949cccdd901a1cc6c35d360653ae72
+  const [sidebarError, setSidebarError] = useState('')
   const [mobile, setMobile] = useState(() => window.matchMedia(MOBILE_QUERY).matches)
   const [menuOpen, setMenuOpen] = useState(false)
 
@@ -107,8 +72,6 @@ const PatientShell = ({ session }) => {
 
   const unreadCount = notifications.filter((n) => !n.read).length
 
-<<<<<<< HEAD
-=======
   // Session was signed out elsewhere or expired: send the user back to login
   const onLoadError = useCallback(
     (err) => {
@@ -172,7 +135,6 @@ const PatientShell = ({ session }) => {
   }, [token, loadNotifications])
 
   // Track the mobile breakpoint
->>>>>>> 1936436307949cccdd901a1cc6c35d360653ae72
   useEffect(() => {
     const mq = window.matchMedia(MOBILE_QUERY)
     const onChange = (e) => {
@@ -194,23 +156,29 @@ const PatientShell = ({ session }) => {
     return () => window.removeEventListener('keydown', onKey)
   }, [menuOpen])
 
-  const toggleDark = () => {
-    const next = !dark
-    setDark(next)
-    document.documentElement.dataset.theme = next ? 'dark' : 'light'
+  // Switches immediately and saves to the account; reverts and shows an error if saving fails.
+  const toggleDark = (event) => {
+    setSidebarError('')
+    setTheme(dark ? 'light' : 'dark', originOf(event)).catch((err) => {
+      setSidebarError(`Appearance not saved: ${err.message}`)
+      onLoadError(err)
+    })
   }
 
-<<<<<<< HEAD
-  const updateUser = (changes) => setUser((u) => ({ ...u, ...changes }))
-
-  const updateConversation = (id, changes) => {
-    setConversations((current) => current.map((conversation) =>
-      conversation.id === id ? { ...conversation, ...changes } : conversation
-    ))
+  // Pin / archive: update the sidebar right away, save to the database, and reload on failure.
+  const updateConversation = async (id, changes) => {
+    setSidebarError('')
+    setConversations((list) => list.map((c) => (c.id === id ? { ...c, ...changes } : c)))
+    try {
+      const { conversation } = await patientApi.updateConversation(token, id, changes)
+      setConversations((list) => list.map((c) => (c.id === id ? { ...c, ...conversation, group: c.group } : c)))
+    } catch (err) {
+      setSidebarError(err.message)
+      onLoadError(err)
+      loadConversations()
+    }
   }
 
-=======
->>>>>>> 1936436307949cccdd901a1cc6c35d360653ae72
   const openConversation = (id) => {
     setActiveId(id)
     setMenuOpen(false)
@@ -223,14 +191,18 @@ const PatientShell = ({ session }) => {
     navigate('/patient/dashboard')
   }
 
+  // Called by the delete confirmation modal; rejects so the modal can show the error.
   const deleteConversation = async (id) => {
+    setSidebarError('')
     try {
       await patientApi.deleteConversation(token, id)
-      if (id === activeId) setActiveId(null)
-      setConversations((list) => list.filter((c) => c.id !== id))
-    } catch {
+    } catch (err) {
+      onLoadError(err)
       loadConversations()
+      throw err
     }
+    if (id === activeId) setActiveId(null)
+    setConversations((list) => list.filter((c) => c.id !== id))
   }
 
   const handleLogout = () => {
@@ -258,14 +230,12 @@ const PatientShell = ({ session }) => {
         onCloseMobile={() => setMenuOpen(false)}
         user={user}
         conversations={conversations}
+        conversationError={sidebarError}
         activeId={activeId}
         onNewConversation={newConversation}
         onSelectConversation={openConversation}
-<<<<<<< HEAD
         onUpdateConversation={updateConversation}
-=======
         onDeleteConversation={deleteConversation}
->>>>>>> 1936436307949cccdd901a1cc6c35d360653ae72
         darkMode={dark}
         onToggleDark={toggleDark}
         onLogout={handleLogout}

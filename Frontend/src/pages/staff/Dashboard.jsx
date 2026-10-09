@@ -28,10 +28,10 @@ const mix = [
 ];
 
 const requests = [
-  { patient: "Sofia Reyes", pid: "P-8821", ref: "HL-250624-8821", doctor: "Dr. Maria Santos", specialty: "Internal Medicine", when: "Jun 25 · 9:30 AM", status: "Pending Review" },
-  { patient: "Luis Garcia", pid: "P-8819", ref: "HL-250624-8819", doctor: "Dr. Daniel Reyes", specialty: "Family Medicine", when: "Jun 25 · 10:00 AM", status: "Confirmed" },
-  { patient: "Amelia Torres", pid: "P-8814", ref: "HL-250624-8814", doctor: "Dr. Angela Cruz", specialty: "Pediatrics", when: "Jun 25 · 10:30 AM", status: "Checked In" },
-  { patient: "Noel Bautista", pid: "P-8807", ref: "HL-250624-8807", doctor: "Unassigned", specialty: "Neurology", when: "Jun 25 · 11:00 AM", status: "Pending Review" },
+  { patient: "Sofia Reyes", pid: "P-8821", ref: "MS-250624-8821", doctor: "Dr. Maria Santos", specialty: "Internal Medicine", when: "Jun 25 · 9:30 AM", status: "Pending Review" },
+  { patient: "Luis Garcia", pid: "P-8819", ref: "MS-250624-8819", doctor: "Dr. Daniel Reyes", specialty: "Family Medicine", when: "Jun 25 · 10:00 AM", status: "Confirmed" },
+  { patient: "Amelia Torres", pid: "P-8814", ref: "MS-250624-8814", doctor: "Dr. Angela Cruz", specialty: "Pediatrics", when: "Jun 25 · 10:30 AM", status: "Checked In" },
+  { patient: "Noel Bautista", pid: "P-8807", ref: "MS-250624-8807", doctor: "Unassigned", specialty: "Neurology", when: "Jun 25 · 11:00 AM", status: "Pending Review" },
 ];
 
 const statusClass = (s) => `${StaffStyle["st-pill"]} ${StaffStyle["st-pill--" + s.toLowerCase().replace(/\s+/g, "-")]}`;

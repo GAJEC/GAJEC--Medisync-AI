@@ -4,7 +4,7 @@ import { verifyPassword, hashPassword, EmailSanitizer } from '../util/checker.js
 // User Authentication Functions
 export async function Login(email, password) {
     email = EmailSanitizer(email);
-    const [rows] = await db.execute('SELECT id, firstname, lastname, email, role, password FROM users WHERE email = ?', [email]);
+    const [rows] = await db.execute('SELECT id, firstname, lastname, email, role, theme, password FROM users WHERE email = ?', [email]);
     if (rows.length === 0) { return { success: false, message: 'Invalid email or password' }; }
 
     const { password: storedHash, ...user } = rows[0];
@@ -23,10 +23,16 @@ export async function Register(firstname, lastname, email, password) {
 
 export async function GetUserById(id) {
     const [rows] = await db.execute(
-        'SELECT id, firstname, lastname, email, role, created_at, password_changed_at FROM users WHERE id = ?',
+        'SELECT id, firstname, lastname, email, role, theme, created_at, password_changed_at FROM users WHERE id = ?',
         [id],
     );
     return rows[0] || null;
+}
+
+// Light / dark appearance for the signed-in account.
+export async function UpdateTheme(userId, theme) {
+    const [result] = await db.execute('UPDATE users SET theme = ? WHERE id = ?', [theme, userId]);
+    return result.affectedRows > 0;
 }
 
 export async function ChangePassword(userId, currentPassword, newPassword) {

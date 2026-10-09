@@ -220,6 +220,14 @@ button.profile--active:hover { background: var(--primary-soft); }
 
 .convo-section { margin-bottom: 10px; }
 .convo-empty { padding: 8px 4px; color: var(--muted); font-size: 12px; }
+.convo-error { margin: 6px 0 0; padding: 0 4px; color: var(--danger); font-size: 12px; }
+.convo-archive-toggle {
+  display: flex; align-items: center; gap: 7px; width: 100%;
+  margin-top: 8px; padding: 6px 4px; border: 0; background: none;
+  color: var(--muted); font: inherit; font-size: 12px; font-weight: 600; text-align: left; cursor: pointer;
+}
+.convo-archive-toggle:hover { color: var(--text); }
+.convo-archive-caret { margin-left: auto; }
 
 /* Keep the active row above neighboring rows while its options are open */
 .convo { position: relative; }

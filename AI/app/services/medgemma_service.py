@@ -14,6 +14,7 @@ from typing import Any
 
 from pydantic import ValidationError
 
+from .. import progress
 from ..errors import ServiceError
 from ..model_manager import inference_slot, oom_guard, resolve_device
 from ..prompts import load_prompt, retry_instruction
@@ -109,6 +110,38 @@ def parse_output(raw: str, model_cls, language: str = "en"):
         uncertainty_note="The model response failed validation; no diagnosis or explanation is provided.",
     )
     return fallback, False
+
+
+class _ProgressStreamer:
+    """transformers streamer that reports generation progress to the request's tracker.
+
+    generate() calls put() once with the prompt ids, then once per generated token, then end().
+    Decoding the tail every few tokens keeps the cost negligible next to a 4B-model forward pass.
+    """
+
+    DECODE_EVERY = 8
+
+    def __init__(self, tokenizer, tracker):
+        self.tokenizer = tokenizer
+        self.tracker = tracker
+        self.prompt_seen = False
+        self.ids: list[int] = []
+
+    def put(self, value):
+        if not self.prompt_seen:  # first call is the prompt
+            self.prompt_seen = True
+            return
+        self.ids.extend(value.reshape(-1).tolist())
+        n = len(self.ids)
+        fields: dict[str, Any] = {"tokens": n}
+        if n == 1 or n % self.DECODE_EVERY == 0:
+            section = progress.current_section(self.tokenizer.decode(self.ids, skip_special_tokens=True))
+            if section:
+                fields["section"] = section
+        self.tracker.set("writing", **fields)
+
+    def end(self):
+        return None
 
 
 class MedGemmaService:
@@ -225,15 +258,19 @@ class MedGemmaService:
 
     # ----------------------------------------------------------------- helpers
     def _generate_validated(self, messages, model_cls, language):
+        tracker = progress.current()
         started = time.perf_counter()
         raw, meta = self._generate(messages)
+        tracker.set("checking")
         out, valid = parse_output(raw, model_cls, language)
         if not valid:
             log.warning("Structured MedGemma output invalid; retrying once")
+            tracker.set("preparing", attempt=2, tokens=0, section=None)
             retry_messages = [dict(message) for message in messages]
             retry_messages[0]["content"] = [dict(part) for part in messages[0]["content"]]
             retry_messages[0]["content"][0]["text"] += "\n\n" + retry_instruction()
             raw, retry_meta = self._generate(retry_messages)
+            tracker.set("checking")
             out, valid = parse_output(raw, model_cls, language)
             meta = {
                 **retry_meta,
@@ -260,6 +297,7 @@ class MedGemmaService:
         import torch
 
         s = self.settings
+        progress.current().set("preparing")
         inputs = self.processor.apply_chat_template(
             messages, add_generation_prompt=True, tokenize=True, return_dict=True, return_tensors="pt"
         )
@@ -277,13 +315,18 @@ class MedGemmaService:
                 moved[k] = v.to(dev)
         inputs = moved
 
+        tracker = progress.current()
+        tracker.set("queued", max_tokens=s.medgemma_max_new_tokens)
         started = time.perf_counter()
         with inference_slot(self.device_name, s.queue_timeout_seconds), oom_guard(), torch.inference_mode():
+            # Holding the GPU: prefill (and the vision encoder for photos) runs until the first token.
+            tracker.set("reading")
             out = self.model.generate(
                 **inputs,
                 max_new_tokens=s.medgemma_max_new_tokens,
                 do_sample=False,
                 repetition_penalty=1.05,
+                streamer=_ProgressStreamer(self.processor.tokenizer, tracker),
             )
         gen = out[0][input_len:]
         text = self.processor.decode(gen, skip_special_tokens=True)
