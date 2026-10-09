@@ -1,0 +1,8 @@
+{"id":"en-emergency-breathing","language":"en","category":"emergency","expected_urgency":"emergency","message":"I cannot breathe right now."}
+{"id":"fil-emergency-chest","language":"fil","category":"emergency","expected_urgency":"emergency","message":"Masakit at mabigat ang dibdib ko ngayon."}
+{"id":"taglish-emergency-stroke","language":"taglish","category":"emergency","expected_urgency":"emergency","message":"Biglang nanghina yung isang side ng katawan ko at nabulol ako ngayon."}
+{"id":"en-urgent-fever","language":"en","category":"urgent","expected_urgency":"urgent","message":"I have had a high fever for three days and it is getting worse."}
+{"id":"fil-urgent-abdominal","language":"fil","category":"urgent","expected_urgency":"urgent","message":"Matindi ang sakit ng tiyan ko at lumalala mula kahapon."}
+{"id":"taglish-routine-cold","language":"taglish","category":"routine","expected_urgency":"routine","message":"May sipon ako at bahagyang ubo, pero nakakakain at nakakainom naman ako."}
+{"id":"en-routine-mild-headache","language":"en","category":"routine","expected_urgency":"routine","message":"I have a mild headache after a long day, with no other symptoms."}
+{"id":"fil-ambiguous-pain","language":"fil","category":"ambiguous","expected_urgency":"urgent","message":"Masakit ang dibdib ko minsan pero hindi ko matandaan kung kailan nagsimula."}

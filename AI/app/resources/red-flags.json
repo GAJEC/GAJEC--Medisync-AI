@@ -1,0 +1,78 @@
+{
+  "version": 1,
+  "review_status": "DRAFT - every rule and translation requires clinician review before clinical use",
+  "rules": [
+    {
+      "id": "chest_pain",
+      "label_en": "Chest pain or pressure",
+      "label_fil": "Pananakit o paninikip ng dibdib",
+      "patterns": {
+        "en": ["\\b(chest pain|pain in (my )?chest|chest pressure|tightness in (my )?chest)\\b"],
+        "fil": ["\\b(pananakit|sakit|masakit|kirot|bigat|paninikip)\\b.{0,28}\\b(dibdib|chest)\\b", "\\b(dibdib|chest)\\b.{0,24}\\b(sakit|masakit|masikip|mabigat)\\b"]
+      }
+    },
+    {
+      "id": "breathing_difficulty",
+      "label_en": "Severe difficulty breathing or not breathing",
+      "label_fil": "Matinding hirap huminga o hindi makahinga",
+      "patterns": {
+        "en": ["\\b(can't breathe|cannot breathe|can't catch my breath|difficulty breathing|trouble breathing|shortness of breath|not breathing|stopped breathing)\\b"],
+        "fil": ["\\b(hirap huminga|nahihirapang huminga|hindi (?:ako )?makahinga|di (?:ako )?makahinga|hinihingal nang matindi|tumigil huminga)\\b"]
+      }
+    },
+    {
+      "id": "stroke_signs",
+      "label_en": "Possible stroke signs",
+      "label_fil": "Mga posibleng senyales ng stroke",
+      "patterns": {
+        "en": ["\\b(face droop|one[- ]sided weakness|weakness on one side|sudden numbness|slurred speech|trouble speaking suddenly|sudden loss of vision)\\b"],
+        "fil": ["\\b(tabingi ang (aking )?mukha|panghihina (ng|sa) (isang bahagi|isang side)|pamamanhid (ng|sa) (isang bahagi|isang side)|biglang (namamanhid|nanghihina|nabulol|nahihirapang magsalita)|bulol bigla)\\b"]
+      }
+    },
+    {
+      "id": "severe_bleeding",
+      "label_en": "Severe or uncontrolled bleeding",
+      "label_fil": "Matindi o hindi mapigil na pagdurugo",
+      "patterns": {
+        "en": ["\\b(severe bleeding|heavy bleeding|uncontrolled bleeding|bleeding won't stop|bleeding a lot|spurting blood)\\b"],
+        "fil": ["\\b(matinding pagdurugo|malakas na pagdurugo|hindi mapigil na pagdurugo|ayaw tumigil (ang )?dugo|dugo nang dugo)\\b"]
+      }
+    },
+    {
+      "id": "loss_of_consciousness",
+      "label_en": "Loss of consciousness or unresponsiveness",
+      "label_fil": "Pagkawala ng malay o hindi pagtugon",
+      "patterns": {
+        "en": ["\\b(passed out|fainted|lost consciousness|unconscious|won't wake up|not waking up|unresponsive)\\b"],
+        "fil": ["\\b(nawalan ng malay|hinimatay|hindi magising|ayaw magising|hindi tumutugon|walang malay)\\b"]
+      }
+    },
+    {
+      "id": "seizure",
+      "label_en": "Seizure",
+      "label_fil": "Kombulsyon o seizure",
+      "patterns": {
+        "en": ["\\b(having a seizure|seizing|convulsing|convulsion|seizure)\\b"],
+        "fil": ["\\b(nagko[- ]?kombulsyon|kombulsyon|nangingisay|seizure)\\b"]
+      }
+    },
+    {
+      "id": "suicidal_thoughts_or_self_harm",
+      "label_en": "Immediate risk of suicide or self-harm",
+      "label_fil": "Agarang panganib ng pagpapakamatay o pananakit sa sarili",
+      "patterns": {
+        "en": ["\\b(suicidal thoughts|want to kill myself|going to kill myself|plan to kill myself|thinking of suicide|hurt myself|harm myself|self[- ]harm)\\b"],
+        "fil": ["\\b(gusto kong magpakamatay|magpapakamatay ako|iniisip kong magpakamatay|saktan ang sarili|sasaktan ko ang sarili ko|magpapakamatay)\\b"]
+      }
+    },
+    {
+      "id": "severe_allergic_reaction",
+      "label_en": "Possible severe allergic reaction",
+      "label_fil": "Posibleng matinding reaksiyong alerhiya",
+      "patterns": {
+        "en": ["\\b(throat (is )?swelling|tongue (is )?swelling|face (is )?swelling|severe allergic reaction|anaphylaxis|can't swallow and swelling)\\b"],
+        "fil": ["\\b(namamaga ang (lalamunan|dila|mukha)|pamamaga ng (lalamunan|dila|mukha)|matinding allergy|anaphylaxis|hirap lumunok at namamaga)\\b"]
+      }
+    }
+  ]
+}

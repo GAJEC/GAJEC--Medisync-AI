@@ -16,64 +16,13 @@ from pydantic import ValidationError
 
 from ..errors import ServiceError
 from ..model_manager import inference_slot, oom_guard, resolve_device
+from ..prompts import load_prompt, retry_instruction
+from ..safety import detect_red_flags, emergency_response
 from ..schemas import ChatOutput, HistoryMessage, ImageOutput, PatientContext
 
 log = logging.getLogger("ai.medgemma")
 
 REQUIRED_FILES = ("config.json", "model.safetensors.index.json", "tokenizer.model", "preprocessor_config.json")
-
-LANG_INSTRUCTION = {
-    "en": "Write all patient-facing text in English.",
-    "fil": "Write all patient-facing text in Filipino (Tagalog); common English medical terms are acceptable.",
-    "auto": "Write patient-facing text in the same language the patient used (English, Filipino, or Taglish).",
-}
-
-CHAT_SYSTEM = """You are a cautious medical triage intake assistant in a decision-support prototype. You are NOT a doctor and you do not diagnose.
-Your tasks: understand the patient's symptoms, ask the most useful follow-up questions, summarise what the patient reported, list possible explanations with honest uncertainty, and suggest an appropriate level of care and relevant medical specialties.
-Rules:
-- Only state facts the patient actually reported in reported_symptoms. Never invent symptoms, test results, or history.
-- Possible explanations are hypotheses, never confirmed diagnoses.
-- If any emergency warning sign is described (e.g. chest pain, trouble breathing, stroke signs, severe bleeding, loss of consciousness, suicidal thoughts), set suggested_urgency to "emergency", list it in red_flags_identified, and tell the patient to seek emergency care now before asking anything else.
-- Ask at most 3 short follow-up questions, only those that would change the advice.
-- Do not recommend specific prescription medicines or doses.
-{lang}
-Respond with ONLY one JSON object, no markdown, using exactly these keys:
-{{
-  "reply": "short, empathetic message to the patient (2-5 sentences)",
-  "symptom_summary": {{"reported_symptoms": ["..."], "duration": "string or null", "relevant_history": ["..."]}},
-  "follow_up_questions": ["..."],
-  "possible_explanations": [{{"condition": "...", "likelihood": "more_likely|possible|less_likely", "rationale": "..."}}],
-  "suggested_urgency": "emergency|urgent|soon|routine|self_care|undetermined",
-  "red_flags_identified": ["..."],
-  "recommended_specialties": ["..."],
-  "care_advice": ["..."],
-  "needs_more_information": true,
-  "uncertainty_note": "what is uncertain and why an in-person examination may be needed"
-}}"""
-
-IMAGE_SYSTEM = """You are a cautious medical image description assistant in a triage decision-support prototype. You are NOT a doctor and you do not diagnose.
-A patient has uploaded a photo or medical image. Describe only what is visible, assess whether the image quality is adequate, and suggest possible explanations with honest uncertainty. A photograph alone cannot confirm a diagnosis.
-Rules:
-- visual_observations must describe visible features only (colour, shape, size relative to surroundings, texture, distribution). Do not name diseases there.
-- Possible explanations are hypotheses, never confirmed diagnoses. Use "less_likely" or "possible" unless the patient's description strongly supports it.
-- If the image is not medical, unclear, or too blurry, say so, set image_quality accordingly, and keep explanations empty.
-- If visible features suggest an emergency (e.g. heavy bleeding, rapidly spreading redness with fever described, blackened tissue), set suggested_urgency to "emergency" and list it in red_flags_identified.
-{lang}
-Respond with ONLY one JSON object, no markdown, using exactly these keys:
-{{
-  "reply": "short message to the patient (2-5 sentences)",
-  "image_quality": "adequate|limited|unusable",
-  "visual_observations": ["..."],
-  "possible_explanations": [{{"condition": "...", "likelihood": "more_likely|possible|less_likely", "rationale": "..."}}],
-  "suggested_urgency": "emergency|urgent|soon|routine|self_care|undetermined",
-  "red_flags_identified": ["..."],
-  "recommended_specialties": ["..."],
-  "care_advice": ["..."],
-  "follow_up_questions": ["..."],
-  "limitations": "why this image-based assessment is limited",
-  "uncertainty_note": "..."
-}}"""
-
 
 def _context_text(ctx: PatientContext | None) -> str:
     if not ctx:
@@ -131,7 +80,7 @@ def extract_json(text: str) -> dict[str, Any] | None:
     return None
 
 
-def parse_output(raw: str, model_cls):
+def parse_output(raw: str, model_cls, language: str = "en"):
     """Validate generated text into model_cls. Returns (output, valid: bool)."""
     obj = extract_json(raw)
     if obj is not None:
@@ -140,11 +89,24 @@ def parse_output(raw: str, model_cls):
         except ValidationError as exc:
             log.warning("MedGemma JSON failed validation: %s", exc.error_count())
     # Fallback: never forward unstructured free text as clinical content.
+    if language == "fil":
+        reply = (
+            "Hindi nakabuo ng maaasahang paunang gabay ang system. "
+            "Magpatingin agad sa healthcare professional; kung malubha o mabilis lumalala ang sintomas, "
+            "humingi ngayon ng emergency care."
+        )
+        advice = ["Magpa-assess agad nang personal; emergency care ngayon kung malubha o lumalala ang sintomas."]
+    else:
+        reply = (
+            "I could not produce reliable preliminary guidance. Please arrange prompt in-person assessment; "
+            "seek emergency care now if symptoms are severe or rapidly worsening."
+        )
+        advice = ["Arrange prompt in-person assessment; seek emergency care now for severe or worsening symptoms."]
     fallback = model_cls(
-        reply="I could not produce a reliable structured assessment for this message. "
-        "Please rephrase or add more detail, or consult a healthcare professional.",
-        suggested_urgency="undetermined",
-        uncertainty_note="The AI output could not be validated, so no possible explanations are shown.",
+        reply=reply,
+        suggested_urgency="urgent",
+        care_advice=advice,
+        uncertainty_note="The model response failed validation; no diagnosis or explanation is provided.",
     )
     return fallback, False
 
@@ -233,29 +195,55 @@ class MedGemmaService:
 
     # ------------------------------------------------------------------ public
     def chat(self, req) -> dict[str, Any]:
+        findings = detect_red_flags(req.message, req.history)
+        if findings:
+            return emergency_response(findings, req.reply_language, ChatOutput)
+
         s = self.settings
-        system = CHAT_SYSTEM.format(lang=LANG_INSTRUCTION[req.reply_language])
+        system = load_prompt("chat-v1.txt", req.reply_language)
         turns = normalize_history(req.history, s.medgemma_max_history_messages, s.medgemma_max_input_chars)
         user_text = _context_text(req.patient_context) + "Patient message:\n" + req.message[: s.medgemma_max_input_chars]
         messages = self._messages(system, turns, user_text, image=None)
-        raw, meta = self._generate(messages)
-        out, valid = parse_output(raw, ChatOutput)
+        out, valid, meta = self._generate_validated(messages, ChatOutput, req.reply_language)
         return {"result": out.model_dump(), "output_valid": valid, "meta": meta}
 
     def analyze_image(self, image, ctx) -> dict[str, Any]:
+        findings = detect_red_flags(ctx.description, ctx.history)
+        if findings:
+            return emergency_response(findings, ctx.reply_language, ImageOutput)
+
         s = self.settings
-        system = IMAGE_SYSTEM.format(lang=LANG_INSTRUCTION[ctx.reply_language])
+        system = load_prompt("image-v1.txt", ctx.reply_language)
         turns = normalize_history(ctx.history, s.medgemma_max_history_messages, s.medgemma_max_input_chars)
         parts = [_context_text(ctx.patient_context)]
         if ctx.body_location:
             parts.append(f"Body location: {ctx.body_location}\n")
         parts.append("Patient description: " + (ctx.description[: s.medgemma_max_input_chars] or "(none provided)"))
         messages = self._messages(system, turns, "".join(parts), image=image)
-        raw, meta = self._generate(messages)
-        out, valid = parse_output(raw, ImageOutput)
+        out, valid, meta = self._generate_validated(messages, ImageOutput, ctx.reply_language)
         return {"result": out.model_dump(), "output_valid": valid, "meta": meta}
 
     # ----------------------------------------------------------------- helpers
+    def _generate_validated(self, messages, model_cls, language):
+        started = time.perf_counter()
+        raw, meta = self._generate(messages)
+        out, valid = parse_output(raw, model_cls, language)
+        if not valid:
+            log.warning("Structured MedGemma output invalid; retrying once")
+            retry_messages = [dict(message) for message in messages]
+            retry_messages[0]["content"] = [dict(part) for part in messages[0]["content"]]
+            retry_messages[0]["content"][0]["text"] += "\n\n" + retry_instruction()
+            raw, retry_meta = self._generate(retry_messages)
+            out, valid = parse_output(raw, model_cls, language)
+            meta = {
+                **retry_meta,
+                "retry_count": 1,
+                "total_inference_seconds": round(time.perf_counter() - started, 2),
+            }
+        else:
+            meta["retry_count"] = 0
+        return out, valid, meta
+
     @staticmethod
     def _messages(system: str, turns: list[dict[str, str]], user_text: str, image) -> list[dict[str, Any]]:
         msgs: list[dict[str, Any]] = [{"role": "system", "content": [{"type": "text", "text": system}]}]

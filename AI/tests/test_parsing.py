@@ -39,7 +39,8 @@ def test_parse_output_fallback_has_no_explanations():
     out, valid = parse_output("free text diagnosis: cancer", ImageOutput)
     assert not valid
     assert out.possible_explanations == []
-    assert out.suggested_urgency == "undetermined"
+    assert out.suggested_urgency == "urgent"
+    assert out.care_advice
 
 
 def test_normalize_history_alternates_and_starts_with_user():
