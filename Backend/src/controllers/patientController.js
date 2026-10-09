@@ -293,8 +293,12 @@ function ageFrom(dob) {
 // Builds the patient_context object from the patient's own profile (PatientContext in AI/app/schemas.py).
 async function PatientContextFor(userId) {
     const [rows] = await db.execute(
-        `SELECT DATE_FORMAT(date_of_birth, '%Y-%m-%d') AS dob, sex, medical_history AS history, language
-           FROM patient_profiles WHERE user_id = ?`,
+        `SELECT DATE_FORMAT(p.date_of_birth, '%Y-%m-%d') AS dob, p.sex,
+                p.medical_history AS history, p.language,
+                COALESCE(c.history_personalization, 0) AS history_personalization
+           FROM patient_profiles p
+           LEFT JOIN patient_consents c ON c.user_id = p.user_id
+          WHERE p.user_id = ?`,
         [userId],
     );
     const profile = rows[0];
@@ -304,7 +308,7 @@ async function PatientContextFor(userId) {
     const age = ageFrom(profile.dob);
     if (age !== undefined) context.age_years = age;
     if (AI_SEX[profile.sex]) context.sex = AI_SEX[profile.sex];
-    if (profile.history) {
+    if (Number(profile.history_personalization) === 1 && profile.history) {
         const conditions = profile.history
             .split(/[\n,;]+/)
             .map((c) => c.trim().slice(0, 200))

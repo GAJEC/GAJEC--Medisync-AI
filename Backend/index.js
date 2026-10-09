@@ -11,7 +11,7 @@ import multipart from "@fastify/multipart";
 // Import routes
 import routes from "./src/routes.js";
 
-const app = Fastify({ logger: false });
+const app = Fastify({ logger: true });
 
 await app.register(cors, {
   origin: CORS_ORIGINS,

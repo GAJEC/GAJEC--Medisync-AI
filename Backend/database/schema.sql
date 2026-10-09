@@ -12,13 +12,11 @@ CREATE TABLE IF NOT EXISTS users (
   role ENUM('patient', 'staff') NOT NULL DEFAULT 'patient',
   password VARCHAR(255) NOT NULL,
   password_changed_at TIMESTAMP NULL DEFAULT NULL,
+  theme ENUM('light', 'dark') NOT NULL DEFAULT 'light',
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   UNIQUE KEY email (email)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
-ALTER TABLE users ADD COLUMN IF NOT EXISTS role ENUM('patient', 'staff') NOT NULL DEFAULT 'patient' AFTER email;
-ALTER TABLE users ADD COLUMN IF NOT EXISTS password_changed_at TIMESTAMP NULL DEFAULT NULL AFTER password;
 
 -- One row per signed-in device. The JWT carries the session id (sid); revoking a row signs that device out.
 CREATE TABLE IF NOT EXISTS user_sessions (
@@ -113,6 +111,8 @@ CREATE TABLE IF NOT EXISTS conversations (
   id INT NOT NULL AUTO_INCREMENT,
   user_id INT NOT NULL,
   title VARCHAR(120) NOT NULL,
+  pinned_at DATETIME NULL DEFAULT NULL,
+  archived_at DATETIME NULL DEFAULT NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id),

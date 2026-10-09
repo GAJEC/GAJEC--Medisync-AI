@@ -119,3 +119,13 @@ export const patientApi = {
   createDataRequest: (token, type, note) =>
     apiRequest('/patient/data-requests', { method: 'POST', token, body: { type, note } }),
 }
+
+export const staffApi = {
+  dashboard: (token) => apiRequest('/staff/dashboard', { token }),
+  patients: (token, filters) => apiRequest(`/staff/patients${toQuery(filters)}`, { token }),
+  patient: (token, id) => apiRequest(`/staff/patients/${id}`, { token }),
+  appointments: (token, filters) => apiRequest(`/staff/appointments${toQuery(filters)}`, { token }),
+  updateAppointment: (token, id, changes) =>
+    apiRequest(`/staff/appointments/${id}`, { method: 'PATCH', token, body: changes }),
+  doctors: (token) => apiRequest('/staff/doctors', { token }),
+}
