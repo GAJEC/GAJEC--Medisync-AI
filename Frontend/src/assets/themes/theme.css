@@ -1,0 +1,40 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+:root {
+  --font: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --bg: #f8f8f6;
+  --surface: #ffffff;
+  --surface-hover: #f1f3f1;
+  --surface-active: #eef1ef;
+  --border: #e4e7e4;
+  --text: #17211e;
+  --muted: #6a7571;
+  --faint: #8d9692;
+  --primary: #0f7566;
+  --primary-hover: #0b6458;
+  --primary-soft: #e2f1ed;
+  --danger: #d4283a;
+  --blue: #4a86e8;
+  --ok-bg: #e7f5ec;
+  --ok-text: #14763f;
+  --shadow: 0 4px 18px rgba(20, 40, 35, 0.07);
+  --icon-filter: none;
+}
+
+:root[data-theme='dark'] {
+  --bg: #101614;
+  --surface: #171e1c;
+  --surface-hover: #1f2825;
+  --surface-active: #243029;
+  --border: #29332f;
+  --text: #e8eeeb;
+  --muted: #9aa6a1;
+  --faint: #78847f;
+  --primary: #2a9d8a;
+  --primary-hover: #35b09c;
+  --primary-soft: #1b2f2a;
+  --ok-bg: #16301f;
+  --ok-text: #6fd197;
+  --shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+  --icon-filter: invert(1) brightness(1.1);
+}
