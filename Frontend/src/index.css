@@ -1,0 +1,17 @@
+@import './assets/themes/theme.css';
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body, #root { height: 100%; margin: 0; }
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+
+button, input { font-family: inherit; }
+button { cursor: pointer; }
+
+:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
