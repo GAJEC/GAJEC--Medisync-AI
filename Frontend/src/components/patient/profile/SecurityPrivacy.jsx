@@ -11,6 +11,7 @@ import ChangePasswordModal from './ChangePasswordModal'
 import ConsentModal from './ConsentModal'
 import SessionsModal from './SessionsModal'
 import DataRequestModal from './DataRequestModal'
+import ProfileStyle from '../../../assets/styles/profile.module.css'
 
 const ROWS = [
   { id: 'password', Icon: LockIcon, title: 'Change password', sub: 'Last changed 3 months ago' },
@@ -32,19 +33,19 @@ const SecurityPrivacy = ({ onNotify }) => {
     <>
       <SectionCard title="Security & privacy" subtitle="Control your account and data choices." flush>
         {ROWS.map(({ id, Icon, title, sub }) => (
-          <button key={id} className="sec-row" onClick={() => setOpen(id)}>
-            <span className="sec-row__icon">
+          <button key={id} className={ProfileStyle['sec-row']} onClick={() => setOpen(id)}>
+            <span className={ProfileStyle['sec-row__icon']}>
               <Icon width={16} height={16} />
             </span>
-            <span className="sec-row__text">
-              <span className="sec-row__title">{title}</span>
-              <span className="sec-row__sub">{sub}</span>
+            <span className={ProfileStyle['sec-row__text']}>
+              <span className={ProfileStyle['sec-row__title']}>{title}</span>
+              <span className={ProfileStyle['sec-row__sub']}>{sub}</span>
             </span>
             <ChevronRightIcon width={16} height={16} />
           </button>
         ))}
 
-        <div className="sec-notice">
+        <div className={ProfileStyle['sec-notice']}>
           <ShieldCheckIcon width={15} height={15} />
           <span>
             Privacy controls support responsible data handling; interface notices alone do not

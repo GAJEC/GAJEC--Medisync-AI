@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import searchIcon from "../../assets/icons/search.png";
 import settingsIcon from "../../assets/icons/settings.png";
 import nextIcon from "../../assets/icons/next.png";
-import "../../assets/styles/Staff.css";
+import StaffStyle from "../../assets/styles/Staff.module.css";
 
 const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 
@@ -61,58 +61,58 @@ export default function Scheduling() {
   };
 
   return (
-    <div className="st-page">
+    <div className={StaffStyle['st-page']}>
       {/* ---------- Title ---------- */}
-      <div className="st-pagehead">
+      <div className={StaffStyle['st-pagehead']}>
         <div>
-          <h1 className="st-title">Doctor Scheduling &amp; Availability</h1>
-          <p className="st-sub">Set working hours, breaks, leave, and booking limits.</p>
+          <h1 className={StaffStyle['st-title']}>Doctor Scheduling &amp; Availability</h1>
+          <p className={StaffStyle['st-sub']}>Set working hours, breaks, leave, and booking limits.</p>
         </div>
-        <div className="st-actions">
-          <button type="button" className="st-btn" onClick={() => setShowFilters((v) => !v)} aria-expanded={showFilters}>
-            <img src={settingsIcon} alt="" className="st-btn__ico" /> Filters
+        <div className={StaffStyle['st-actions']}>
+          <button type="button" className={StaffStyle['st-btn']} onClick={() => setShowFilters((v) => !v)} aria-expanded={showFilters}>
+            <img src={settingsIcon} alt="" className={StaffStyle['st-btn__ico']} /> Filters
           </button>
-          <button type="button" className="st-btn st-btn--primary" onClick={() => setSelectedId(rows[0].id)}>
-            <span className="st-btn__plus" aria-hidden="true">+</span> Block time
+          <button type="button" className={`${StaffStyle['st-btn']} ${StaffStyle['st-btn--primary']}`} onClick={() => setSelectedId(rows[0].id)}>
+            <span className={StaffStyle['st-btn__plus']} aria-hidden="true">+</span> Block time
           </button>
         </div>
       </div>
 
       {/* ---------- Week bar ---------- */}
-      <div className="st-card st-weekbar">
-        <div className="st-weekbar__nav">
-          <button type="button" className="st-weekbtn" onClick={() => setWeekOffset((w) => w - 1)} aria-label="Previous week">
-            <img src={nextIcon} alt="" className="st-btn__ico st-ico--flip" />
+      <div className={`${StaffStyle['st-card']} ${StaffStyle['st-weekbar']}`}>
+        <div className={StaffStyle['st-weekbar__nav']}>
+          <button type="button" className={StaffStyle['st-weekbtn']} onClick={() => setWeekOffset((w) => w - 1)} aria-label="Previous week">
+            <img src={nextIcon} alt="" className={`${StaffStyle['st-btn__ico']} ${StaffStyle['st-ico--flip']}`} />
           </button>
-          <strong className="st-weekbar__label">{weekLabel(weekOffset)}</strong>
-          <button type="button" className="st-weekbtn" onClick={() => setWeekOffset((w) => w + 1)} aria-label="Next week">
-            <img src={nextIcon} alt="" className="st-btn__ico" />
+          <strong className={StaffStyle['st-weekbar__label']}>{weekLabel(weekOffset)}</strong>
+          <button type="button" className={StaffStyle['st-weekbtn']} onClick={() => setWeekOffset((w) => w + 1)} aria-label="Next week">
+            <img src={nextIcon} alt="" className={StaffStyle['st-btn__ico']} />
           </button>
         </div>
         {flagged > 0 && (
-          <span className="st-flag">{flagged} schedule conflict{flagged === 1 ? "" : "s"} require{flagged === 1 ? "s" : ""} review</span>
+          <span className={StaffStyle['st-flag']}>{flagged} schedule conflict{flagged === 1 ? "" : "s"} require{flagged === 1 ? "s" : ""} review</span>
         )}
       </div>
 
       {/* ---------- Table card ---------- */}
-      <article className="st-card st-table-card">
-        <header className="st-toolbar st-toolbar--top">
-          <label className="st-searchbox st-searchbox--sm">
-            <img src={searchIcon} alt="" className="st-btn__ico" />
+      <article className={`${StaffStyle['st-card']} ${StaffStyle['st-table-card']}`}>
+        <header className={`${StaffStyle['st-toolbar']} ${StaffStyle['st-toolbar--top']}`}>
+          <label className={`${StaffStyle['st-searchbox']} ${StaffStyle['st-searchbox--sm']}`}>
+            <img src={searchIcon} alt="" className={StaffStyle['st-btn__ico']} />
             <input type="search" placeholder="Search scheduling…" value={query} onChange={(e) => setQuery(e.target.value)} />
           </label>
           {showFilters && (
-            <select className="st-select" value={conflictFilter} onChange={(e) => setConflictFilter(e.target.value)} aria-label="Filter by conflicts">
+            <select className={StaffStyle['st-select']} value={conflictFilter} onChange={(e) => setConflictFilter(e.target.value)} aria-label="Filter by conflicts">
               <option value="">All conflicts</option>
               <option>None</option>
               <option>Flagged</option>
             </select>
           )}
-          <p className="st-count st-count--right">{visible.length} sample record{visible.length === 1 ? "" : "s"}</p>
+          <p className={`${StaffStyle['st-count']} ${StaffStyle['st-count--right']}`}>{visible.length} sample record{visible.length === 1 ? "" : "s"}</p>
         </header>
 
-        <div className="st-tablewrap">
-          <table className="st-table st-table--compact">
+        <div className={StaffStyle['st-tablewrap']}>
+          <table className={`${StaffStyle['st-table']} ${StaffStyle['st-table--compact']}`}>
             <thead>
               <tr>
                 <th>Doctor</th>
@@ -122,22 +122,22 @@ export default function Scheduling() {
             </thead>
             <tbody>
               {visible.map((r) => (
-                <tr key={r.id} className="st-row--click" tabIndex={0}
+                <tr key={r.id} className={StaffStyle['st-row--click']} tabIndex={0}
                     onClick={() => setSelectedId(r.id)}
                     onKeyDown={(e) => e.key === "Enter" && setSelectedId(r.id)}>
-                  <td className="st-ref">{r.name}</td>
+                  <td className={StaffStyle['st-ref']}>{r.name}</td>
                   {r.week.map((cell, i) => (
-                    <td key={days[i]} className={isOff(cell) ? "st-cell--off" : "st-muted"}>{cell}</td>
+                    <td key={days[i]} className={isOff(cell) ? StaffStyle['st-cell--off'] : StaffStyle['st-muted']}>{cell}</td>
                   ))}
                   <td>
                     {r.conflicts === 0
-                      ? <span className="st-pill st-pill--none">None</span>
-                      : <span className="st-pill st-pill--flagged">{r.conflicts} flagged</span>}
+                      ? <span className={`${StaffStyle['st-pill']} ${StaffStyle['st-pill--none']}`}>None</span>
+                      : <span className={`${StaffStyle['st-pill']} ${StaffStyle['st-pill--flagged']}`}>{r.conflicts} flagged</span>}
                   </td>
                 </tr>
               ))}
               {visible.length === 0 && (
-                <tr><td colSpan="7" className="st-empty">No schedules match. Clear the search or the filter.</td></tr>
+                <tr><td colSpan="7" className={StaffStyle['st-empty']}>No schedules match. Clear the search or the filter.</td></tr>
               )}
             </tbody>
           </table>
@@ -174,40 +174,40 @@ function ScheduleActionModal({ doctors, initialId, onClose, onSave }) {
   }, [onClose]);
 
   return (
-    <div className="st-overlay" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="st-modal" role="dialog" aria-modal="true" aria-labelledby="sched-title">
-        <header className="st-modal__head">
+    <div className={StaffStyle['st-overlay']} onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+      <div className={StaffStyle['st-modal']} role="dialog" aria-modal="true" aria-labelledby="sched-title">
+        <header className={StaffStyle['st-modal__head']}>
           <div>
-            <p className="st-modal__brand">HealthLocal AI</p>
-            <h2 id="sched-title" className="st-modal__title">Doctor Scheduling &amp; Availability action</h2>
+            <p className={StaffStyle['st-modal__brand']}>HealthLocal AI</p>
+            <h2 id="sched-title" className={StaffStyle['st-modal__title']}>Doctor Scheduling &amp; Availability action</h2>
           </div>
-          <button type="button" className="st-modal__close" onClick={onClose} aria-label="Close">✕</button>
+          <button type="button" className={StaffStyle['st-modal__close']} onClick={onClose} aria-label="Close">✕</button>
         </header>
 
-        <div className="st-modal__body">
-          <div className="st-callout st-field--full">
-            <img src={settingsIcon} alt="" className="st-callout__ico" />
+        <div className={StaffStyle['st-modal__body']}>
+          <div className={`${StaffStyle['st-callout']} ${StaffStyle['st-field--full']}`}>
+            <img src={settingsIcon} alt="" className={StaffStyle['st-callout__ico']} />
             <div>
               <strong>Authorized action</strong>
               <p>Changes are simulated and will be recorded in the sample activity log.</p>
             </div>
           </div>
 
-          <label className="st-field">
+          <label className={StaffStyle['st-field']}>
             <span>Selection</span>
             <select value={form.id} onChange={changeSelection}>
               {doctors.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
             </select>
           </label>
 
-          <label className="st-field">
+          <label className={StaffStyle['st-field']}>
             <span>Status</span>
             <select value={form.status} onChange={set("status")}>
               {statuses.map((s) => <option key={s}>{s}</option>)}
             </select>
           </label>
 
-          <label className="st-field st-field--full">
+          <label className={`${StaffStyle['st-field']} ${StaffStyle['st-field--full']}`}>
             <span>Day</span>
             <select value={form.day} onChange={set("day")}>
               {days.map((d) => <option key={d}>{d}</option>)}
@@ -215,15 +215,15 @@ function ScheduleActionModal({ doctors, initialId, onClose, onSave }) {
             </select>
           </label>
 
-          <label className="st-field st-field--full">
+          <label className={`${StaffStyle['st-field']} ${StaffStyle['st-field--full']}`}>
             <span>Notes</span>
             <textarea rows="3" placeholder="Add an optional audit note…" value={form.notes} onChange={set("notes")} />
           </label>
         </div>
 
-        <footer className="st-modal__foot">
-          <button type="button" className="st-btn" onClick={onClose}>Cancel</button>
-          <button type="button" className="st-btn st-btn--primary" onClick={() => onSave(form)}>Save changes</button>
+        <footer className={StaffStyle['st-modal__foot']}>
+          <button type="button" className={StaffStyle['st-btn']} onClick={onClose}>Cancel</button>
+          <button type="button" className={`${StaffStyle['st-btn']} ${StaffStyle['st-btn--primary']}`} onClick={() => onSave(form)}>Save changes</button>
         </footer>
       </div>
     </div>

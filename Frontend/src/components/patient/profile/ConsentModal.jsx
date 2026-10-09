@@ -1,5 +1,9 @@
 import React, { useState } from 'react'
 import Modal from '../../common/Modal'
+import ModalStyle from '../../../assets/styles/modal.module.css'
+import ProfileStyle from '../../../assets/styles/profile.module.css'
+import ScheduleStyle from '../../../assets/styles/schedule.module.css'
+import SidebarStyle from '../../../assets/styles/sidebar.module.css'
 
 const OPTIONS = [
   {
@@ -35,29 +39,29 @@ const ConsentModal = ({ onClose, onDone }) => {
       onClose={onClose}
       footer={
         <>
-          <button className="btn-outline" onClick={onClose}>Cancel</button>
-          <button className="btn-primary" onClick={() => onDone('Consent preferences saved')}>
+          <button className={SidebarStyle['btn-outline']} onClick={onClose}>Cancel</button>
+          <button className={`${ProfileStyle['btn-primary']} ${ScheduleStyle['btn-primary']}`} onClick={() => onDone('Consent preferences saved')}>
             Save choices
           </button>
         </>
       }
     >
-      <p className="modal__text">Review how the information you submit is used. You can change these at any time.</p>
-      <div className="consent-list">
+      <p className={ModalStyle['modal__text']}>Review how the information you submit is used. You can change these at any time.</p>
+      <div className={ProfileStyle['consent-list']}>
         {OPTIONS.map((o) => (
-          <label key={o.id} className="consent-row">
+          <label key={o.id} className={ProfileStyle['consent-row']}>
             <span>
-              <span className="consent-row__title">{o.title}</span>
-              <span className="consent-row__desc">{o.desc}</span>
+              <span className={ProfileStyle['consent-row__title']}>{o.title}</span>
+              <span className={ProfileStyle['consent-row__desc']}>{o.desc}</span>
             </span>
-            <span className="switch">
+            <span className={ProfileStyle['switch']}>
               <input
                 type="checkbox"
                 checked={values[o.id]}
                 disabled={o.required}
                 onChange={() => toggle(o.id)}
               />
-              <span className="switch__track" />
+              <span className={ProfileStyle['switch__track']} />
             </span>
           </label>
         ))}

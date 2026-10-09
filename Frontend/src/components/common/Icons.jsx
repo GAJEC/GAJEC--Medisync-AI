@@ -1,4 +1,5 @@
 import React from 'react'
+import SidebarStyle from '../../assets/styles/sidebar.module.css'
 
 // Inline SVGs for icons that are not in assets/icons, plus a helper for the PNG icons.
 const svgProps = {
@@ -83,7 +84,7 @@ export const PngIcon = ({ src, size = 16, className = '', alt = '' }) => {
       alt={alt}
       width={size}
       height={size}
-      className={`png-icon ${className}`}
+      className={`${SidebarStyle['png-icon']} ${className}`}
       draggable="false"
     />
   )

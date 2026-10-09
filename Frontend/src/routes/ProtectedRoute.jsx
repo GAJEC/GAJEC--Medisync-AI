@@ -1,18 +1,39 @@
-import React from 'react'
-import { Navigate, useLocation } from 'react-router-dom'
-import { useAuth, homeFor } from '../auth/AuthContext'
+import { Navigate, Outlet, useLocation } from 'react-router-dom'
+import { useAuth } from '../auth/AuthContext'
+import { hasHome, homeFor, isPublicPath, rolesFor } from '../auth/roles'
 
-const ProtectedRoute = ({ role, children }) => {
-  const { session } = useAuth()
-  const location = useLocation()
+const ProtectedRoute = () => {
+  const { session, status } = useAuth()
+  const { pathname } = useLocation()
 
-  // Not signed in -> login
-  if (!session) return <Navigate to="/login" replace state={{ from: location }} />
+  // Development only: skip auth and role checks so /login, /patient/* and /staff/*
+  // are all directly reachable. Vite sets DEV to false in production builds.
+  if (import.meta.env.DEV && (isPublicPath(pathname) || rolesFor(pathname))) {
+    return <Outlet />
+  }
 
-  // Signed in but wrong area (e.g. a patient opening /staff) -> their own home
-  if (role && session.role !== role) return <Navigate to={homeFor(session.role)} replace />
+  if (status === 'loading') {
+    return (
+      <div role="status" style={{ display: 'grid', placeItems: 'center', minHeight: '100vh', color: '#687b78' }}>
+        Loading…
+      </div>
+    )
+  }
 
-  return children
+  const signedIn = session && hasHome(session.role)
+
+  if (isPublicPath(pathname)) {
+    return signedIn ? <Navigate to={homeFor(session.role)} replace /> : <Outlet />
+  }
+
+  if (!signedIn) return <Navigate to="/login" replace />
+
+  const allowed = rolesFor(pathname)
+  if (!allowed || !allowed.includes(session.role)) {
+    return <Navigate to={homeFor(session.role)} replace />
+  }
+
+  return <Outlet />
 }
 
 export default ProtectedRoute

@@ -1,30 +1,31 @@
 import React from 'react'
 import SectionCard from './SectionCard'
+import ProfileStyle from '../../../assets/styles/profile.module.css'
 
 const Preferences = ({ form, onChange, darkMode, onToggleDark }) => {
   return (
     <SectionCard title="Preferences" subtitle="Customize your HealthLocal experience." flush>
-      <div className="pref-row">
+      <div className={ProfileStyle['pref-row']}>
         <div>
-          <div className="pref-row__title">Dark appearance</div>
-          <div className="pref-row__sub">Use the dark theme across the portal</div>
+          <div className={ProfileStyle['pref-row__title']}>Dark appearance</div>
+          <div className={ProfileStyle['pref-row__sub']}>Use the dark theme across the portal</div>
         </div>
         <input
           type="checkbox"
-          className="checkbox"
+          className={ProfileStyle['checkbox']}
           checked={darkMode}
           onChange={onToggleDark}
           aria-label="Dark appearance"
         />
       </div>
 
-      <div className="pref-row">
+      <div className={ProfileStyle['pref-row']}>
         <div>
-          <div className="pref-row__title">Default consultation type</div>
-          <div className="pref-row__sub">Used as a starting preference only</div>
+          <div className={ProfileStyle['pref-row__title']}>Default consultation type</div>
+          <div className={ProfileStyle['pref-row__sub']}>Used as a starting preference only</div>
         </div>
         <select
-          className="input"
+          className={ProfileStyle['input']}
           value={form.consultType}
           onChange={(e) => onChange('consultType', e.target.value)}
           aria-label="Default consultation type"
@@ -34,13 +35,13 @@ const Preferences = ({ form, onChange, darkMode, onToggleDark }) => {
         </select>
       </div>
 
-      <div className="pref-row">
+      <div className={ProfileStyle['pref-row']}>
         <div>
-          <div className="pref-row__title">Language</div>
-          <div className="pref-row__sub">Interface language</div>
+          <div className={ProfileStyle['pref-row__title']}>Language</div>
+          <div className={ProfileStyle['pref-row__sub']}>Interface language</div>
         </div>
         <select
-          className="input"
+          className={ProfileStyle['input']}
           value={form.language}
           onChange={(e) => onChange('language', e.target.value)}
           aria-label="Language"

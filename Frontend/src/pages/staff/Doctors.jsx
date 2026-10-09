@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import searchIcon from "../../assets/icons/search.png";
-import "../../assets/styles/Staff.css";
+import StaffStyle from "../../assets/styles/Staff.module.css";
 
 const specialties = [
   "Internal Medicine",
@@ -195,22 +195,22 @@ export default function Doctors() {
   };
 
   return (
-    <div className="st-page">
-      <div className="st-pagehead">
+    <div className={StaffStyle['st-page']}>
+      <div className={StaffStyle['st-pagehead']}>
         <div>
-          <h1 className="st-title">Doctor Management</h1>
-          <p className="st-sub">
+          <h1 className={StaffStyle['st-title']}>Doctor Management</h1>
+          <p className={StaffStyle['st-sub']}>
             Manage verified hospital doctors, profiles, and availability.
           </p>
         </div>
 
-        <div className="st-actions">
+        <div className={StaffStyle['st-actions']}>
           <button
             type="button"
-            className="st-btn st-btn--primary"
+            className={`${StaffStyle['st-btn']} ${StaffStyle['st-btn--primary']}`}
             onClick={() => setShowAddModal(true)}
           >
-            <span className="st-btn__plus" aria-hidden="true">
+            <span className={StaffStyle['st-btn__plus']} aria-hidden="true">
               +
             </span>
             Add doctor
@@ -218,9 +218,9 @@ export default function Doctors() {
         </div>
       </div>
 
-      <div className="st-filters">
-        <label className="st-searchbox">
-          <img src={searchIcon} alt="" className="st-btn__ico" />
+      <div className={StaffStyle['st-filters']}>
+        <label className={StaffStyle['st-searchbox']}>
+          <img src={searchIcon} alt="" className={StaffStyle['st-btn__ico']} />
           <input
             type="search"
             placeholder="Search doctors"
@@ -230,7 +230,7 @@ export default function Doctors() {
         </label>
 
         <select
-          className="st-select"
+          className={StaffStyle['st-select']}
           value={filters.specialty}
           onChange={setFilter("specialty")}
           aria-label="Filter by specialty"
@@ -244,7 +244,7 @@ export default function Doctors() {
         </select>
 
         <select
-          className="st-select"
+          className={StaffStyle['st-select']}
           value={filters.department}
           onChange={setFilter("department")}
           aria-label="Filter by department"
@@ -258,7 +258,7 @@ export default function Doctors() {
         </select>
 
         <select
-          className="st-select"
+          className={StaffStyle['st-select']}
           value={filters.availability}
           onChange={setFilter("availability")}
           aria-label="Filter by availability"
@@ -272,19 +272,19 @@ export default function Doctors() {
         </select>
       </div>
 
-      <section className="st-docgrid">
+      <section className={StaffStyle['st-docgrid']}>
         {visibleDoctors.map((doctor, index) => (
-          <article className="st-card st-doc" key={doctor.id}>
-            <div className="st-doc__avatarwrap">
+          <article className={`${StaffStyle['st-card']} ${StaffStyle['st-doc']}`} key={doctor.id}>
+            <div className={StaffStyle['st-doc__avatarwrap']}>
               {doctor.photo ? (
                 <img
                   src={doctor.photo}
                   alt={doctor.name}
-                  className="st-doc__avatar"
+                  className={StaffStyle['st-doc__avatar']}
                 />
               ) : (
                 <span
-                  className="st-doc__avatar"
+                  className={StaffStyle['st-doc__avatar']}
                   style={{
                     background:
                       avatarTones[index % avatarTones.length],
@@ -295,35 +295,35 @@ export default function Doctors() {
               )}
 
               <i
-                className={`st-doc__dot st-doc__dot--${slug(
+                className={`${StaffStyle['st-doc__dot']} ${StaffStyle[`st-doc__dot--${slug(
                   doctor.availability
-                )}`}
+                )}`]}`}
               />
             </div>
 
-            <h2 className="st-doc__name">{doctor.name}</h2>
-            <p className="st-doc__spec">{doctor.specialty}</p>
-            <p className="st-doc__dept">{doctor.department}</p>
+            <h2 className={StaffStyle['st-doc__name']}>{doctor.name}</h2>
+            <p className={StaffStyle['st-doc__spec']}>{doctor.specialty}</p>
+            <p className={StaffStyle['st-doc__dept']}>{doctor.department}</p>
 
-            <div className="st-doc__stats">
+            <div className={StaffStyle['st-doc__stats']}>
               <div>
                 <strong>{doctor.today}</strong>
                 <small>Appointments today</small>
               </div>
 
               <span
-                className={`st-pill st-pill--${slug(
+                className={`${StaffStyle['st-pill']} ${StaffStyle[`st-pill--${slug(
                   doctor.availability
-                )}`}
+                )}`]}`}
               >
                 {doctor.availability}
               </span>
             </div>
 
-            <div className="st-doc__actions">
+            <div className={StaffStyle['st-doc__actions']}>
               <button
                 type="button"
-                className="st-btn"
+                className={StaffStyle['st-btn']}
                 onClick={() => setSelectedDoctor({ ...doctor })}
               >
                 View profile
@@ -331,7 +331,7 @@ export default function Doctors() {
 
               <button
                 type="button"
-                className="st-btn st-btn--icon"
+                className={`${StaffStyle['st-btn']} ${StaffStyle['st-btn--icon']}`}
                 aria-label={`View profile for ${doctor.name}`}
                 onClick={() => setSelectedDoctor({ ...doctor })}
               >
@@ -342,7 +342,7 @@ export default function Doctors() {
         ))}
 
         {visibleDoctors.length === 0 && (
-          <p className="st-empty st-empty--grid">
+          <p className={`${StaffStyle['st-empty']} ${StaffStyle['st-empty--grid']}`}>
             No doctors match these filters. Clear a filter or change your search.
           </p>
         )}
@@ -427,29 +427,29 @@ function DoctorModal({
 
   return (
     <div
-      className="st-overlay"
+      className={StaffStyle['st-overlay']}
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onClose();
       }}
     >
       <form
-        className="st-modal"
+        className={StaffStyle['st-modal']}
         role="dialog"
         aria-modal="true"
         aria-labelledby="doctor-modal-title"
         onSubmit={handleSubmit}
       >
-        <header className="st-modal__head">
+        <header className={StaffStyle['st-modal__head']}>
           <div>
-            <p className="st-modal__brand">HealthLocal AI</p>
-            <h2 id="doctor-modal-title" className="st-modal__title">
+            <p className={StaffStyle['st-modal__brand']}>HealthLocal AI</p>
+            <h2 id="doctor-modal-title" className={StaffStyle['st-modal__title']}>
               {title}
             </h2>
           </div>
 
           <button
             type="button"
-            className="st-modal__close"
+            className={StaffStyle['st-modal__close']}
             onClick={onClose}
             aria-label="Close modal"
           >
@@ -457,8 +457,8 @@ function DoctorModal({
           </button>
         </header>
 
-        <div className="st-modal__body">
-          <label className="st-field">
+        <div className={StaffStyle['st-modal__body']}>
+          <label className={StaffStyle['st-field']}>
             <span>Full name</span>
             <input
               value={form.name}
@@ -469,7 +469,7 @@ function DoctorModal({
             />
           </label>
 
-          <label className="st-field">
+          <label className={StaffStyle['st-field']}>
             <span>Specialty</span>
             <select
               value={form.specialty}
@@ -484,7 +484,7 @@ function DoctorModal({
             </select>
           </label>
 
-          <label className="st-field">
+          <label className={StaffStyle['st-field']}>
             <span>Department</span>
             <input
               value={form.department}
@@ -493,7 +493,7 @@ function DoctorModal({
             />
           </label>
 
-          <label className="st-field">
+          <label className={StaffStyle['st-field']}>
             <span>License / registration</span>
             <input
               value={form.license}
@@ -502,7 +502,7 @@ function DoctorModal({
             />
           </label>
 
-          <label className="st-field">
+          <label className={StaffStyle['st-field']}>
             <span>Email</span>
             <input
               type="email"
@@ -512,7 +512,7 @@ function DoctorModal({
             />
           </label>
 
-          <label className="st-field">
+          <label className={StaffStyle['st-field']}>
             <span>Consultation types</span>
             <select
               value={form.consultation}
@@ -526,7 +526,7 @@ function DoctorModal({
             </select>
           </label>
 
-          <label className="st-field st-field--full">
+          <label className={`${StaffStyle['st-field']} ${StaffStyle['st-field--full']}`}>
             <span>Professional introduction</span>
             <textarea
               rows="4"
@@ -537,10 +537,10 @@ function DoctorModal({
           </label>
         </div>
 
-        <footer className="st-modal__foot">
+        <footer className={StaffStyle['st-modal__foot']}>
           <button
             type="button"
-            className="st-btn"
+            className={StaffStyle['st-btn']}
             onClick={onClose}
           >
             Cancel
@@ -548,7 +548,7 @@ function DoctorModal({
 
           <button
             type="submit"
-            className="st-btn st-btn--primary"
+            className={`${StaffStyle['st-btn']} ${StaffStyle['st-btn--primary']}`}
             disabled={!form.name.trim()}
           >
             {submitLabel}

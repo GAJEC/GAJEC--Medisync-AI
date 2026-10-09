@@ -4,7 +4,7 @@ import scheduleIcon from "../../assets/icons/schedule.png";
 import historyIcon from "../../assets/icons/history.png";
 import stetIcon from "../../assets/icons/stet.png";
 import nextIcon from "../../assets/icons/next.png";
-import "../../assets/styles/Staff.css";
+import StaffStyle from "../../assets/styles/Staff.module.css";
 
 const stats = [
   { label: "Appointments today", value: 128, note: "↑ 12% from last Tuesday", tone: "teal", icon: scheduleIcon },
@@ -34,7 +34,7 @@ const requests = [
   { patient: "Noel Bautista", pid: "P-8807", ref: "HL-250624-8807", doctor: "Unassigned", specialty: "Neurology", when: "Jun 25 · 11:00 AM", status: "Pending Review" },
 ];
 
-const statusClass = (s) => "st-pill st-pill--" + s.toLowerCase().replace(/\s+/g, "-");
+const statusClass = (s) => `${StaffStyle["st-pill"]} ${StaffStyle["st-pill--" + s.toLowerCase().replace(/\s+/g, "-")]}`;
 
 // conic-gradient stops for the donut
 const donut = (() => {
@@ -48,77 +48,77 @@ export default function Dashboard() {
   const goToAppointments = () => navigate("/staff/appointments");
 
   return (
-    <div className="st-page">
+    <div className={StaffStyle['st-page']}>
       {/* ---------- Title ---------- */}
-      <div className="st-pagehead">
+      <div className={StaffStyle['st-pagehead']}>
         <div>
-          <p className="st-eyebrow">Tuesday, June 24, 2025</p>
-          <h1 className="st-title">Hospital Operations Dashboard</h1>
-          <p className="st-sub">A live prototype view of today's appointment activity.</p>
+          <p className={StaffStyle['st-eyebrow']}>Tuesday, June 24, 2025</p>
+          <h1 className={StaffStyle['st-title']}>Hospital Operations Dashboard</h1>
+          <p className={StaffStyle['st-sub']}>A live prototype view of today's appointment activity.</p>
         </div>
-        <div className="st-actions">
-          <button type="button" className="st-btn">
-            <img src={scheduleIcon} alt="" className="st-btn__ico" /> Jun 24, 2025
+        <div className={StaffStyle['st-actions']}>
+          <button type="button" className={StaffStyle['st-btn']}>
+            <img src={scheduleIcon} alt="" className={StaffStyle['st-btn__ico']} /> Jun 24, 2025
           </button>
-          <button type="button" className="st-btn st-btn--primary" onClick={goToAppointments}>
-            Review requests <img src={nextIcon} alt="" className="st-btn__ico st-btn__ico--white" />
+          <button type="button" className={`${StaffStyle['st-btn']} ${StaffStyle['st-btn--primary']}`} onClick={goToAppointments}>
+            Review requests <img src={nextIcon} alt="" className={`${StaffStyle['st-btn__ico']} ${StaffStyle['st-btn__ico--white']}`} />
           </button>
         </div>
       </div>
 
       {/* ---------- Stat cards ---------- */}
-      <section className="st-stats">
+      <section className={StaffStyle['st-stats']}>
         {stats.map((s) => (
-          <article className="st-card st-stat" key={s.label}>
-            <span className={`st-stat__icon st-tone--${s.tone}`}>
+          <article className={`${StaffStyle['st-card']} ${StaffStyle['st-stat']}`} key={s.label}>
+            <span className={`${StaffStyle['st-stat__icon']} ${StaffStyle[`st-tone--${s.tone}`]}`}>
               {s.icon ? <img src={s.icon} alt="" /> : s.glyph}
             </span>
             <div>
-              <p className="st-stat__label">{s.label}</p>
-              <p className="st-stat__value">{s.value}</p>
-              <p className="st-stat__note">{s.note}</p>
+              <p className={StaffStyle['st-stat__label']}>{s.label}</p>
+              <p className={StaffStyle['st-stat__value']}>{s.value}</p>
+              <p className={StaffStyle['st-stat__note']}>{s.note}</p>
             </div>
           </article>
         ))}
       </section>
 
       {/* ---------- Charts ---------- */}
-      <section className="st-grid2">
-        <article className="st-card">
-          <header className="st-card__head">
+      <section className={StaffStyle['st-grid2']}>
+        <article className={StaffStyle['st-card']}>
+          <header className={StaffStyle['st-card__head']}>
             <div>
-              <p className="st-eyebrow">Appointment volume</p>
-              <h2 className="st-h2">Weekly activity</h2>
+              <p className={StaffStyle['st-eyebrow']}>Appointment volume</p>
+              <h2 className={StaffStyle['st-h2']}>Weekly activity</h2>
             </div>
-            <select className="st-select" defaultValue="7" aria-label="Date range">
+            <select className={StaffStyle['st-select']} defaultValue="7" aria-label="Date range">
               <option value="7">Last 7 days</option>
               <option value="30">Last 30 days</option>
             </select>
           </header>
-          <div className="st-bars">
+          <div className={StaffStyle['st-bars']}>
             {weekly.map((w) => (
-              <div className="st-bar" key={w.day}>
-                <span className="st-bar__val">{w.v}</span>
-                <span className="st-bar__fill" style={{ height: `${(w.v / max) * 100}%` }} />
-                <span className="st-bar__day">{w.day}</span>
+              <div className={StaffStyle['st-bar']} key={w.day}>
+                <span className={StaffStyle['st-bar__val']}>{w.v}</span>
+                <span className={StaffStyle['st-bar__fill']} style={{ height: `${(w.v / max) * 100}%` }} />
+                <span className={StaffStyle['st-bar__day']}>{w.day}</span>
               </div>
             ))}
           </div>
         </article>
 
-        <article className="st-card">
-          <header className="st-card__head">
+        <article className={StaffStyle['st-card']}>
+          <header className={StaffStyle['st-card__head']}>
             <div>
-              <p className="st-eyebrow">Status mix</p>
-              <h2 className="st-h2">Today's appointments</h2>
+              <p className={StaffStyle['st-eyebrow']}>Status mix</p>
+              <h2 className={StaffStyle['st-h2']}>Today's appointments</h2>
             </div>
-            <button type="button" className="st-more" aria-label="More options">···</button>
+            <button type="button" className={StaffStyle['st-more']} aria-label="More options">···</button>
           </header>
-          <div className="st-donutwrap">
-            <div className="st-donut" style={{ background: `conic-gradient(${donut})` }}>
-              <div className="st-donut__hole"><strong>128</strong><small>Total</small></div>
+          <div className={StaffStyle['st-donutwrap']}>
+            <div className={StaffStyle['st-donut']} style={{ background: `conic-gradient(${donut})` }}>
+              <div className={StaffStyle['st-donut__hole']}><strong>128</strong><small>Total</small></div>
             </div>
-            <ul className="st-legend">
+            <ul className={StaffStyle['st-legend']}>
               {mix.map((m) => (
                 <li key={m.label}><i style={{ background: m.color }} />{m.label}<b>{m.pct}%</b></li>
               ))}
@@ -128,18 +128,18 @@ export default function Dashboard() {
       </section>
 
       {/* ---------- Appointment requests ---------- */}
-      <article className="st-card st-table-card">
-        <header className="st-card__head">
+      <article className={`${StaffStyle['st-card']} ${StaffStyle['st-table-card']}`}>
+        <header className={StaffStyle['st-card__head']}>
           <div>
-            <p className="st-eyebrow">Recent activity</p>
-            <h2 className="st-h2">Appointment requests</h2>
+            <p className={StaffStyle['st-eyebrow']}>Recent activity</p>
+            <h2 className={StaffStyle['st-h2']}>Appointment requests</h2>
           </div>
-          <button type="button" className="st-link" onClick={goToAppointments}>
-            View all <img src={nextIcon} alt="" className="st-btn__ico" />
+          <button type="button" className={StaffStyle['st-link']} onClick={goToAppointments}>
+            View all <img src={nextIcon} alt="" className={StaffStyle['st-btn__ico']} />
           </button>
         </header>
-        <div className="st-tablewrap">
-          <table className="st-table">
+        <div className={StaffStyle['st-tablewrap']}>
+          <table className={StaffStyle['st-table']}>
             <thead>
               <tr>
                 <th>Patient</th><th>Reference</th><th>Assigned doctor</th>
@@ -150,12 +150,12 @@ export default function Dashboard() {
               {requests.map((r) => (
                 <tr key={r.ref}>
                   <td><strong>{r.patient}</strong><small>{r.pid}</small></td>
-                  <td className="st-ref">{r.ref}</td>
-                  <td className="st-muted">{r.doctor}</td>
-                  <td className="st-muted">{r.specialty}</td>
-                  <td className="st-muted">{r.when}</td>
+                  <td className={StaffStyle['st-ref']}>{r.ref}</td>
+                  <td className={StaffStyle['st-muted']}>{r.doctor}</td>
+                  <td className={StaffStyle['st-muted']}>{r.specialty}</td>
+                  <td className={StaffStyle['st-muted']}>{r.when}</td>
                   <td><span className={statusClass(r.status)}>{r.status}</span></td>
-                  <td><button type="button" className="st-more" aria-label="More actions">···</button></td>
+                  <td><button type="button" className={StaffStyle['st-more']} aria-label="More actions">···</button></td>
                 </tr>
               ))}
             </tbody>

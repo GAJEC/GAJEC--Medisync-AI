@@ -4,7 +4,7 @@ import searchIcon from "../../assets/icons/search.png";
 import scheduleIcon from "../../assets/icons/schedule.png";
 import historyIcon from "../../assets/icons/history.png";
 import patientsIcon from "../../assets/icons/patients.png";
-import "../../assets/styles/Staff.css";
+import StaffStyle from "../../assets/styles/Staff.module.css";
 
 const stats = [
   { label: "Completion rate", value: "88.4%", note: "↑ 2.3% month over month", tone: "teal", glyph: "✓" },
@@ -46,51 +46,51 @@ export default function Reports() {
   };
 
   return (
-    <div className="st-page">
+    <div className={StaffStyle['st-page']}>
       {/* ---------- Title ---------- */}
-      <div className="st-pagehead">
+      <div className={StaffStyle['st-pagehead']}>
         <div>
-          <h1 className="st-title">Operational Reports</h1>
-          <p className="st-sub">Understand appointment activity using the displayed prototype dataset.</p>
+          <h1 className={StaffStyle['st-title']}>Operational Reports</h1>
+          <p className={StaffStyle['st-sub']}>Understand appointment activity using the displayed prototype dataset.</p>
         </div>
-        <div className="st-actions">
-          <button type="button" className="st-btn">
-            <img src={scheduleIcon} alt="" className="st-btn__ico" /> {dateRange}
+        <div className={StaffStyle['st-actions']}>
+          <button type="button" className={StaffStyle['st-btn']}>
+            <img src={scheduleIcon} alt="" className={StaffStyle['st-btn__ico']} /> {dateRange}
           </button>
-          <button type="button" className="st-btn st-btn--primary" onClick={exportCsv} disabled={visible.length === 0}>
+          <button type="button" className={`${StaffStyle['st-btn']} ${StaffStyle['st-btn--primary']}`} onClick={exportCsv} disabled={visible.length === 0}>
             <span aria-hidden="true">↓</span> Export CSV
           </button>
         </div>
       </div>
 
       {/* ---------- Stat cards ---------- */}
-      <section className="st-stats st-stats--3">
+      <section className={`${StaffStyle['st-stats']} ${StaffStyle['st-stats--3']}`}>
         {stats.map((s) => (
-          <article className="st-card st-stat" key={s.label}>
-            <span className={`st-stat__icon st-tone--${s.tone}`}>
+          <article className={`${StaffStyle['st-card']} ${StaffStyle['st-stat']}`} key={s.label}>
+            <span className={`${StaffStyle['st-stat__icon']} ${StaffStyle[`st-tone--${s.tone}`]}`}>
               {s.icon ? <img src={s.icon} alt="" /> : s.glyph}
             </span>
             <div>
-              <p className="st-stat__label">{s.label}</p>
-              <p className="st-stat__value">{s.value}</p>
-              <p className="st-stat__note">{s.note}</p>
+              <p className={StaffStyle['st-stat__label']}>{s.label}</p>
+              <p className={StaffStyle['st-stat__value']}>{s.value}</p>
+              <p className={StaffStyle['st-stat__note']}>{s.note}</p>
             </div>
           </article>
         ))}
       </section>
 
       {/* ---------- Table card ---------- */}
-      <article className="st-card st-table-card">
-        <header className="st-toolbar st-toolbar--top">
-          <label className="st-searchbox st-searchbox--sm">
-            <img src={searchIcon} alt="" className="st-btn__ico" />
+      <article className={`${StaffStyle['st-card']} ${StaffStyle['st-table-card']}`}>
+        <header className={`${StaffStyle['st-toolbar']} ${StaffStyle['st-toolbar--top']}`}>
+          <label className={`${StaffStyle['st-searchbox']} ${StaffStyle['st-searchbox--sm']}`}>
+            <img src={searchIcon} alt="" className={StaffStyle['st-btn__ico']} />
             <input type="search" placeholder="Search reports…" value={query} onChange={(e) => setQuery(e.target.value)} />
           </label>
-          <p className="st-count st-count--right">{visible.length} sample record{visible.length === 1 ? "" : "s"}</p>
+          <p className={`${StaffStyle['st-count']} ${StaffStyle['st-count--right']}`}>{visible.length} sample record{visible.length === 1 ? "" : "s"}</p>
         </header>
 
-        <div className="st-tablewrap">
-          <table className="st-table st-table--compact">
+        <div className={StaffStyle['st-tablewrap']}>
+          <table className={`${StaffStyle['st-table']} ${StaffStyle['st-table--compact']}`}>
             <thead>
               <tr>
                 <th>Metric</th><th>This month</th><th>Last month</th><th>Change</th>
@@ -100,17 +100,17 @@ export default function Reports() {
             <tbody>
               {visible.map((m) => (
                 <tr key={m.metric}>
-                  <td className="st-ref">{m.metric}</td>
-                  <td className="st-muted">{m.thisMonth}</td>
-                  <td className="st-muted">{m.lastMonth}</td>
-                  <td className="st-muted">{m.change}</td>
-                  <td className="st-muted">{m.target}</td>
-                  <td className="st-muted">{m.status}</td>
-                  <td><span className="st-pill st-pill--sample">{m.notes}</span></td>
+                  <td className={StaffStyle['st-ref']}>{m.metric}</td>
+                  <td className={StaffStyle['st-muted']}>{m.thisMonth}</td>
+                  <td className={StaffStyle['st-muted']}>{m.lastMonth}</td>
+                  <td className={StaffStyle['st-muted']}>{m.change}</td>
+                  <td className={StaffStyle['st-muted']}>{m.target}</td>
+                  <td className={StaffStyle['st-muted']}>{m.status}</td>
+                  <td><span className={`${StaffStyle['st-pill']} ${StaffStyle['st-pill--sample']}`}>{m.notes}</span></td>
                 </tr>
               ))}
               {visible.length === 0 && (
-                <tr><td colSpan="7" className="st-empty">No reports match this search. Try a different metric name.</td></tr>
+                <tr><td colSpan="7" className={StaffStyle['st-empty']}>No reports match this search. Try a different metric name.</td></tr>
               )}
             </tbody>
           </table>

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import searchIcon from "../../assets/icons/search.png";
 import settingsIcon from "../../assets/icons/settings.png";
-import "../../assets/styles/Staff.css";
+import StaffStyle from "../../assets/styles/Staff.module.css";
 
 const initialAppointments = [
   { id: 1, patient: "Sofia Reyes", pid: "P-8821", ref: "HL-250624-8821", doctor: "Dr. Maria Santos", specialty: "Internal Medicine", department: "Internal Medicine", when: "Jun 25 · 9:30 AM", source: "AI Intake", status: "Pending Review" },
@@ -27,7 +27,7 @@ const doctors = [
 const times = ["9:00 AM", "9:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM", "1:00 PM", "1:30 PM", "2:00 PM", "2:30 PM", "3:00 PM"];
 const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-const statusClass = (s) => "st-pill st-pill--" + s.toLowerCase().replace(/\s+/g, "-");
+const statusClass = (s) => `${StaffStyle["st-pill"]} ${StaffStyle["st-pill--" + s.toLowerCase().replace(/\s+/g, "-")]}`;
 const unique = (key, list) => [...new Set(list.map((a) => a[key]))];
 
 // "2025-06-25" + "9:30 AM"  ->  "Jun 25 · 9:30 AM"
@@ -79,24 +79,24 @@ export default function Appointments() {
   };
 
   return (
-    <div className="st-page">
+    <div className={StaffStyle['st-page']}>
       {/* ---------- Title ---------- */}
-      <div className="st-pagehead">
+      <div className={StaffStyle['st-pagehead']}>
         <div>
-          <h1 className="st-title">Appointment Management</h1>
-          <p className="st-sub">Review, assign, and coordinate hospital appointment requests.</p>
+          <h1 className={StaffStyle['st-title']}>Appointment Management</h1>
+          <p className={StaffStyle['st-sub']}>Review, assign, and coordinate hospital appointment requests.</p>
         </div>
-        <div className="st-actions">
-          <button type="button" className="st-btn st-btn--primary" onClick={() => setOpen(true)}>
-            <span className="st-btn__plus" aria-hidden="true">+</span> New appointment
+        <div className={StaffStyle['st-actions']}>
+          <button type="button" className={`${StaffStyle['st-btn']} ${StaffStyle['st-btn--primary']}`} onClick={() => setOpen(true)}>
+            <span className={StaffStyle['st-btn__plus']} aria-hidden="true">+</span> New appointment
           </button>
         </div>
       </div>
 
       {/* ---------- Filters ---------- */}
-      <div className="st-filters">
-        <label className="st-searchbox">
-          <img src={searchIcon} alt="" className="st-btn__ico" />
+      <div className={StaffStyle['st-filters']}>
+        <label className={StaffStyle['st-searchbox']}>
+          <img src={searchIcon} alt="" className={StaffStyle['st-btn__ico']} />
           <input
             type="search"
             placeholder="Search patient or reference"
@@ -105,40 +105,40 @@ export default function Appointments() {
           />
         </label>
 
-        <select className="st-select" value={filters.status} onChange={setFilter("status")} aria-label="Filter by status">
+        <select className={StaffStyle['st-select']} value={filters.status} onChange={setFilter("status")} aria-label="Filter by status">
           <option value="">All statuses</option>
           {unique("status", initialAppointments).map((v) => <option key={v}>{v}</option>)}
         </select>
-        <select className="st-select" value={filters.doctor} onChange={setFilter("doctor")} aria-label="Filter by doctor">
+        <select className={StaffStyle['st-select']} value={filters.doctor} onChange={setFilter("doctor")} aria-label="Filter by doctor">
           <option value="">All doctors</option>
           {doctors.map((d) => <option key={d.name}>{d.name}</option>)}
         </select>
-        <select className="st-select" value={filters.specialty} onChange={setFilter("specialty")} aria-label="Filter by specialty">
+        <select className={StaffStyle['st-select']} value={filters.specialty} onChange={setFilter("specialty")} aria-label="Filter by specialty">
           <option value="">All specialties</option>
           {unique("specialty", initialAppointments).map((v) => <option key={v}>{v}</option>)}
         </select>
-        <select className="st-select" value={filters.department} onChange={setFilter("department")} aria-label="Filter by department">
+        <select className={StaffStyle['st-select']} value={filters.department} onChange={setFilter("department")} aria-label="Filter by department">
           <option value="">All departments</option>
           {unique("department", initialAppointments).map((v) => <option key={v}>{v}</option>)}
         </select>
 
-        <button type="button" className="st-btn">More filters</button>
+        <button type="button" className={StaffStyle['st-btn']}>More filters</button>
       </div>
 
       {/* ---------- Table ---------- */}
-      <article className="st-card st-table-card">
-        <header className="st-toolbar">
-          <p className="st-count">{visible.length} appointment{visible.length === 1 ? "" : "s"}</p>
-          <div className="st-toolbar__actions">
-            <button type="button" className="st-link"><span aria-hidden="true">↓</span> Export</button>
-            <button type="button" className="st-link">
-              <img src={settingsIcon} alt="" className="st-btn__ico" /> Columns
+      <article className={`${StaffStyle['st-card']} ${StaffStyle['st-table-card']}`}>
+        <header className={StaffStyle['st-toolbar']}>
+          <p className={StaffStyle['st-count']}>{visible.length} appointment{visible.length === 1 ? "" : "s"}</p>
+          <div className={StaffStyle['st-toolbar__actions']}>
+            <button type="button" className={StaffStyle['st-link']}><span aria-hidden="true">↓</span> Export</button>
+            <button type="button" className={StaffStyle['st-link']}>
+              <img src={settingsIcon} alt="" className={StaffStyle['st-btn__ico']} /> Columns
             </button>
           </div>
         </header>
 
-        <div className="st-tablewrap">
-          <table className="st-table">
+        <div className={StaffStyle['st-tablewrap']}>
+          <table className={StaffStyle['st-table']}>
             <thead>
               <tr>
                 <th>Patient</th><th>Reference</th><th>Doctor</th><th>Specialty</th>
@@ -149,17 +149,17 @@ export default function Appointments() {
               {visible.map((r) => (
                 <tr key={r.id}>
                   <td><strong>{r.patient}</strong><small>{r.pid}</small></td>
-                  <td className="st-ref">{r.ref}</td>
-                  <td className="st-muted">{r.doctor}</td>
-                  <td className="st-muted">{r.specialty}</td>
-                  <td className="st-muted">{r.when}</td>
-                  <td className="st-muted">{r.source}</td>
+                  <td className={StaffStyle['st-ref']}>{r.ref}</td>
+                  <td className={StaffStyle['st-muted']}>{r.doctor}</td>
+                  <td className={StaffStyle['st-muted']}>{r.specialty}</td>
+                  <td className={StaffStyle['st-muted']}>{r.when}</td>
+                  <td className={StaffStyle['st-muted']}>{r.source}</td>
                   <td><span className={statusClass(r.status)}>{r.status}</span></td>
-                  <td><button type="button" className="st-more" aria-label="More actions">···</button></td>
+                  <td><button type="button" className={StaffStyle['st-more']} aria-label="More actions">···</button></td>
                 </tr>
               ))}
               {visible.length === 0 && (
-                <tr><td colSpan="8" className="st-empty">No appointments match these filters. Clear a filter or change your search.</td></tr>
+                <tr><td colSpan="8" className={StaffStyle['st-empty']}>No appointments match these filters. Clear a filter or change your search.</td></tr>
               )}
             </tbody>
           </table>
@@ -186,18 +186,18 @@ function NewAppointmentModal({ onClose, onCreate }) {
   const canSubmit = form.patient.trim() && form.date;
 
   return (
-    <div className="st-overlay" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="st-modal" role="dialog" aria-modal="true" aria-labelledby="new-appt-title">
-        <header className="st-modal__head">
+    <div className={StaffStyle['st-overlay']} onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+      <div className={StaffStyle['st-modal']} role="dialog" aria-modal="true" aria-labelledby="new-appt-title">
+        <header className={StaffStyle['st-modal__head']}>
           <div>
-            <p className="st-modal__brand">HealthLocal AI</p>
-            <h2 id="new-appt-title" className="st-modal__title">New appointment</h2>
+            <p className={StaffStyle['st-modal__brand']}>HealthLocal AI</p>
+            <h2 id="new-appt-title" className={StaffStyle['st-modal__title']}>New appointment</h2>
           </div>
-          <button type="button" className="st-modal__close" onClick={onClose} aria-label="Close">✕</button>
+          <button type="button" className={StaffStyle['st-modal__close']} onClick={onClose} aria-label="Close">✕</button>
         </header>
 
-        <div className="st-modal__body">
-          <label className="st-field">
+        <div className={StaffStyle['st-modal__body']}>
+          <label className={StaffStyle['st-field']}>
             <span>Patient</span>
             <input list="st-patients" placeholder="Search sample patient" value={form.patient} onChange={set("patient")} autoFocus />
             <datalist id="st-patients">
@@ -205,19 +205,19 @@ function NewAppointmentModal({ onClose, onCreate }) {
             </datalist>
           </label>
 
-          <label className="st-field">
+          <label className={StaffStyle['st-field']}>
             <span>Assigned doctor</span>
             <select value={form.doctor} onChange={set("doctor")}>
               {doctors.map((d) => <option key={d.name}>{d.name}</option>)}
             </select>
           </label>
 
-          <label className="st-field">
+          <label className={StaffStyle['st-field']}>
             <span>Date</span>
             <input type="date" value={form.date} onChange={set("date")} />
           </label>
 
-          <label className="st-field">
+          <label className={StaffStyle['st-field']}>
             <span>Time</span>
             <select value={form.time} onChange={set("time")}>
               {times.map((t) => <option key={t}>{t}</option>)}
@@ -225,9 +225,9 @@ function NewAppointmentModal({ onClose, onCreate }) {
           </label>
         </div>
 
-        <footer className="st-modal__foot">
-          <button type="button" className="st-btn" onClick={onClose}>Cancel</button>
-          <button type="button" className="st-btn st-btn--primary" disabled={!canSubmit} onClick={() => onCreate(form)}>
+        <footer className={StaffStyle['st-modal__foot']}>
+          <button type="button" className={StaffStyle['st-btn']} onClick={onClose}>Cancel</button>
+          <button type="button" className={`${StaffStyle['st-btn']} ${StaffStyle['st-btn--primary']}`} disabled={!canSubmit} onClick={() => onCreate(form)}>
             Create request
           </button>
         </footer>

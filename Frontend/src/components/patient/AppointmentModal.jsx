@@ -1,6 +1,10 @@
 import React, { useEffect } from 'react'
 import { CloseIcon, ShieldCheckIcon } from '../common/Icons'
-import '../../assets/styles/modal.css'
+import HistoryStyle from '../../assets/styles/history.module.css'
+import ModalStyle from '../../assets/styles/modal.module.css'
+import ProfileStyle from '../../assets/styles/profile.module.css'
+import ScheduleStyle from '../../assets/styles/schedule.module.css'
+import SidebarStyle from '../../assets/styles/sidebar.module.css'
 
 const AppointmentModal = ({ appointment, onClose, onBookAgain }) => {
   useEffect(() => {
@@ -17,42 +21,42 @@ const AppointmentModal = ({ appointment, onClose, onBookAgain }) => {
   const completed = appointment.status === 'Completed'
 
   return (
-    <div className="modal-overlay" onMouseDown={onClose}>
+    <div className={ModalStyle['modal-overlay']} onMouseDown={onClose}>
       <div
-        className="modal"
+        className={ModalStyle['modal']}
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-title"
         onMouseDown={(e) => e.stopPropagation()}
       >
-        <header className="modal__head">
+        <header className={ModalStyle['modal__head']}>
           <div>
-            <p className="modal__eyebrow">HealthLocal AI</p>
-            <h2 id="modal-title" className="modal__title">{appointment.ref}</h2>
+            <p className={ModalStyle['modal__eyebrow']}>HealthLocal AI</p>
+            <h2 id="modal-title" className={ModalStyle['modal__title']}>{appointment.ref}</h2>
           </div>
-          <button className="icon-btn" onClick={onClose} aria-label="Close">
+          <button className={SidebarStyle['icon-btn']} onClick={onClose} aria-label="Close">
             <CloseIcon width={18} height={18} />
           </button>
         </header>
 
-        <div className="modal__body">
-          <div className="modal__summary">
-            <span className={`pill ${completed ? 'pill--ok' : 'pill--cancel'}`}>{appointment.status}</span>
-            <h3 className="modal__doctor">{appointment.doctor}</h3>
-            <p className="modal__meta">
+        <div className={ModalStyle['modal__body']}>
+          <div className={ModalStyle['modal__summary']}>
+            <span className={`${HistoryStyle['pill']} ${completed ? HistoryStyle['pill--ok'] : HistoryStyle['pill--cancel']}`}>{appointment.status}</span>
+            <h3 className={ModalStyle['modal__doctor']}>{appointment.doctor}</h3>
+            <p className={ModalStyle['modal__meta']}>
               {appointment.specialty} · {dateText} at {timeText}
             </p>
           </div>
 
-          <div className="modal__notice">
+          <div className={ModalStyle['modal__notice']}>
             <ShieldCheckIcon width={15} height={15} />
             Previous information won't be reused without asking you to verify it.
           </div>
         </div>
 
-        <footer className="modal__foot">
-          <button className="btn-outline" onClick={onClose}>Close</button>
-          <button className="btn-primary" onClick={onBookAgain}>Book again</button>
+        <footer className={ModalStyle['modal__foot']}>
+          <button className={SidebarStyle['btn-outline']} onClick={onClose}>Close</button>
+          <button className={`${ScheduleStyle['btn-primary']} ${ProfileStyle['btn-primary']}`} onClick={onBookAgain}>Book again</button>
         </footer>
       </div>
     </div>

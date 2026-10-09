@@ -1,9 +1,6 @@
-
 import { Route, Navigate } from 'react-router-dom'
 
-import ProtectedRoute from './ProtectedRoute'
 import StaffLayout from '../components/staff/StaffLayout'
-
 
 import Dashboard from '../pages/staff/Dashboard'
 import Appointments from '../pages/staff/Appointments'
@@ -16,14 +13,7 @@ import Reports from '../pages/staff/Reports'
 import StaffPermissions from '../pages/staff/StaffPermissions'
 
 const StaffRoutes = () => (
-  <Route
-    path="/staff"
-    element={
-      <ProtectedRoute role="staff">
-        <StaffLayout />
-      </ProtectedRoute>
-    }
-  >
+  <Route path="/staff" element={<StaffLayout />}>
     <Route index element={<Navigate to="dashboard" replace />} />
     <Route path="dashboard" element={<Dashboard />} />
     <Route path="appointments" element={<Appointments />} />
@@ -34,6 +24,7 @@ const StaffRoutes = () => (
     <Route path="departments" element={<Departments />} />
     <Route path="reports" element={<Reports />} />
     <Route path="permissions" element={<StaffPermissions />} />
+    <Route path="*" element={<Navigate to="/staff/dashboard" replace />} />
   </Route>
 )
 

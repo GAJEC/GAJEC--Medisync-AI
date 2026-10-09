@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
-import "../../assets/styles/Stafflayout.css"; // file must be named StaffLayout.css (capital L) to match this import
+import StaffLayoutStyle from "../../assets/styles/StaffLayout.module.css";
 import { useAuth } from "../../auth/AuthContext";
 
 import heartIcon from "../../assets/icons/heart.png";
@@ -61,82 +61,82 @@ export default function StaffLayout({ onLogout, onToggleTheme, hasNotifications 
   };
 
   return (
-    <div className="sx-shell">
+    <div className={StaffLayoutStyle['sx-shell']}>
       {/* ================= SIDEBAR ================= */}
-      <aside className="sx-sidebar">
-        <div className="sx-brand">
-          <span className="sx-brand__logo">
-            <img src={heartIcon} alt="" className="sx-ico" />
+      <aside className={StaffLayoutStyle['sx-sidebar']}>
+        <div className={StaffLayoutStyle['sx-brand']}>
+          <span className={StaffLayoutStyle['sx-brand__logo']}>
+            <img src={heartIcon} alt="" className={StaffLayoutStyle['sx-ico']} />
           </span>
-          <span className="sx-brand__name">HealthLocal <em>AI</em></span>
+          <span className={StaffLayoutStyle['sx-brand__name']}>HealthLocal <em>AI</em></span>
         </div>
 
-        <button className="sx-workspace" type="button">
-          <span className="sx-workspace__icon">
-            <img src={hospitalIcon} alt="" className="sx-ico" />
+        <button className={StaffLayoutStyle['sx-workspace']} type="button">
+          <span className={StaffLayoutStyle['sx-workspace__icon']}>
+            <img src={hospitalIcon} alt="" className={StaffLayoutStyle['sx-ico']} />
           </span>
-          <span className="sx-workspace__text">
+          <span className={StaffLayoutStyle['sx-workspace__text']}>
             <small>Hospital workspace</small>
             <strong>{workspace}</strong>
           </span>
-          <img src={nextIcon} alt="" className="sx-ico sx-ico--sm sx-ico--down" />
+          <img src={nextIcon} alt="" className={`${StaffLayoutStyle['sx-ico']} ${StaffLayoutStyle['sx-ico--sm']} ${StaffLayoutStyle['sx-ico--down']}`} />
         </button>
 
-        <nav className="sx-nav" aria-label="Staff navigation">
+        <nav className={StaffLayoutStyle['sx-nav']} aria-label="Staff navigation">
           {sections.map((s) => (
-            <div className="sx-nav__group" key={s.label}>
-              <p className="sx-nav__label">{s.label}</p>
+            <div key={s.label}>
+              <p className={StaffLayoutStyle['sx-nav__label']}>{s.label}</p>
               {s.items.map((it) => (
                 <NavLink
                   key={it.to}
                   to={it.to}
-                  className={({ isActive }) => "sx-nav__item" + (isActive ? " is-active" : "")}
+                  className={({ isActive }) => StaffLayoutStyle['sx-nav__item'] + (isActive ? ` ${StaffLayoutStyle['is-active']}` : "")}
                 >
-                  <img src={it.icon} alt="" className="sx-ico" />
+                  <img src={it.icon} alt="" className={StaffLayoutStyle['sx-ico']} />
                   <span>{it.text}</span>
-                  {it.badge ? <b className="sx-nav__badge">{it.badge}</b> : null}
+                  {it.badge ? <b className={StaffLayoutStyle['sx-nav__badge']}>{it.badge}</b> : null}
                 </NavLink>
               ))}
             </div>
           ))}
         </nav>
 
-        <div className="sx-user">
-          <span className="sx-avatar">{currentUser.initials}</span>
-          <span className="sx-user__text">
+        <div className={StaffLayoutStyle['sx-user']}>
+          <span className={StaffLayoutStyle['sx-avatar']}>{currentUser.initials}</span>
+          <span className={StaffLayoutStyle['sx-user__text']}>
             <strong>{currentUser.name}</strong>
             <small>{currentUser.role}</small>
           </span>
-          <button type="button" className="sx-user__logout" onClick={handleLogout} aria-label="Log out">
-            <img src={logoutIcon} alt="" className="sx-ico" />
+          <button type="button" className={StaffLayoutStyle['sx-user__logout']} onClick={handleLogout} aria-label="Log out">
+            <img src={logoutIcon} alt="" className={StaffLayoutStyle['sx-ico']} />
           </button>
         </div>
       </aside>
 
       {/* ================= HEADER + SCROLLING PAGE ================= */}
-      <div className="sx-main">
-        <header className="sx-header">
-          <label className="sx-search">
-            <img src={searchIcon} alt="" className="sx-ico sx-ico--sm sx-ico--dark" />
+      <div className={StaffLayoutStyle['sx-main']}>
+        <header className={StaffLayoutStyle['sx-header']}>
+          <label className={StaffLayoutStyle['sx-search']}>
+            <img src={searchIcon} alt="" className={`${StaffLayoutStyle['sx-ico']} ${StaffLayoutStyle['sx-ico--sm']} ${StaffLayoutStyle['sx-ico--dark']}`} />
             <input type="search" placeholder="Search patients, appointments, doctors…" />
             <kbd>⌘ K</kbd>
           </label>
 
-          <div className="sx-header__right">
-            <span className="sx-chip">Sample data</span>
+          <div className={StaffLayoutStyle['sx-header__right']}>
+            <span className={StaffLayoutStyle['sx-chip']}>Sample data</span>
 
-            <button type="button" className="sx-iconbtn" onClick={onToggleTheme} aria-label="Toggle dark mode">
-              <img src={moonIcon} alt="" className="sx-ico sx-ico--dark" />
+            <button type="button" className={StaffLayoutStyle['sx-iconbtn']} onClick={onToggleTheme} aria-label="Toggle dark mode">
+              <img src={moonIcon} alt="" className={`${StaffLayoutStyle['sx-ico']} ${StaffLayoutStyle['sx-ico--dark']}`} />
             </button>
 
-            <button type="button" className="sx-iconbtn" aria-label="Notifications">
-              <img src={bellIcon} alt="" className="sx-ico sx-ico--dark" />
-              {hasNotifications && <i className="sx-dot" />}
+            <button type="button" className={StaffLayoutStyle['sx-iconbtn']} aria-label="Notifications">
+              <img src={bellIcon} alt="" className={`${StaffLayoutStyle['sx-ico']} ${StaffLayoutStyle['sx-ico--dark']}`} />
+              {hasNotifications && <i className={StaffLayoutStyle['sx-dot']} />}
             </button>
 
-            <div className="sx-header__user">
-              <span className="sx-avatar sx-avatar--light">{currentUser.initials}</span>
-              <span className="sx-user__text">
+            <div className={StaffLayoutStyle['sx-header__user']}>
+              <span className={`${StaffLayoutStyle['sx-avatar']} ${StaffLayoutStyle['sx-avatar--light']}`}>{currentUser.initials}</span>
+              <span className={StaffLayoutStyle['sx-user__text']}>
                 <strong>{currentUser.name}</strong>
                 <small>Administrator</small>
               </span>
@@ -144,7 +144,7 @@ export default function StaffLayout({ onLogout, onToggleTheme, hasNotifications 
           </div>
         </header>
 
-        <main className="sx-content">
+        <main className={StaffLayoutStyle['sx-content']}>
           <Outlet />
         </main>
       </div>

@@ -3,6 +3,8 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import PatientSidebar from './PatientSidebar'
 import { MenuIcon } from '../common/Icons'
 import { useAuth } from '../../auth/AuthContext'
+import HomeStyle from '../../assets/styles/home.module.css'
+import SidebarStyle from '../../assets/styles/sidebar.module.css'
 
 const USER = { name: 'Sofia Reyes', initials: 'SR', role: 'Patient', id: 'P-20481' }
 
@@ -82,13 +84,13 @@ const PatientLayout = () => {
   const openConversation = (id) => {
     setActiveId(id)
     setMenuOpen(false)
-    navigate('/patient')
+    navigate('/patient/dashboard')
   }
 
   const newConversation = () => {
     setActiveId(null)
     setMenuOpen(false)
-    navigate('/patient')
+    navigate('/patient/dashboard')
   }
 
   const handleLogout = () => {
@@ -97,9 +99,9 @@ const PatientLayout = () => {
   }
 
   return (
-    <div className="app-shell">
+    <div className={HomeStyle['app-shell']}>
       <button
-        className="mobile-menu"
+        className={SidebarStyle['mobile-menu']}
         onClick={() => setMenuOpen(true)}
         aria-label="Open menu"
         aria-expanded={menuOpen}
@@ -107,7 +109,7 @@ const PatientLayout = () => {
         <MenuIcon width={20} height={20} />
       </button>
 
-      {menuOpen && <div className="sidebar-backdrop" onClick={() => setMenuOpen(false)} />}
+      {menuOpen && <div className={SidebarStyle['sidebar-backdrop']} onClick={() => setMenuOpen(false)} />}
 
       <PatientSidebar
         collapsed={collapsed && !mobile}
@@ -125,7 +127,7 @@ const PatientLayout = () => {
         unreadCount={unreadCount}
       />
 
-      <div className="main">
+      <div className={HomeStyle['main']}>
         <Outlet
           context={{
             user,
