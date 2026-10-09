@@ -12,6 +12,12 @@ import logoutIcon from '../../assets/icons/logout.png'
 
 import '../../assets/styles/sidebar.css'
 
+const NAV_ITEMS = [
+  { to: '/patient/schedule', label: 'Schedule', icon: scheduleIcon },
+  { to: '/patient/notifications', label: 'Notifications', icon: notificationIcon, badge: true },
+  { to: '/patient/history', label: 'Appointment history', icon: historyIcon },
+]
+
 const PatientSidebar = ({
   collapsed,
   onToggleCollapse,
@@ -58,28 +64,21 @@ const PatientSidebar = ({
       </button>
 
       <nav className="sidebar__nav" aria-label="Main">
-        <NavLink
-          to="/patient/schedule"
-          className={({ isActive }) => `nav-item ${isActive ? 'nav-item--active' : ''}`}
-        >
-          {({ isActive }) => (
-            <>
-              <PngIcon src={scheduleIcon} className={isActive ? 'icon-teal' : 'icon-muted'} />
-              <span className="hide-collapsed">Schedule</span>
-            </>
-          )}
-        </NavLink>
-
-        <button className="nav-item">
-          <PngIcon src={notificationIcon} className="icon-muted" />
-          <span className="hide-collapsed">Notifications</span>
-          {unreadCount > 0 && <span className="badge">{unreadCount}</span>}
-        </button>
-
-        <button className="nav-item">
-          <PngIcon src={historyIcon} className="icon-muted" />
-          <span className="hide-collapsed">Appointment history</span>
-        </button>
+        {NAV_ITEMS.map((item) => (
+          <NavLink
+            key={item.to}
+            to={item.to}
+            className={({ isActive }) => `nav-item ${isActive ? 'nav-item--active' : ''}`}
+          >
+            {({ isActive }) => (
+              <>
+                <PngIcon src={item.icon} className={isActive ? 'icon-teal' : 'icon-muted'} />
+                <span className="hide-collapsed">{item.label}</span>
+                {item.badge && unreadCount > 0 && <span className="badge">{unreadCount}</span>}
+              </>
+            )}
+          </NavLink>
+        ))}
       </nav>
 
       <div className="sidebar__recent hide-collapsed">

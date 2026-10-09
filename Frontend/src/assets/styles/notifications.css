@@ -1,0 +1,50 @@
+.notifs { --unread-bg: #f6f7f7; max-width: 922px; margin: 0 auto; }
+:root[data-theme='dark'] .notifs { --unread-bg: #1c2523; }
+
+.notifs__actions { display: flex; align-items: center; gap: 12px; padding-right: 2px; }
+
+/* Tabs */
+.tabs { display: flex; gap: 22px; margin-top: 30px; border-bottom: 1px solid var(--border); }
+.tabs__btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  height: 36px; padding: 0 2px; margin-bottom: -1px;
+  border: 0; border-bottom: 2px solid transparent; background: none;
+  font-size: 10px; color: var(--muted);
+}
+.tabs__btn:hover { color: var(--text); }
+.tabs__btn--active { border-bottom-color: var(--primary); color: var(--primary); font-weight: 700; }
+.tabs__count { font-size: 10px; font-weight: 700; }
+
+/* List */
+.notifs__list {
+  margin-top: 8px; overflow: hidden;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+}
+.notifs__empty { margin: 0; padding: 48px 0; text-align: center; font-size: 12px; color: var(--muted); }
+
+.notif {
+  display: flex; align-items: center; gap: 16px;
+  width: 100%; min-height: 94px; padding: 0 22px 0 18px;
+  border: 0; border-top: 1px solid var(--border);
+  background: var(--surface); color: var(--text); text-align: left;
+}
+.notif:first-child { border-top: 0; }
+.notif--unread { background: var(--unread-bg); }
+.notif:hover { background: var(--surface-hover); }
+
+.notif__icon {
+  display: grid; place-items: center; flex: none;
+  width: 38px; height: 38px; border-radius: 10px; background: var(--primary-soft);
+}
+.notif__text { display: flex; flex-direction: column; flex: 1; min-width: 0; gap: 5px; }
+.notif__title { font-size: 11px; font-weight: 500; }
+.notif__body { font-size: 9px; color: var(--muted); }
+.notif__meta { margin-top: 3px; font-size: 8px; color: var(--faint); }
+
+.notif__dot { flex: none; width: 6px; height: 6px; border-radius: 50%; background: var(--blue); margin-right: 8px; }
+.notif__chevron { flex: none; color: var(--text); }
+
+@media (max-width: 700px) {
+  .page { padding: 24px 20px 32px; }
+  .page__header { flex-direction: column; align-items: flex-start; }
+}

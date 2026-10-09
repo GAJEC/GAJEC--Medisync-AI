@@ -10,11 +10,33 @@ const CONVERSATIONS = [
   { id: 3, title: 'Follow-up appointment', group: 'Previous 7 days' },
 ]
 
+// Mock data. Replace with your backend later.
+const NOTIFICATIONS = [
+  {
+    id: 1, category: 'appointments', type: 'reminder', read: false, time: 'Just now',
+    title: 'Upcoming appointment reminder',
+    body: 'Your annual checkup is tomorrow at 10:30 AM.',
+  },
+  {
+    id: 2, category: 'appointments', type: 'profile', read: false, time: '2 hours ago',
+    title: 'Complete your patient profile',
+    body: 'Add an emergency contact before your next hospital visit.',
+  },
+  {
+    id: 3, category: 'hospital', type: 'hospital', read: true, time: 'Yesterday',
+    title: 'Hospital hours update',
+    body: 'Outpatient services will follow adjusted hours this Friday.',
+  },
+]
+
 const PatientLayout = () => {
   const navigate = useNavigate()
   const [collapsed, setCollapsed] = useState(false)
   const [dark, setDark] = useState(false)
   const [activeId, setActiveId] = useState(1)
+  const [notifications, setNotifications] = useState(NOTIFICATIONS)
+
+  const unreadCount = notifications.filter((n) => !n.read).length
 
   const toggleDark = () => {
     const next = !dark
@@ -45,11 +67,11 @@ const PatientLayout = () => {
         darkMode={dark}
         onToggleDark={toggleDark}
         onLogout={() => console.log('logout')}
-        unreadCount={3}
+        unreadCount={unreadCount}
       />
 
       <div className="main">
-        <Outlet context={{ user: USER }} />
+        <Outlet context={{ user: USER, notifications, setNotifications }} />
       </div>
     </div>
   )
