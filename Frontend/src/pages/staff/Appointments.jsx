@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import "./Staff.css";
+
 import searchIcon from "../../assets/icons/search.png";
 import settingsIcon from "../../assets/icons/settings.png";
+import "../../assets/styles/Staff.css";
 
 const initialAppointments = [
   { id: 1, patient: "Sofia Reyes", pid: "P-8821", ref: "HL-250624-8821", doctor: "Dr. Maria Santos", specialty: "Internal Medicine", department: "Internal Medicine", when: "Jun 25 · 9:30 AM", source: "AI Intake", status: "Pending Review" },

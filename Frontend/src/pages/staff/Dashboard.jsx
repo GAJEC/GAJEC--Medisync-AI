@@ -1,8 +1,10 @@
-import "./Staff.css";
+import { useNavigate } from "react-router-dom";
+
 import scheduleIcon from "../../assets/icons/schedule.png";
 import historyIcon from "../../assets/icons/history.png";
 import stetIcon from "../../assets/icons/stet.png";
 import nextIcon from "../../assets/icons/next.png";
+import "../../assets/styles/Staff.css";
 
 const stats = [
   { label: "Appointments today", value: 128, note: "↑ 12% from last Tuesday", tone: "teal", icon: scheduleIcon },
@@ -12,9 +14,10 @@ const stats = [
   { label: "Cancelled", value: 6, note: "4.7% of today's visits", tone: "red", glyph: "✕" },
 ];
 
+// Tue is "today" (128 appointments), so the chart now matches the stat card
 const weekly = [
   { day: "Wed", v: 82 }, { day: "Thu", v: 104 }, { day: "Fri", v: 91 },
-  { day: "Sat", v: 128 }, { day: "Sun", v: 110 }, { day: "Mon", v: 142 }, { day: "Tue", v: 98 },
+  { day: "Sat", v: 118 }, { day: "Sun", v: 110 }, { day: "Mon", v: 142 }, { day: "Tue", v: 128 },
 ];
 
 const mix = [
@@ -40,7 +43,9 @@ const donut = (() => {
 })();
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const max = Math.max(...weekly.map((w) => w.v));
+  const goToAppointments = () => navigate("/staff/appointments");
 
   return (
     <div className="st-page">
@@ -52,10 +57,10 @@ export default function Dashboard() {
           <p className="st-sub">A live prototype view of today's appointment activity.</p>
         </div>
         <div className="st-actions">
-          <button type="button" className="st-btn st-btn--ghost">
+          <button type="button" className="st-btn">
             <img src={scheduleIcon} alt="" className="st-btn__ico" /> Jun 24, 2025
           </button>
-          <button type="button" className="st-btn st-btn--primary">
+          <button type="button" className="st-btn st-btn--primary" onClick={goToAppointments}>
             Review requests <img src={nextIcon} alt="" className="st-btn__ico st-btn__ico--white" />
           </button>
         </div>
@@ -129,7 +134,7 @@ export default function Dashboard() {
             <p className="st-eyebrow">Recent activity</p>
             <h2 className="st-h2">Appointment requests</h2>
           </div>
-          <button type="button" className="st-link">
+          <button type="button" className="st-link" onClick={goToAppointments}>
             View all <img src={nextIcon} alt="" className="st-btn__ico" />
           </button>
         </header>

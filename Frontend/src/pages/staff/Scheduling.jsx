@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
-import "../staff/Staff.css";
+
 import searchIcon from "../../assets/icons/search.png";
 import settingsIcon from "../../assets/icons/settings.png";
 import nextIcon from "../../assets/icons/next.png";
+import "../../assets/styles/Staff.css";
 
 const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 
@@ -89,7 +90,7 @@ export default function Scheduling() {
           </button>
         </div>
         {flagged > 0 && (
-          <span className="st-flag">{flagged} schedule conflict{flagged === 1 ? "" : "s"} requires review</span>
+          <span className="st-flag">{flagged} schedule conflict{flagged === 1 ? "" : "s"} require{flagged === 1 ? "s" : ""} review</span>
         )}
       </div>
 

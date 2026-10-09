@@ -1,5 +1,6 @@
-import { NavLink, Outlet } from "react-router-dom";
-import "./StaffLayout.css";
+import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import "../../assets/styles/Stafflayout.css"; // file must be named StaffLayout.css (capital L) to match this import
+import { useAuth } from "../../auth/AuthContext";
 
 import heartIcon from "../../assets/icons/heart.png";
 import hospitalIcon from "../../assets/icons/hospital.png";
@@ -49,6 +50,16 @@ const currentUser = { name: "Ana Mendoza", role: "Hospital Administrator", initi
 const workspace = "St. Gabriel Medical";
 
 export default function StaffLayout({ onLogout, onToggleTheme, hasNotifications = true }) {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
+  // The route renders <StaffLayout /> with no props, so logout is handled here.
+  const handleLogout = () => {
+    logout();
+    onLogout?.();
+    navigate("/login", { replace: true });
+  };
+
   return (
     <div className="sx-shell">
       {/* ================= SIDEBAR ================= */}
@@ -96,7 +107,7 @@ export default function StaffLayout({ onLogout, onToggleTheme, hasNotifications 
             <strong>{currentUser.name}</strong>
             <small>{currentUser.role}</small>
           </span>
-          <button type="button" className="sx-user__logout" onClick={onLogout} aria-label="Log out">
+          <button type="button" className="sx-user__logout" onClick={handleLogout} aria-label="Log out">
             <img src={logoutIcon} alt="" className="sx-ico" />
           </button>
         </div>

@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import "./Staff.css";
+
 import searchIcon from "../../assets/icons/search.png";
 import settingsIcon from "../../assets/icons/settings.png";
+import "../../assets/styles/Staff.css";
 
 const initialDepartments = [
   { id: 1, name: "Adult Medicine", specialty: "Internal Medicine", head: "Dr. M. Santos", doctors: 12, hours: "8:00–17:00", capacity: 86, status: "Active", notes: "" },
