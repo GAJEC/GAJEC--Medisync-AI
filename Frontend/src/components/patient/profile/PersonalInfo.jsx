@@ -3,22 +3,34 @@ import SectionCard from './SectionCard'
 import Field from './Field'
 import ProfileStyle from '../../../assets/styles/profile.module.css'
 
-const PersonalInfo = ({ form, onChange }) => {
+const PersonalInfo = ({ form, patientCode, onChange }) => {
   return (
     <SectionCard title="Personal information" subtitle="Used to coordinate your hospital visits.">
       <div className={ProfileStyle['form-grid']}>
-        <Field label="Full name" htmlFor="fullName">
+        <Field label="First name" htmlFor="firstname">
           <input
-            id="fullName"
+            id="firstname"
             className={ProfileStyle['input']}
-            value={form.fullName}
-            onChange={(e) => onChange('fullName', e.target.value)}
-            autoComplete="name"
+            value={form.firstname}
+            maxLength={100}
+            onChange={(e) => onChange('firstname', e.target.value)}
+            autoComplete="given-name"
+          />
+        </Field>
+
+        <Field label="Last name" htmlFor="lastname">
+          <input
+            id="lastname"
+            className={ProfileStyle['input']}
+            value={form.lastname}
+            maxLength={100}
+            onChange={(e) => onChange('lastname', e.target.value)}
+            autoComplete="family-name"
           />
         </Field>
 
         <Field label="Patient ID" htmlFor="patientId">
-          <input id="patientId" className={ProfileStyle['input']} value={form.patientId} readOnly />
+          <input id="patientId" className={ProfileStyle['input']} value={patientCode} readOnly />
         </Field>
 
         <Field label="Date of birth" htmlFor="dob">
@@ -27,6 +39,7 @@ const PersonalInfo = ({ form, onChange }) => {
             type="date"
             className={ProfileStyle['input']}
             value={form.dob}
+            max={new Date().toISOString().slice(0, 10)}
             onChange={(e) => onChange('dob', e.target.value)}
           />
         </Field>
@@ -38,6 +51,7 @@ const PersonalInfo = ({ form, onChange }) => {
             value={form.sex}
             onChange={(e) => onChange('sex', e.target.value)}
           >
+            <option value="">Select…</option>
             <option>Female</option>
             <option>Male</option>
             <option>Prefer not to say</option>
@@ -50,6 +64,7 @@ const PersonalInfo = ({ form, onChange }) => {
             type="tel"
             className={ProfileStyle['input']}
             value={form.mobile}
+            maxLength={30}
             onChange={(e) => onChange('mobile', e.target.value)}
             autoComplete="tel"
           />
@@ -71,6 +86,7 @@ const PersonalInfo = ({ form, onChange }) => {
             id="address"
             className={ProfileStyle['input']}
             value={form.address}
+            maxLength={255}
             onChange={(e) => onChange('address', e.target.value)}
             autoComplete="street-address"
           />

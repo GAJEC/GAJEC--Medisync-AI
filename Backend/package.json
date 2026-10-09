@@ -1,5 +1,9 @@
 {
   "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "db:migrate": "node database/migrate.js"
+  },
   "dependencies": {
     "@fastify/cors": "^11.3.1",
     "@fastify/jwt": "^10.2.4",

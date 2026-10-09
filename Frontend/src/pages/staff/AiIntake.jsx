@@ -1,7 +1,5 @@
 import { useMemo, useState } from "react";
-import "../../assets/styles/Staff.css";
-=======
->>>>>>> e3bbfeb67c065bb1c352f8afcc950969f241ae4a
+import StaffStyle from "../../assets/styles/Staff.module.css";
 
 const INITIAL_INTAKES = [
   {
@@ -52,6 +50,10 @@ const ACTION_STATUSES = [
   "Closed",
 ];
 
+// e.g. "Clinical review" -> ai-review-status ai-status-clinical-review
+const reviewStatusClass = (s) =>
+  `${StaffStyle["ai-review-status"]} ${StaffStyle["ai-status-" + s.toLowerCase().replace(/\s+/g, "-")] || ""}`;
+
 export default function AIIntake() {
   const [intakes, setIntakes] = useState(INITIAL_INTAKES);
   const [search, setSearch] = useState("");
@@ -66,9 +68,6 @@ export default function AIIntake() {
   const pendingCount = intakes.filter(
     (intake) => intake.reviewStatus === "Pending"
   ).length;
-=======
-const statusClass = (s) => `${StaffStyle["st-pill"]} ${StaffStyle["st-pill--" + s.toLowerCase().replace(/\s+/g, "-")]}`;
->>>>>>> e3bbfeb67c065bb1c352f8afcc950969f241ae4a
 
   const filteredIntakes = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -143,20 +142,20 @@ const statusClass = (s) => `${StaffStyle["st-pill"]} ${StaffStyle["st-pill--" + 
   }
 
   return (
-    <main className="st-page ai-intake-page">
-      <header className="st-pagehead">
+    <main className={`${StaffStyle['st-page']} ${StaffStyle['ai-intake-page']}`}>
+      <header className={StaffStyle['st-pagehead']}>
         <div>
-          <p className="st-eyebrow">HUMAN-IN-THE-LOOP</p>
-          <h1 className="st-title">AI Intake &amp; Matching</h1>
-          <p className="st-sub">
+          <p className={StaffStyle['st-eyebrow']}>HUMAN-IN-THE-LOOP</p>
+          <h1 className={StaffStyle['st-title']}>AI Intake &amp; Matching</h1>
+          <p className={StaffStyle['st-sub']}>
             Review preliminary routing suggestions before clinical assignment.
           </p>
         </div>
 
-        <div className="st-actions">
+        <div className={StaffStyle['st-actions']}>
           <button
             type="button"
-            className="st-btn"
+            className={StaffStyle['st-btn']}
             onClick={() => setShowFilters((current) => !current)}
           >
             ⚙ Filters
@@ -164,7 +163,7 @@ const statusClass = (s) => `${StaffStyle["st-pill"]} ${StaffStyle["st-pill--" + 
 
           <button
             type="button"
-            className="st-btn st-btn--primary"
+            className={`${StaffStyle['st-btn']} ${StaffStyle['st-btn--primary']}`}
             onClick={() => {
               setShowQueue((current) => !current);
               setReviewFilter("All statuses");
@@ -172,28 +171,12 @@ const statusClass = (s) => `${StaffStyle["st-pill"]} ${StaffStyle["st-pill--" + 
           >
             + {showQueue ? "Show all records" : "Review queue"}
             {pendingCount > 0 && ` (${pendingCount})`}
-=======
-    <div className={StaffStyle['st-page']}>
-      {/* ---------- Title ---------- */}
-      <div className={StaffStyle['st-pagehead']}>
-        <div>
-          <p className={StaffStyle['st-eyebrow']}>Tuesday, June 24, 2025</p>
-          <h1 className={StaffStyle['st-title']}>Hospital Operations Dashboard</h1>
-          <p className={StaffStyle['st-sub']}>A live prototype view of today's appointment activity.</p>
-        </div>
-        <div className={StaffStyle['st-actions']}>
-          <button type="button" className={StaffStyle['st-btn']}>
-            <img src={scheduleIcon} alt="" className={StaffStyle['st-btn__ico']} /> Jun 24, 2025
-          </button>
-          <button type="button" className={`${StaffStyle['st-btn']} ${StaffStyle['st-btn--primary']}`} onClick={goToAppointments}>
-            Review requests <img src={nextIcon} alt="" className={`${StaffStyle['st-btn__ico']} ${StaffStyle['st-btn__ico--white']}`} />
->>>>>>> e3bbfeb67c065bb1c352f8afcc950969f241ae4a
           </button>
         </div>
       </header>
 
       {showFilters && (
-        <section className="ai-filter-panel">
+        <section className={StaffStyle['ai-filter-panel']}>
           <label>
             Review status
             <select
@@ -209,7 +192,7 @@ const statusClass = (s) => `${StaffStyle["st-pill"]} ${StaffStyle["st-pill--" + 
 
           <button
             type="button"
-            className="st-btn"
+            className={StaffStyle['st-btn']}
             onClick={resetFilters}
           >
             Clear filters
@@ -218,14 +201,14 @@ const statusClass = (s) => `${StaffStyle["st-pill"]} ${StaffStyle["st-pill--" + 
       )}
 
       {showQueue && (
-        <div className="ai-queue-notice">
+        <div className={StaffStyle['ai-queue-notice']}>
           Showing pending intake records that require review.
         </div>
       )}
 
-      <section className="ai-intake-table-card">
-        <div className="ai-intake-toolbar">
-          <div className="ai-intake-search">
+      <section className={StaffStyle['ai-intake-table-card']}>
+        <div className={StaffStyle['ai-intake-toolbar']}>
+          <div className={StaffStyle['ai-intake-search']}>
             <span aria-hidden="true">⌕</span>
             <input
               type="search"
@@ -236,24 +219,14 @@ const statusClass = (s) => `${StaffStyle["st-pill"]} ${StaffStyle["st-pill--" + 
             />
           </div>
 
-          <span className="ai-record-count">
+          <span className={StaffStyle['ai-record-count']}>
             {filteredIntakes.length} record
             {filteredIntakes.length !== 1 ? "s" : ""}
           </span>
         </div>
 
-        <div className="st-tablewrap">
-          <table className="st-table ai-intake-table">
-          <button type="button" className={StaffStyle['st-link']} onClick={goToAppointments}>
-            View all <img src={nextIcon} alt="" className={StaffStyle['st-btn__ico']} />
-          </button>
-        </header>
         <div className={StaffStyle['st-tablewrap']}>
-          <table className={StaffStyle['st-table']}>
-<<<<<<< HEAD
->>>>>>> e3bbfeb67c065bb1c352f8afcc950969f241ae4a
-=======
->>>>>>> e3bbfeb67c065bb1c352f8afcc950969f241ae4a
+          <table className={`${StaffStyle['st-table']} ${StaffStyle['ai-intake-table']}`}>
             <thead>
               <tr>
                 <th>Intake ID</th>
@@ -268,14 +241,36 @@ const statusClass = (s) => `${StaffStyle["st-pill"]} ${StaffStyle["st-pill--" + 
             </thead>
 
             <tbody>
-=======
->>>>>>> e3bbfeb67c065bb1c352f8afcc950969f241ae4a
+              {filteredIntakes.map((intake) => (
+                <tr key={intake.id}>
+                  <td>
+                    <strong>{intake.id}</strong>
+                  </td>
+                  <td>{intake.patient}</td>
+                  <td>{intake.concern}</td>
+                  <td>{intake.pain}</td>
+                  <td>{intake.specialty}</td>
+                  <td>{intake.doctor}</td>
+                  <td>
+                    <span className={reviewStatusClass(intake.reviewStatus)}>
+                      {intake.reviewStatus}
+                    </span>
+                  </td>
+                  <td>
+                    <button
+                      type="button"
+                      className={StaffStyle['ai-action-button']}
+                      onClick={() => openAction(intake)}
+                    >
+                      Review
+                    </button>
+                  </td>
                 </tr>
               ))}
 
               {filteredIntakes.length === 0 && (
                 <tr>
-                  <td colSpan="8" className="ai-no-results">
+                  <td colSpan="8" className={StaffStyle['ai-no-results']}>
                     No matching intake records found.
                     <button type="button" onClick={resetFilters}>
                       Clear filters
@@ -288,7 +283,7 @@ const statusClass = (s) => `${StaffStyle["st-pill"]} ${StaffStyle["st-pill--" + 
         </div>
       </section>
 
-      <aside className="ai-safety-notice">
+      <aside className={StaffStyle['ai-safety-notice']}>
         <span aria-hidden="true">⛨</span>
         <div>
           <strong>AI suggestions are preliminary.</strong>
@@ -302,20 +297,20 @@ const statusClass = (s) => `${StaffStyle["st-pill"]} ${StaffStyle["st-pill--" + 
 
       {selectedIntake && (
         <div
-          className="ai-modal-overlay"
+          className={StaffStyle['ai-modal-overlay']}
           onMouseDown={(event) => {
             if (event.target === event.currentTarget) closeAction();
           }}
         >
           <section
-            className="ai-action-modal"
+            className={StaffStyle['ai-action-modal']}
             role="dialog"
             aria-modal="true"
             aria-labelledby="ai-action-title"
           >
-            <header className="ai-modal-header">
+            <header className={StaffStyle['ai-modal-header']}>
               <div>
-                <p className="st-eyebrow">HealthLocal AI</p>
+                <p className={StaffStyle['st-eyebrow']}>HealthLocal AI</p>
                 <h2 id="ai-action-title">
                   AI Intake &amp; Matching action
                 </h2>
@@ -323,7 +318,7 @@ const statusClass = (s) => `${StaffStyle["st-pill"]} ${StaffStyle["st-pill--" + 
 
               <button
                 type="button"
-                className="ai-modal-close"
+                className={StaffStyle['ai-modal-close']}
                 onClick={closeAction}
                 aria-label="Close dialog"
               >
@@ -332,8 +327,8 @@ const statusClass = (s) => `${StaffStyle["st-pill"]} ${StaffStyle["st-pill--" + 
             </header>
 
             <form onSubmit={saveChanges}>
-              <div className="ai-modal-body">
-                <div className="ai-authorized-notice">
+              <div className={StaffStyle['ai-modal-body']}>
+                <div className={StaffStyle['ai-authorized-notice']}>
                   <strong>✦ Authorized action</strong>
                   <p>
                     Changes are simulated and will be recorded in this
@@ -341,7 +336,7 @@ const statusClass = (s) => `${StaffStyle["st-pill"]} ${StaffStyle["st-pill--" + 
                   </p>
                 </div>
 
-                <div className="ai-form-grid">
+                <div className={StaffStyle['ai-form-grid']}>
                   <label>
                     Selection
                     <input
@@ -367,7 +362,7 @@ const statusClass = (s) => `${StaffStyle["st-pill"]} ${StaffStyle["st-pill--" + 
                   </label>
                 </div>
 
-                <label className="ai-notes-field">
+                <label className={StaffStyle['ai-notes-field']}>
                   Notes
                   <textarea
                     value={notes}
@@ -378,22 +373,22 @@ const statusClass = (s) => `${StaffStyle["st-pill"]} ${StaffStyle["st-pill--" + 
                 </label>
 
                 {error && (
-                  <p className="ai-form-error" role="alert">
+                  <p className={StaffStyle['ai-form-error']} role="alert">
                     {error}
                   </p>
                 )}
               </div>
 
-              <footer className="ai-modal-footer">
+              <footer className={StaffStyle['ai-modal-footer']}>
                 <button
                   type="button"
-                  className="st-btn"
+                  className={StaffStyle['st-btn']}
                   onClick={closeAction}
                 >
                   Cancel
                 </button>
 
-                <button type="submit" className="st-btn st-btn--primary">
+                <button type="submit" className={`${StaffStyle['st-btn']} ${StaffStyle['st-btn--primary']}`}>
                   Save changes
                 </button>
               </footer>

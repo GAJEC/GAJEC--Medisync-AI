@@ -19,6 +19,8 @@ import scheduleIcon from '../../assets/icons/schedule.png'
 import nextIcon from '../../assets/icons/next.png'
 import aiIcon from '../../assets/icons/ai.png'
 
+import { patientApi } from '../../api/client'
+
 import HomeStyle from '../../assets/styles/home.module.css'
 import SidebarStyle from '../../assets/styles/sidebar.module.css'
 
@@ -36,8 +38,10 @@ const MAX_RECORD_S = 120
 const formatTime = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
 
 const Home = () => {
-  const { user } = useOutletContext()
+  const { token, user, activeConversationId, setActiveConversationId, reloadConversations } = useOutletContext()
   const [message, setMessage] = useState('')
+  const [loaded, setLoaded] = useState({ id: null, messages: [] })
+  const [sending, setSending] = useState(false)
   const [attachments, setAttachments] = useState([])
   const [menuOpen, setMenuOpen] = useState(false)
   const [recording, setRecording] = useState(false)
@@ -174,16 +178,49 @@ const Home = () => {
     stopRecording()
   }
 
-  const send = (text) => {
+  // Messages of the conversation picked in the sidebar; empty for a new conversation
+  const thread = activeConversationId && loaded.id === activeConversationId ? loaded.messages : []
+
+  useEffect(() => {
+    if (!activeConversationId) return
+    let cancelled = false
+    patientApi
+      .conversation(token, activeConversationId)
+      .then(({ conversation }) => !cancelled && setLoaded({ id: conversation.id, messages: conversation.messages }))
+      .catch((err) => !cancelled && setError(err.message))
+    return () => {
+      cancelled = true
+    }
+  }, [token, activeConversationId])
+
+  const send = async (text) => {
     const value = text.trim()
-    if (!value && attachments.length === 0) return
-    // TODO: connect to the AI / backend endpoint.
-    // Upload attachments with FormData, e.g. attachments.forEach((a) => form.append('files', a.file))
-    console.log('send:', value, attachments.map((a) => a.file.name))
-    setMessage('')
-    attachments.forEach((a) => URL.revokeObjectURL(a.url))
-    setAttachments([])
+    if (sending) return
+    if (!value) {
+      if (attachments.length) setError('Add a short description to go with your attachments.')
+      return
+    }
+    // Attachments are not uploaded yet: there is no file endpoint on the backend.
+    setSending(true)
     setError('')
+    try {
+      if (activeConversationId) {
+        const { message: saved } = await patientApi.sendMessage(token, activeConversationId, value)
+        setLoaded((l) => ({ ...l, messages: [...l.messages, saved] }))
+      } else {
+        const { conversation } = await patientApi.startConversation(token, value)
+        setLoaded({ id: conversation.id, messages: conversation.messages })
+        setActiveConversationId(conversation.id)
+      }
+      reloadConversations()
+      setMessage('')
+      attachments.forEach((a) => URL.revokeObjectURL(a.url))
+      setAttachments([])
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setSending(false)
+    }
   }
 
   return (
@@ -202,6 +239,21 @@ const Home = () => {
         </span>
       </header>
 
+      {thread.length > 0 ? (
+        <main className={HomeStyle['thread']} aria-live="polite">
+          {thread.map((m) => (
+            <div
+              key={m.id}
+              className={`${HomeStyle['bubble']} ${m.sender === 'patient' ? HomeStyle['bubble--me'] : ''}`}
+            >
+              {m.body}
+            </div>
+          ))}
+          <p className={HomeStyle['thread__note']}>
+            Your message was saved. Syncia's AI replies will appear here once the assistant service is connected.
+          </p>
+        </main>
+      ) : (
       <main className={HomeStyle['hero']}>
         <div className={HomeStyle['hero__logo']}>
           <PngIcon src={heartIcon} size={26} className={SidebarStyle['icon-white']} />
@@ -211,7 +263,7 @@ const Home = () => {
         </div>
 
         <p className={HomeStyle['hero__eyebrow']} >Your care companion</p>
-        <h1 className={HomeStyle['hero__title']}>Hi {user.name.split(' ')[0]}, how are you feeling?</h1>
+        <h1 className={HomeStyle['hero__title']}>Hi {user.name.split(' ')[0] || 'there'}, how are you feeling?</h1>
         <p className={HomeStyle['hero__lead']}>
           I'm your MediSync AI assistant. I can help you find appropriate care at your
           hospital and arrange a visit.
@@ -240,6 +292,7 @@ const Home = () => {
           ))}
         </div>
       </main>
+      )}
 
       <footer className={HomeStyle['composer-wrap']}>
         {attachments.length > 0 && (
@@ -329,8 +382,15 @@ const Home = () => {
                 onChange={(e) => setMessage(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && send(message)}
                 placeholder="Describe your symptoms or ask about an appointment…"
+                maxLength={4000}
+                disabled={sending}
               />
-              <button className={HomeStyle['composer__send']} onClick={() => send(message)} aria-label="Send">
+              <button
+                className={HomeStyle['composer__send']}
+                onClick={() => send(message)}
+                aria-label="Send"
+                disabled={sending}
+              >
                 <SendIcon width={16} height={16} />
               </button>
             </>

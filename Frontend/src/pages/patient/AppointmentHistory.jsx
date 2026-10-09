@@ -1,6 +1,7 @@
-import React, { useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import React, { useEffect, useMemo, useState } from 'react'
+import { useNavigate, useOutletContext } from 'react-router-dom'
 import { PngIcon, MoreIcon } from '../../components/common/Icons'
+import { patientApi } from '../../api/client'
 
 import HistoryStyle from '../../assets/styles/history.module.css'
 import SidebarStyle from '../../assets/styles/sidebar.module.css'
@@ -13,24 +14,11 @@ import scheduleIcon from '../../assets/icons/schedule.png'
 
 
 
-// Mock data. Replace with your backend later.
-const HISTORY = [
-  {
-    id: 1, ref: 'HL-250318-0842', reason: 'Annual wellness check',
-    doctor: 'Dr. Maria Santos', specialty: 'Internal Medicine',
-    date: '2025-03-18T10:30:00', mode: 'In-person', status: 'Completed',
-  },
-  {
-    id: 2, ref: 'HL-241122-2190', reason: 'Seasonal cough',
-    doctor: 'Dr. Daniel Reyes', specialty: 'Family Medicine',
-    date: '2024-11-22T14:00:00', mode: 'Online', status: 'Completed',
-  },
-  {
-    id: 3, ref: 'HL-240908-1171', reason: 'Follow-up consultation',
-    doctor: 'Dr. Maria Santos', specialty: 'Internal Medicine',
-    date: '2024-09-08T09:00:00', mode: 'In-person', status: 'Cancelled',
-  },
-]
+const PILL = {
+  Completed: HistoryStyle['pill--ok'],
+  Cancelled: HistoryStyle['pill--cancel'],
+  Scheduled: HistoryStyle['pill--scheduled'],
+}
 
 const COLUMNS = ['Appointment', 'Doctor & specialty', 'Date & time', 'Consultation', 'Status']
 
@@ -41,27 +29,51 @@ const formatTime = (iso) =>
 
 const AppointmentHistory = () => {
   const navigate = useNavigate()
+  const { token } = useOutletContext()
   const [search, setSearch] = useState('')
+  const [query, setQuery] = useState('')
   const [status, setStatus] = useState('all')
   const [order, setOrder] = useState('newest')
   const [rangeOpen, setRangeOpen] = useState(false)
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
   const [selected, setSelected] = useState(null)
+  const [reloadKey, setReloadKey] = useState(0)
+  // Result of the last finished request, tagged with the filters it was for
+  const [result, setResult] = useState({ key: null, rows: [], error: '' })
 
-  const rows = useMemo(() => {
-    const q = search.trim().toLowerCase()
-    return HISTORY.filter((a) => {
-      const d = new Date(a.date)
-      if (status !== 'all' && a.status !== status) return false
-      if (from && d < new Date(`${from}T00:00:00`)) return false
-      if (to && d > new Date(`${to}T23:59:59`)) return false
-      if (!q) return true
-      return [a.ref, a.doctor, a.specialty, a.reason].some((v) => v.toLowerCase().includes(q))
-    }).sort((a, b) =>
-      order === 'newest' ? new Date(b.date) - new Date(a.date) : new Date(a.date) - new Date(b.date)
-    )
-  }, [search, status, order, from, to])
+  // Debounce the search box so we don't query on every keystroke
+  useEffect(() => {
+    const id = setTimeout(() => setQuery(search.trim()), 300)
+    return () => clearTimeout(id)
+  }, [search])
+
+  const filters = useMemo(
+    () => ({ status: status === 'all' ? undefined : status, search: query, from, to, order }),
+    [status, query, from, to, order],
+  )
+  const requestKey = `${JSON.stringify(filters)}#${reloadKey}`
+
+  useEffect(() => {
+    let cancelled = false
+    patientApi
+      .appointments(token, filters)
+      .then(({ appointments }) => !cancelled && setResult({ key: requestKey, rows: appointments, error: '' }))
+      .catch((err) => !cancelled && setResult((r) => ({ ...r, key: requestKey, error: err.message })))
+    return () => {
+      cancelled = true
+    }
+  }, [token, filters, requestKey])
+
+  const loading = result.key !== requestKey
+  const rows = result.rows
+  const error = loading ? '' : result.error
+
+  const cancelAppointment = async (appointment) => {
+    const { appointment: updated } = await patientApi.cancelAppointment(token, appointment.id)
+    setSelected(updated)
+    setReloadKey((k) => k + 1)
+  }
 
   const rangeActive = Boolean(from || to)
 
@@ -72,7 +84,7 @@ const AppointmentHistory = () => {
 
   const bookAgain = () => {
     setSelected(null)
-    navigate('/patient')
+    navigate('/patient/dashboard')
   }
 
   return (
@@ -98,6 +110,7 @@ const AppointmentHistory = () => {
 
         <select className={HistoryStyle['select']} value={status} onChange={(e) => setStatus(e.target.value)} aria-label="Filter by status">
           <option value="all">All statuses</option>
+          <option value="Scheduled">Scheduled</option>
           <option value="Completed">Completed</option>
           <option value="Cancelled">Cancelled</option>
         </select>
@@ -145,8 +158,14 @@ const AppointmentHistory = () => {
               <span />
             </div>
 
-            {rows.length === 0 ? (
-              <p className={HistoryStyle['table__empty']}>No appointments match your filters.</p>
+            {error ? (
+              <p className={HistoryStyle['table__empty']} role="alert">{error}</p>
+            ) : loading && rows.length === 0 ? (
+              <p className={HistoryStyle['table__empty']}>Loading appointments…</p>
+            ) : rows.length === 0 ? (
+              <p className={HistoryStyle['table__empty']}>
+                {query || status !== 'all' || rangeActive ? 'No appointments match your filters.' : 'You have no appointments yet.'}
+              </p>
             ) : (
               rows.map((a) => (
                 <div key={a.id} className={HistoryStyle['table__row']} role="row">
@@ -155,8 +174,8 @@ const AppointmentHistory = () => {
                     <small>{a.reason}</small>
                   </span>
                   <span className={HistoryStyle['cell']}>
-                    <strong>{a.doctor}</strong>
-                    <small>{a.specialty}</small>
+                    <strong>{a.doctor || 'To be assigned'}</strong>
+                    <small>{a.specialty || '—'}</small>
                   </span>
                   <span className={HistoryStyle['cell']}>
                     <strong>{formatDate(a.date)}</strong>
@@ -164,7 +183,7 @@ const AppointmentHistory = () => {
                   </span>
                   <span className={`${HistoryStyle['cell']} ${HistoryStyle['cell--mode']}`}>{a.mode}</span>
                   <span className={HistoryStyle['cell']}>
-                    <span className={`${HistoryStyle['pill']} ${a.status === 'Completed' ? HistoryStyle['pill--ok'] : HistoryStyle['pill--cancel']}`}>
+                    <span className={`${HistoryStyle['pill']} ${PILL[a.status] || ''}`}>
                       {a.status}
                     </span>
                   </span>
@@ -185,9 +204,11 @@ const AppointmentHistory = () => {
       </div>
 
       <AppointmentModal
+        key={selected?.id}
         appointment={selected}
         onClose={() => setSelected(null)}
         onBookAgain={bookAgain}
+        onCancel={cancelAppointment}
       />
     </div>
   )

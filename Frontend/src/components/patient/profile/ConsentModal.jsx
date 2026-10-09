@@ -1,5 +1,6 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Modal from '../../common/Modal'
+import { patientApi } from '../../../api/client'
 import ModalStyle from '../../../assets/styles/modal.module.css'
 import ProfileStyle from '../../../assets/styles/profile.module.css'
 import ScheduleStyle from '../../../assets/styles/schedule.module.css'
@@ -28,10 +29,36 @@ const OPTIONS = [
   },
 ]
 
-const ConsentModal = ({ onClose, onDone }) => {
-  const [values, setValues] = useState({ routing: true, staff: true, history: false, reminders: true })
+const ConsentModal = ({ token, onClose, onDone }) => {
+  const [values, setValues] = useState(null)
+  const [error, setError] = useState('')
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    patientApi
+      .consents(token)
+      .then(({ consents }) => !cancelled && setValues(consents))
+      .catch((err) => !cancelled && setError(err.message))
+    return () => {
+      cancelled = true
+    }
+  }, [token])
 
   const toggle = (id) => setValues((v) => ({ ...v, [id]: !v[id] }))
+
+  const save = async () => {
+    setSaving(true)
+    setError('')
+    try {
+      const { staff, history, reminders } = values
+      await patientApi.updateConsents(token, { routing: true, staff, history, reminders })
+      onDone('Consent preferences saved')
+    } catch (err) {
+      setError(err.message)
+      setSaving(false)
+    }
+  }
 
   return (
     <Modal
@@ -40,32 +67,41 @@ const ConsentModal = ({ onClose, onDone }) => {
       footer={
         <>
           <button className={SidebarStyle['btn-outline']} onClick={onClose}>Cancel</button>
-          <button className={`${ProfileStyle['btn-primary']} ${ScheduleStyle['btn-primary']}`} onClick={() => onDone('Consent preferences saved')}>
-            Save choices
+          <button
+            className={`${ProfileStyle['btn-primary']} ${ScheduleStyle['btn-primary']}`}
+            onClick={save}
+            disabled={!values || saving}
+          >
+            {saving ? 'Saving…' : 'Save choices'}
           </button>
         </>
       }
     >
       <p className={ModalStyle['modal__text']}>Review how the information you submit is used. You can change these at any time.</p>
-      <div className={ProfileStyle['consent-list']}>
-        {OPTIONS.map((o) => (
-          <label key={o.id} className={ProfileStyle['consent-row']}>
-            <span>
-              <span className={ProfileStyle['consent-row__title']}>{o.title}</span>
-              <span className={ProfileStyle['consent-row__desc']}>{o.desc}</span>
-            </span>
-            <span className={ProfileStyle['switch']}>
-              <input
-                type="checkbox"
-                checked={values[o.id]}
-                disabled={o.required}
-                onChange={() => toggle(o.id)}
-              />
-              <span className={ProfileStyle['switch__track']} />
-            </span>
-          </label>
-        ))}
-      </div>
+      {values ? (
+        <div className={ProfileStyle['consent-list']}>
+          {OPTIONS.map((o) => (
+            <label key={o.id} className={ProfileStyle['consent-row']}>
+              <span>
+                <span className={ProfileStyle['consent-row__title']}>{o.title}</span>
+                <span className={ProfileStyle['consent-row__desc']}>{o.desc}</span>
+              </span>
+              <span className={ProfileStyle['switch']}>
+                <input
+                  type="checkbox"
+                  checked={values[o.id]}
+                  disabled={o.required || saving}
+                  onChange={() => toggle(o.id)}
+                />
+                <span className={ProfileStyle['switch__track']} />
+              </span>
+            </label>
+          ))}
+        </div>
+      ) : (
+        !error && <p className={ModalStyle['modal__text']}>Loading your choices…</p>
+      )}
+      {error && <p className={ProfileStyle['form-error']} role="alert">{error}</p>}
     </Modal>
   )
 }

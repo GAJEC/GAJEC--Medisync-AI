@@ -1,5 +1,6 @@
-import React, { useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import React, { useEffect, useMemo, useState } from 'react'
+import { useNavigate, useOutletContext } from 'react-router-dom'
+import { patientApi } from '../../api/client'
 import {
   PngIcon,
   PlusIcon,
@@ -31,13 +32,19 @@ const fmt = (d, options) => d.toLocaleDateString('en-US', options)
 
 const TODAY = startOfDay(new Date())
 
-// Mock data, placed relative to today so the calendar always shows something.
-// Replace with a call to your backend later.
-const APPOINTMENTS = [
-  { id: 1, date: addDays(TODAY, -6), time: '9:00 AM', title: 'Headache consultation', doctor: 'Dr. Reyes', type: 'consult' },
-  { id: 2, date: addDays(TODAY, 3), time: '2:00 PM', title: 'Follow-up', doctor: 'Dr. Santos', type: 'follow-up' },
-  { id: 3, date: addDays(TODAY, 10), time: '10:30 AM', title: 'General checkup', doctor: 'Dr. Lim', type: 'checkup' },
-]
+// API appointment -> calendar event
+const toEvent = (a) => {
+  const at = new Date(a.date)
+  return {
+    id: a.id,
+    at,
+    date: startOfDay(at),
+    time: at.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
+    title: a.reason,
+    doctor: a.doctor || 'Doctor to be assigned',
+    type: a.type,
+  }
+}
 
 const buildWeeks = (cursor, view) => {
   if (view === 'week') {
@@ -55,18 +62,34 @@ const buildWeeks = (cursor, view) => {
 
 const Schedule = () => {
   const navigate = useNavigate()
+  const { token } = useOutletContext()
   const [view, setView] = useState('month')
   const [cursor, setCursor] = useState(TODAY)
   const [search, setSearch] = useState('')
+  const [events, setEvents] = useState([])
+  const [error, setError] = useState('')
+
+  // Only scheduled visits belong on the calendar; past/cancelled ones live in history
+  useEffect(() => {
+    let cancelled = false
+    patientApi
+      .appointments(token, { status: 'Scheduled', order: 'oldest' })
+      .then(({ appointments }) => !cancelled && setEvents(appointments.map(toEvent)))
+      .catch((err) => !cancelled && setError(err.message))
+    return () => {
+      cancelled = true
+    }
+  }, [token])
 
   const visible = useMemo(() => {
     const q = search.trim().toLowerCase()
-    return APPOINTMENTS.filter(
+    return events.filter(
       (a) => !q || a.title.toLowerCase().includes(q) || a.doctor.toLowerCase().includes(q)
     )
-  }, [search])
+  }, [events, search])
 
-  const upcoming = visible.filter((a) => a.date >= TODAY).sort((a, b) => a.date - b.date)
+  const now = new Date()
+  const upcoming = visible.filter((a) => a.at >= now).sort((a, b) => a.at - b.at)
   const weeks = buildWeeks(cursor, view)
 
   const title =
@@ -79,14 +102,14 @@ const Schedule = () => {
       (a) =>
         a.date.getMonth() === cursor.getMonth() && a.date.getFullYear() === cursor.getFullYear()
     )
-    .sort((a, b) => a.date - b.date)
+    .sort((a, b) => a.at - b.at)
 
   const shift = (dir) => {
     if (view === 'week') setCursor(addDays(cursor, 7 * dir))
     else setCursor(new Date(cursor.getFullYear(), cursor.getMonth() + dir, 1))
   }
 
-  const eventsOn = (day) => visible.filter((a) => sameDay(a.date, day))
+  const eventsOn = (day) => visible.filter((a) => sameDay(a.date, day)).sort((a, b) => a.at - b.at)
 
   return (
     <div className={ScheduleStyle['schedule']}>
@@ -96,7 +119,7 @@ const Schedule = () => {
           <h1 className={ScheduleStyle['schedule__title']}>Your appointments</h1>
           <p className={ScheduleStyle['schedule__sub']}>Manage upcoming visits and keep track of your care.</p>
         </div>
-        <button className={`${ScheduleStyle['btn-primary']} ${ProfileStyle['btn-primary']}`} onClick={() => navigate('/patient')}>
+        <button className={`${ScheduleStyle['btn-primary']} ${ProfileStyle['btn-primary']}`} onClick={() => navigate('/patient/dashboard')}>
           <PlusIcon width={15} height={15} />
           Book appointment
         </button>
@@ -204,8 +227,12 @@ const Schedule = () => {
           {upcoming.length === 0 ? (
             <div className={ScheduleStyle['upcoming__empty']}>
               <PngIcon src={scheduleIcon} size={16} className={SidebarStyle['icon-muted']} />
-              <p className={ScheduleStyle['upcoming__empty-title']}>No matching appointments</p>
-              <p className={ScheduleStyle['upcoming__empty-sub']}>Start a new AI conversation to book care.</p>
+              <p className={ScheduleStyle['upcoming__empty-title']}>
+                {error ? "Couldn't load appointments" : 'No matching appointments'}
+              </p>
+              <p className={ScheduleStyle['upcoming__empty-sub']}>
+                {error || 'Start a new AI conversation to book care.'}
+              </p>
             </div>
           ) : (
             <ul className={ScheduleStyle['upcoming__list']}>

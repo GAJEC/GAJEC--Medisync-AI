@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import Modal from '../../common/Modal'
 import { ShieldCheckIcon } from '../../common/Icons'
+import { patientApi } from '../../../api/client'
 import ModalStyle from '../../../assets/styles/modal.module.css'
 import ProfileStyle from '../../../assets/styles/profile.module.css'
 import ScheduleStyle from '../../../assets/styles/schedule.module.css'
@@ -11,18 +12,27 @@ const CHOICES = [
   { id: 'delete', title: 'Request deletion of eligible data', desc: 'Records the hospital must keep by law cannot be deleted.' },
 ]
 
-const DataRequestModal = ({ onClose }) => {
+const DataRequestModal = ({ token, onClose }) => {
   const [type, setType] = useState('access')
   const [note, setNote] = useState('')
-  const [submitted, setSubmitted] = useState(false)
-  const [reference] = useState(() => `HL-REQ-${Math.floor(100000 + Math.random() * 900000)}`)
+  const [reference, setReference] = useState(null)
+  const [error, setError] = useState('')
+  const [sending, setSending] = useState(false)
 
-  const submit = () => {
-    // TODO: send to the backend.
-    setSubmitted(true)
+  const submit = async () => {
+    setSending(true)
+    setError('')
+    try {
+      const { request } = await patientApi.createDataRequest(token, type, note.trim())
+      setReference(request.reference)
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setSending(false)
+    }
   }
 
-  if (submitted) {
+  if (reference) {
     return (
       <Modal
         title="Request received"
@@ -51,7 +61,9 @@ const DataRequestModal = ({ onClose }) => {
       footer={
         <>
           <button className={SidebarStyle['btn-outline']} onClick={onClose}>Cancel</button>
-          <button className={`${ProfileStyle['btn-primary']} ${ScheduleStyle['btn-primary']}`} onClick={submit}>Submit request</button>
+          <button className={`${ProfileStyle['btn-primary']} ${ScheduleStyle['btn-primary']}`} onClick={submit} disabled={sending}>
+            {sending ? 'Submitting…' : 'Submit request'}
+          </button>
         </>
       }
     >
@@ -79,11 +91,13 @@ const DataRequestModal = ({ onClose }) => {
           className={ProfileStyle['input']}
           placeholder="Tell us what you need, such as a date range or a specific visit"
           value={note}
+          maxLength={2000}
           onChange={(e) => setNote(e.target.value)}
         />
       </div>
 
       <p className={ModalStyle['modal__text']}>Requests are subject to retention requirements.</p>
+      {error && <p className={ProfileStyle['form-error']} role="alert">{error}</p>}
     </Modal>
   )
 }

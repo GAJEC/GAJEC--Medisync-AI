@@ -30,6 +30,7 @@ const PatientSidebar = ({
   activeId,
   onNewConversation,
   onSelectConversation,
+  onDeleteConversation,
   darkMode,
   onToggleDark,
   onLogout,
@@ -42,7 +43,7 @@ const PatientSidebar = ({
   const filtered = conversations.filter((c) =>
     c.title.toLowerCase().includes(query.trim().toLowerCase())
   )
-  const groups = ['Today', 'Yesterday', 'Previous 7 days']
+  const groups = ['Today', 'Yesterday', 'Previous 7 days', 'Older']
     .map((label) => ({ label, items: filtered.filter((c) => c.group === label) }))
     .filter((g) => g.items.length > 0)
 
@@ -104,6 +105,9 @@ const PatientSidebar = ({
         </label>
 
         <div className={SidebarStyle['convo-list']}>
+          {conversations.length === 0 && (
+            <h3 className={SidebarStyle['convo-group']}>No conversations yet</h3>
+          )}
           {groups.map((g) => (
             <div key={g.label}>
               <h3 className={SidebarStyle['convo-group']}>{g.label}</h3>
@@ -115,8 +119,15 @@ const PatientSidebar = ({
                   <button className={SidebarStyle['convo__title']} onClick={() => onSelectConversation(c.id)}>
                     {c.title}
                   </button>
-                  <button className={SidebarStyle['icon-btn']} aria-label="Conversation options">
-                    <MoreIcon />
+                  <button
+                    className={SidebarStyle['icon-btn']}
+                    aria-label={`Delete conversation "${c.title}"`}
+                    title="Delete conversation"
+                    onClick={() => {
+                      if (window.confirm(`Delete "${c.title}"? This cannot be undone.`)) onDeleteConversation(c.id)
+                    }}
+                  >
+                    <CloseIcon width={14} height={14} />
                   </button>
                 </div>
               ))}
@@ -135,7 +146,7 @@ const PatientSidebar = ({
           <span className={`${SidebarStyle['profile__text']} ${SidebarStyle['hide-collapsed']}`}>
             <span className={SidebarStyle['profile__name']}>{user.name}</span>
             <span className={SidebarStyle['profile__meta']}>
-              {user.role} · {user.id}
+              {user.role} · {user.code}
             </span>
           </span>
           <MoreIcon className={`${SidebarStyle['profile__more']} ${SidebarStyle['hide-collapsed']}`} />
