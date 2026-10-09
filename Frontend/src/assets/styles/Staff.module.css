@@ -109,39 +109,389 @@
 
 @media (max-width: 600px) { .st-modal__body { grid-template-columns: 1fr; } }
 
-/* ================= AI Intake page ================= */
+/* AI Intake & Matching */
+.ai-intake-page .st-pagehead {
+  align-items: flex-end;
+}
 
-/* status pills */
-.st-pill--pending { background: #fdf1d6; color: #8a5a00; }
-.st-pill--reviewed { background: #d9efea; color: #0b5d56; }
-.st-pill--clinical-review { background: #dde9fb; color: #2f62c4; }
+.ai-intake-page .st-eyebrow {
+  color: #0f827a;
+}
 
-/* card toolbar with search on the left, count on the right */
-.st-toolbar--top { gap: 12px; padding-top: 0; }
-.st-searchbox--sm { flex: 0 1 280px; min-width: 200px; background: #fff; }
-.st-searchbox--sm input { padding: 13px 0; }
-.st-toolbar--top .st-select { height: 46px; padding: 0 12px; }
-.st-count--right { margin-left: auto; }
+.ai-intake-page .st-title {
+  margin: 0;
+  font-size: 36px;
+  font-weight: 500;
+}
 
-.st-table--compact td { padding: 14px 16px; }
-.st-row--click { cursor: pointer; }
-.st-row--click:hover { background: #f8faf9; }
-.st-row--click:focus-visible { outline: 2px solid var(--brand); outline-offset: -2px; }
+.ai-intake-page .st-sub {
+  margin-top: 12px;
+  color: #64748b;
+  font-size: 13px;
+}
 
-/* notice under the table */
-.st-notice { display: flex; gap: 12px; align-items: flex-start; margin-top: 16px; padding: 14px 18px; border-radius: 12px; background: #fdf4e3; color: #5a4a2a; font-size: 12px; }
-.st-notice__ico { width: 18px; height: 18px; object-fit: contain; margin-top: 1px; filter: brightness(0); opacity: .5; }
-.st-notice strong { display: block; margin-bottom: 2px; color: #3f3418; }
-.st-notice p { margin: 0; }
+.ai-intake-page .st-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
 
-/* pop-up extras */
-.st-field--full { grid-column: 1 / -1; }
-.st-field textarea { font: inherit; font-size: 14px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px; resize: vertical; min-height: 92px; color: var(--ink); }
-.st-field textarea:focus { outline: 2px solid var(--brand); outline-offset: -1px; border-color: var(--brand); }
-.st-callout { display: flex; gap: 12px; align-items: flex-start; padding: 16px 18px; border-radius: 12px; background: #eef4fd; }
-.st-callout strong { font-size: 16px; font-weight: 500; color: #3b72d9; }
-.st-callout p { margin: 6px 0 0; font-size: 11px; color: var(--muted); }
-.st-callout__ico { width: 18px; height: 18px; object-fit: contain; margin-top: 3px; }
+.ai-intake-page .st-btn--primary {
+  background: #0f827a;
+  color: #fff;
+  border-color: #0f827a;
+}
+
+.ai-intake-page .st-btn--primary:hover {
+  background: #0b6d67;
+}
+
+.ai-filter-panel,
+.ai-intake-table-card {
+  margin-bottom: 16px;
+  overflow: hidden;
+  border: 1px solid #dce5e9;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.ai-filter-panel {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 18px;
+}
+
+.ai-filter-panel label,
+.ai-form-grid label,
+.ai-notes-field {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  color: #263746;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.ai-filter-panel select,
+.ai-form-grid input,
+.ai-form-grid select,
+.ai-notes-field textarea {
+  width: 100%;
+  min-height: 46px;
+  padding: 12px;
+  border: 1px solid #d7e1e7;
+  border-radius: 10px;
+  background: #fff;
+  color: #253642;
+  font: inherit;
+  outline: none;
+}
+
+.ai-filter-panel select:focus,
+.ai-form-grid input:focus,
+.ai-form-grid select:focus,
+.ai-notes-field textarea:focus {
+  border-color: #0f827a;
+  box-shadow: 0 0 0 3px rgba(15, 130, 122, 0.12);
+}
+
+.ai-queue-notice {
+  margin-bottom: 14px;
+  padding: 13px 16px;
+  border-radius: 9px;
+  background: #eaf7f5;
+  color: #0f766e;
+  font-size: 13px;
+}
+
+.ai-intake-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 14px;
+  border-bottom: 1px solid #dce5e9;
+}
+
+.ai-intake-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: min(100%, 280px);
+  padding: 0 12px;
+  border: 1px solid #d7e1e7;
+  border-radius: 9px;
+  color: #8ca0aa;
+}
+
+.ai-intake-search input {
+  width: 100%;
+  height: 39px;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: #263746;
+  font: inherit;
+  font-size: 12px;
+}
+
+.ai-record-count {
+  color: #64748b;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.ai-intake-table {
+  width: 100%;
+  border-collapse: collapse;
+  white-space: nowrap;
+}
+
+.ai-intake-table th {
+  padding: 14px 15px;
+  background: #f8fafb;
+  color: #71869a;
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 0.5px;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.ai-intake-table td {
+  padding: 16px 15px;
+  border-top: 1px solid #e1e8ed;
+  color: #607589;
+  font-size: 12px;
+}
+
+.ai-intake-table td strong {
+  color: #183047;
+  font-weight: 650;
+}
+
+.ai-review-status {
+  display: inline-flex;
+  padding: 5px 10px;
+  border-radius: 20px;
+  background: #fff3df;
+  color: #a35c00;
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.ai-status-reviewed {
+  background: #e8f7ee;
+  color: #16804a;
+}
+
+.ai-status-clinical-review {
+  background: #eaf2ff;
+  color: #2563c9;
+}
+
+.ai-action-button {
+  padding: 7px 11px;
+  border: 1px solid #cfe2df;
+  border-radius: 7px;
+  background: #f1faf8;
+  color: #0f766e;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.ai-action-button:hover {
+  background: #dff3ef;
+}
+
+.ai-no-results {
+  padding: 30px !important;
+  text-align: center;
+}
+
+.ai-no-results button {
+  margin-left: 8px;
+  border: 0;
+  background: transparent;
+  color: #0f827a;
+  cursor: pointer;
+}
+
+.ai-safety-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  padding: 15px;
+  border-radius: 12px;
+  background: #fff5e4;
+  color: #a65b00;
+  font-size: 12px;
+}
+
+.ai-safety-notice p {
+  margin: 5px 0 0;
+  color: #7a6b58;
+  line-height: 1.6;
+}
+
+/* Action modal */
+.ai-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(30, 42, 45, 0.58);
+  backdrop-filter: blur(4px);
+}
+
+.ai-action-modal {
+  width: 100%;
+  max-width: 640px;
+  overflow: hidden;
+  border: 1px solid #e0e7eb;
+  border-radius: 17px;
+  background: #fff;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.18);
+}
+
+.ai-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 22px;
+  border-bottom: 1px solid #e0e7eb;
+}
+
+.ai-modal-header .st-eyebrow {
+  margin: 0 0 8px;
+  color: #0f827a;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 1px;
+}
+
+.ai-modal-header h2 {
+  margin: 0;
+  color: #263942;
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.ai-modal-close {
+  width: 35px;
+  height: 35px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #243640;
+  font-size: 26px;
+  cursor: pointer;
+}
+
+.ai-modal-close:hover {
+  background: #f1f5f7;
+}
+
+.ai-modal-body {
+  padding: 21px 22px;
+}
+
+.ai-authorized-notice {
+  margin-bottom: 20px;
+  padding: 17px;
+  border-radius: 11px;
+  background: #edf5ff;
+  color: #4585e8;
+}
+
+.ai-authorized-notice strong {
+  font-size: 14px;
+}
+
+.ai-authorized-notice p {
+  margin: 7px 0 0 25px;
+  color: #71849a;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.ai-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.ai-form-grid input,
+.ai-form-grid select {
+  font-size: 13px;
+}
+
+.ai-form-grid input[readonly] {
+  background: #f9fbfc;
+}
+
+.ai-notes-field {
+  margin-top: 19px;
+}
+
+.ai-notes-field textarea {
+  min-height: 90px;
+  resize: vertical;
+  font-size: 13px;
+}
+
+.ai-form-error {
+  color: #b91c1c;
+  font-size: 12px;
+}
+
+.ai-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 22px;
+  border-top: 1px solid #e0e7eb;
+}
+
+@media (max-width: 700px) {
+  .ai-intake-page .st-pagehead {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .ai-intake-page .st-title {
+    font-size: 28px;
+  }
+
+  .ai-intake-table {
+    min-width: 900px;
+  }
+
+  .ai-intake-table-card .st-tablewrap {
+    overflow-x: auto;
+  }
+
+  .ai-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ai-modal-overlay {
+    align-items: flex-start;
+    overflow-y: auto;
+    padding: 12px;
+  }
+
+  .ai-action-modal {
+    margin: auto 0;
+  }
+}
 
 
 /* ================= Doctors page ================= */
