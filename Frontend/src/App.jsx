@@ -1,15 +1,49 @@
 import React from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { AuthProvider, useAuth, homeFor } from './auth/AuthContext'
+import ProtectedRoute from './routes/ProtectedRoute'
 import PatientRoutes from './routes/PatientRoutes'
+import Login from './pages/auth/Login'
+
+// Login page wrapper. Already signed in? Skip straight to the right home page.
+// After login() runs, this component re-renders and the <Navigate> below fires,
+// so signing in lands on /patient (or /staff).
+const LoginRoute = () => {
+  const { session, login } = useAuth()
+
+  if (session) return <Navigate to={homeFor(session.role)} replace />
+
+  return (
+    <Login
+      onLogin={({ role, email }) => login({ role, email })}
+      onSignup={({ fullName, email }) => login({ role: 'patient', email, name: fullName })}
+    />
+  )
+}
+
 
 const App = () => {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/patient/*" element={<PatientRoutes />} />
-        <Route path="*" element={<Navigate to="/patient" replace />} />
-      </Routes>
-    </BrowserRouter>
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/login" element={<LoginRoute />} />
+
+          <Route
+            path="/patient/*"
+            element={
+              <ProtectedRoute role="patient">
+                <PatientRoutes />
+              </ProtectedRoute>
+            }
+          />
+
+
+          {/* Anything else (including "/") -> login, which forwards signed-in users home */}
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   )
 }
 
