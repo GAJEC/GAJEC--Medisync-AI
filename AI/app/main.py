@@ -98,6 +98,18 @@ def create_app(manager: ModelManager | None = None) -> FastAPI:
         # Liveness only; unauthenticated and contains no model details.
         return {"status": "ok"}
 
+    @app.get("/internal/ready", dependencies=auth)
+    async def readiness(request: Request):
+        slots = models(request).slots
+        enabled = {name: slot for name, slot in slots.items() if slot.enabled}
+        unavailable = {name: slot.state for name, slot in enabled.items() if slot.state != "ready"}
+        if not enabled or unavailable:
+            return JSONResponse(
+                status_code=503,
+                content={"status": "not_ready", "models": unavailable},
+            )
+        return {"status": "ready"}
+
     @app.get("/internal/models/status", dependencies=auth)
     async def model_status(request: Request):
         return models(request).status()

@@ -92,6 +92,23 @@ def test_health_is_public(client):
     assert client.get("/internal/health").json() == {"status": "ok"}
 
 
+def test_readiness_requires_token(client):
+    r = client.get("/internal/ready")
+    assert r.status_code == 401 and r.json()["error"]["code"] == "UNAUTHORIZED"
+
+
+def test_readiness_ignores_disabled_optional_model(client):
+    r = client.get("/internal/ready", headers=H)
+    assert r.status_code == 200 and r.json() == {"status": "ready"}
+
+
+def test_readiness_reports_enabled_model_not_ready(client):
+    client.app.state.models.slots["medgemma"].state = "failed"
+    r = client.get("/internal/ready", headers=H)
+    assert r.status_code == 503
+    assert r.json() == {"status": "not_ready", "models": {"medgemma": "failed"}}
+
+
 def test_token_required(client):
     r = client.post("/internal/medical/chat", json={"message": "hi"})
     assert r.status_code == 401 and r.json()["error"]["code"] == "UNAUTHORIZED"
