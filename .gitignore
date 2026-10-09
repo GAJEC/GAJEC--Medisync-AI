@@ -1,0 +1,33 @@
+# Model weights and Hugging Face download caches
+AI/weights/
+*.safetensors
+*.bin
+*.msgpack
+*.h5
+*.gguf
+*.pt
+*.pth
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# Node
+node_modules/
+
+# Runtime uploads
+Backend/storage/
+AI/tmp/
+
+# Logs
+*.log
+.DS_Store
+Thumbs.db
