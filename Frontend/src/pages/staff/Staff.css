@@ -1,0 +1,221 @@
+
+
+.st-page { --brand: #0f766e; --ink: #12211f; --muted: #6b7b78; --line: #e6ece9; max-width: 1200px; margin: 0 auto; color: var(--ink); }
+
+/* ---------- Page title ---------- */
+.st-pagehead { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; margin-bottom: 22px; }
+.st-title { margin: 0; font-size: 40px; font-weight: 400; letter-spacing: -.01em; line-height: 1.15; }
+.st-sub { margin: 14px 0 0; font-size: 14px; color: var(--muted); }
+.st-actions { display: flex; gap: 10px; }
+.st-btn { display: inline-flex; align-items: center; gap: 8px; font: inherit; font-size: 14px; font-weight: 600; padding: 11px 18px; border-radius: 10px; cursor: pointer; border: 1px solid var(--line); background: #fff; color: var(--ink); }
+.st-btn--primary { background: var(--brand); border-color: var(--brand); color: #fff; }
+.st-btn:focus-visible, .st-link:focus-visible, .st-more:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.st-btn__ico { width: 16px; height: 16px; object-fit: contain; filter: brightness(0); opacity: .7; }
+.st-btn__ico--white { filter: brightness(0) invert(1); opacity: 1; }
+
+/* ---------- Cards ---------- */
+.st-card { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 20px; box-shadow: 0 1px 2px rgba(18,33,31,.04); }
+.st-card__head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
+.st-eyebrow { margin: 0 0 6px; font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--brand); }
+.st-h2 { margin: 0; font-size: 21px; font-weight: 400; }
+
+/* ---------- Stat cards ---------- */
+.st-stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 16px; }
+.st-stat { display: flex; gap: 14px; padding: 18px 16px; }
+.st-stat__icon { width: 36px; height: 36px; border-radius: 10px; flex: none; display: grid; place-items: center; font-size: 15px; font-weight: 700; }
+.st-stat__icon img { width: 18px; height: 18px; object-fit: contain; filter: brightness(0); opacity: .6; }
+.st-tone--teal { background: #d9efea; color: #0f766e; }
+.st-tone--amber { background: #fdecd0; color: #b7791f; }
+.st-tone--blue { background: #dde9fb; color: #3b72d9; }
+.st-tone--violet { background: #e8e3fa; color: #6b4fd6; }
+.st-tone--red { background: #fbe0e0; color: #d64545; }
+.st-stat__label { margin: 0; font-size: 11px; color: var(--brand); }
+.st-stat__value { margin: 6px 0 14px; font-size: 28px; font-weight: 400; }
+.st-stat__note { margin: 0; font-size: 10px; color: #8a9895; }
+
+/* ---------- Charts ---------- */
+.st-grid2 { display: grid; grid-template-columns: 1.6fr 1fr; gap: 16px; margin-bottom: 16px; }
+.st-select { font: inherit; font-size: 13px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--ink); }
+.st-bars { height: 250px; margin-bottom: 30px; display: flex; align-items: flex-end; gap: 22px; padding: 0 12px; border-bottom: 1px solid var(--line); }
+.st-bar { flex: 1; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; position: relative; }
+.st-bar__fill { width: 100%; max-width: 36px; background: #4a9a94; border-radius: 3px 3px 0 0; }
+.st-bar__val { font-size: 9px; color: #8a9895; margin-bottom: 4px; }
+.st-bar__day { position: absolute; bottom: -22px; font-size: 10px; color: #8a9895; }
+.st-donutwrap { display: flex; align-items: center; justify-content: center; gap: 28px; padding: 24px 0 10px; }
+.st-donut { width: 150px; height: 150px; border-radius: 50%; display: grid; place-items: center; }
+.st-donut__hole { width: 100px; height: 100px; border-radius: 50%; background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.st-donut__hole strong { font-size: 22px; font-weight: 600; }
+.st-donut__hole small { font-size: 10px; color: var(--muted); }
+.st-legend { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; font-size: 11px; color: var(--muted); }
+.st-legend li { display: flex; align-items: center; gap: 8px; }
+.st-legend i { width: 7px; height: 7px; border-radius: 50%; }
+.st-legend b { margin-left: 8px; color: var(--ink); }
+
+/* ---------- Table ---------- */
+.st-table-card { padding: 20px 0 0; overflow: hidden; }
+.st-table-card .st-card__head { padding: 0 20px; }
+.st-link { display: inline-flex; align-items: center; gap: 8px; background: none; border: 0; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; color: var(--ink); }
+.st-tablewrap { overflow-x: auto; }
+.st-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.st-table th { text-align: left; padding: 14px 16px; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); background: #f8faf9; border-bottom: 1px solid var(--line); }
+.st-table td { padding: 16px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.st-table tbody tr:last-child td { border-bottom: 0; }
+.st-table td strong { display: block; font-size: 12px; }
+.st-table td small { font-size: 10px; color: #8a9895; }
+.st-ref { font-weight: 600; font-size: 12px; }
+.st-muted { color: var(--muted); }
+.st-more { background: none; border: 0; cursor: pointer; color: var(--muted); font-size: 20px; line-height: 1; }
+.st-pill { display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+.st-pill--pending-review { background: #fdf1d6; color: #8a5a00; }
+.st-pill--confirmed, .st-pill--checked-in { background: #d9efea; color: #0b5d56; }
+
+@media (max-width: 1100px) { .st-stats { grid-template-columns: repeat(2, 1fr); } .st-grid2 { grid-template-columns: 1fr; } }
+@media (max-width: 600px) { .st-pagehead { flex-direction: column; align-items: flex-start; } .st-title { font-size: 28px; } }
+
+/* ================= Appointments page ================= */
+
+.st-btn__plus { font-size: 20px; line-height: 1; margin-top: -2px; }
+.st-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+/* filters row */
+.st-filters { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+.st-searchbox { flex: 1; min-width: 240px; display: flex; align-items: center; gap: 10px; padding: 0 16px; background: #fff; border: 1px solid var(--line); border-radius: 10px; }
+.st-searchbox:focus-within { border-color: var(--brand); }
+.st-searchbox input { flex: 1; border: 0; outline: 0; background: none; font: inherit; font-size: 13px; padding: 14px 0; color: var(--ink); }
+.st-filters .st-select { padding: 0 12px; height: 46px; }
+.st-filters .st-btn { height: 46px; }
+
+/* table toolbar */
+.st-toolbar { display: flex; justify-content: space-between; align-items: center; padding: 0 20px 18px; }
+.st-count { margin: 0; font-size: 12px; color: var(--muted); }
+.st-toolbar__actions { display: flex; gap: 26px; }
+.st-empty { text-align: center; color: var(--muted); padding: 40px 16px !important; white-space: normal !important; }
+.st-pill--completed { background: #d9efea; color: #0b5d56; }
+
+/* pop-up */
+.st-overlay { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 20px; background: rgba(18, 33, 31, .55); backdrop-filter: blur(3px); }
+.st-modal { width: 100%; max-width: 640px; background: #fff; border-radius: 16px; box-shadow: 0 24px 60px rgba(0,0,0,.3); overflow: hidden; color: var(--ink); }
+.st-modal__head { display: flex; justify-content: space-between; align-items: flex-start; padding: 22px 24px 18px; border-bottom: 1px solid var(--line); }
+.st-modal__brand { margin: 0 0 6px; font-size: 11px; font-weight: 700; letter-spacing: .1em; color: var(--brand); }
+.st-modal__title { margin: 0; font-size: 22px; font-weight: 400; }
+.st-modal__close { background: none; border: 0; font-size: 18px; cursor: pointer; padding: 8px; border-radius: 8px; color: var(--ink); }
+.st-modal__close:hover { background: #f1f5f4; }
+.st-modal__body { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 16px; padding: 22px 24px; }
+.st-field { display: flex; flex-direction: column; gap: 8px; }
+.st-field span { font-size: 13px; font-weight: 600; }
+.st-field input, .st-field select { font: inherit; font-size: 14px; height: 48px; padding: 0 14px; border: 1px solid var(--line); border-radius: 10px; background: #fff; color: var(--ink); }
+.st-field input:focus, .st-field select:focus { outline: 2px solid var(--brand); outline-offset: -1px; border-color: var(--brand); }
+.st-modal__foot { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 24px; border-top: 1px solid var(--line); }
+
+@media (max-width: 600px) { .st-modal__body { grid-template-columns: 1fr; } }
+
+/* ================= AI Intake page ================= */
+
+/* status pills */
+.st-pill--pending { background: #fdf1d6; color: #8a5a00; }
+.st-pill--reviewed { background: #d9efea; color: #0b5d56; }
+.st-pill--clinical-review { background: #dde9fb; color: #2f62c4; }
+
+/* card toolbar with search on the left, count on the right */
+.st-toolbar--top { gap: 12px; padding-top: 0; }
+.st-searchbox--sm { flex: 0 1 280px; min-width: 200px; background: #fff; }
+.st-searchbox--sm input { padding: 13px 0; }
+.st-toolbar--top .st-select { height: 46px; padding: 0 12px; }
+.st-count--right { margin-left: auto; }
+
+.st-table--compact td { padding: 14px 16px; }
+.st-row--click { cursor: pointer; }
+.st-row--click:hover { background: #f8faf9; }
+.st-row--click:focus-visible { outline: 2px solid var(--brand); outline-offset: -2px; }
+
+/* notice under the table */
+.st-notice { display: flex; gap: 12px; align-items: flex-start; margin-top: 16px; padding: 14px 18px; border-radius: 12px; background: #fdf4e3; color: #5a4a2a; font-size: 12px; }
+.st-notice__ico { width: 18px; height: 18px; object-fit: contain; margin-top: 1px; filter: brightness(0); opacity: .5; }
+.st-notice strong { display: block; margin-bottom: 2px; color: #3f3418; }
+.st-notice p { margin: 0; }
+
+/* pop-up extras */
+.st-field--full { grid-column: 1 / -1; }
+.st-field textarea { font: inherit; font-size: 14px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px; resize: vertical; min-height: 92px; color: var(--ink); }
+.st-field textarea:focus { outline: 2px solid var(--brand); outline-offset: -1px; border-color: var(--brand); }
+.st-callout { display: flex; gap: 12px; align-items: flex-start; padding: 16px 18px; border-radius: 12px; background: #eef4fd; }
+.st-callout strong { font-size: 16px; font-weight: 500; color: #3b72d9; }
+.st-callout p { margin: 6px 0 0; font-size: 11px; color: var(--muted); }
+.st-callout__ico { width: 18px; height: 18px; object-fit: contain; margin-top: 3px; }
+
+
+/* ================= Doctors page ================= */
+
+/* availability pills */
+.st-pill--available { background: #d9efea; color: #0b5d56; }
+.st-pill--in-consultation { background: #fdf1d6; color: #8a5a00; }
+.st-pill--on-leave { background: #fde4e4; color: #b83232; }
+
+/* cards grid */
+.st-docgrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.st-doc { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 16px 16px 16px; }
+
+.st-doc__avatarwrap { position: relative; margin-bottom: 14px; }
+.st-doc__avatar { width: 72px; height: 72px; border-radius: 16px; object-fit: cover; display: grid; place-items: center; color: #fff; font-size: 24px; font-weight: 500; }
+.st-doc__dot { position: absolute; right: -3px; bottom: -3px; width: 12px; height: 12px; border-radius: 50%; border: 2px solid #fff; }
+.st-doc__dot--available { background: #1f9d55; }
+.st-doc__dot--in-consultation { background: #e8a13a; }
+.st-doc__dot--on-leave { background: #d64545; }
+
+.st-doc__name { margin: 0; font-size: 16px; font-weight: 400; }
+.st-doc__spec { margin: 10px 0 0; font-size: 12px; font-weight: 600; color: var(--brand); }
+.st-doc__dept { margin: 14px 0 0; font-size: 10px; color: var(--muted); }
+
+.st-doc__stats { width: 100%; display: flex; justify-content: space-between; align-items: center; margin-top: 18px; padding: 16px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); text-align: left; }
+.st-doc__stats strong { display: block; font-size: 17px; font-weight: 500; }
+.st-doc__stats small { font-size: 9px; color: var(--muted); }
+.st-doc__stats .st-pill { font-size: 9px; padding: 3px 9px; }
+
+.st-doc__actions { width: 100%; display: flex; gap: 10px; margin-top: 12px; }
+.st-doc__actions .st-btn { justify-content: center; font-size: 12px; padding: 12px; }
+.st-doc__actions .st-btn:first-child { flex: 1; }
+.st-btn--icon { width: 44px; flex: none; font-size: 18px; line-height: 1; border-color: transparent; }
+.st-btn--icon:hover { background: #f1f5f4; }
+
+.st-empty--grid { grid-column: 1 / -1; text-align: center; color: var(--muted); padding: 40px 16px; }
+
+@media (max-width: 1200px) { .st-docgrid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 600px) { .st-docgrid { grid-template-columns: 1fr; } }
+
+/* ================= Scheduling page ================= */
+
+/* week bar */
+.st-weekbar { display: flex; justify-content: space-between; align-items: center; padding: 10px 18px; margin-bottom: 14px; }
+.st-weekbar__nav { display: flex; align-items: center; gap: 14px; }
+.st-weekbar__label { font-size: 17px; font-weight: 500; }
+.st-weekbtn { display: grid; place-items: center; width: 32px; height: 32px; background: none; border: 0; border-radius: 8px; cursor: pointer; }
+.st-weekbtn:hover { background: #f1f5f4; }
+.st-weekbtn:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.st-ico--flip { transform: rotate(180deg); }
+.st-flag { padding: 5px 12px; border-radius: 999px; background: #fdf1d6; color: #8a5a00; font-size: 11px; font-weight: 600; }
+
+/* schedule cells and conflict pills */
+.st-cell--off { color: #8a9895; }
+.st-pill--none { background: #d9efea; color: #0b5d56; }
+.st-pill--flagged { background: #fdf1d6; color: #8a5a00; }
+
+/* ================= Patients page ================= */
+.st-pill--active { background: #d9efea; color: #0b5d56; }
+.st-pill--inactive { background: #eceff0; color: #5d6b69; }
+
+
+/* ================= Departments page ================= */
+.st-num { color: var(--brand); }
+
+
+/* ================= Reports page ================= */
+.st-stats--3 { grid-template-columns: repeat(3, 1fr); }
+.st-pill--sample { background: #e4eefc; color: #2f62c4; }
+
+@media (max-width: 1100px) { .st-stats--3 { grid-template-columns: 1fr; } }
+
+
+/* ================= Staff & Permissions page ================= */
+.st-manage { font: inherit; font-size: 11px; font-weight: 700; padding: 5px 12px; border: 0; border-radius: 999px; background: #d9efea; color: #0b5d56; cursor: pointer; }
+.st-manage:hover { background: #c4e6df; }
+.st-manage:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
