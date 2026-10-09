@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import searchIcon from "../../assets/icons/search.png";
 import settingsIcon from "../../assets/icons/settings.png";
 import insuranceIcon from "../../assets/icons/insurance.png";
-import "../../assets/styles/Staff.css";
+import StaffStyle from "../../assets/styles/Staff.module.css";
 const initialStaff = [
   { id: 1, name: "Ana Mendoza", role: "Hospital Administrator", department: "Operations", lastActive: "Now", account: "Active", mfa: "Enabled", notes: "" },
   { id: 2, name: "Carlo Lim", role: "Appointment Coordinator", department: "Patient Services", lastActive: "12 min ago", account: "Active", mfa: "Enabled", notes: "" },
@@ -53,41 +53,41 @@ export default function StaffPermissions() {
   };
 
   return (
-    <div className="st-page">
+    <div className={StaffStyle['st-page']}>
       {/* ---------- Title ---------- */}
-      <div className="st-pagehead">
+      <div className={StaffStyle['st-pagehead']}>
         <div>
-          <h1 className="st-title">Staff &amp; Permissions</h1>
-          <p className="st-sub">Manage staff roles, account access, and activity records.</p>
+          <h1 className={StaffStyle['st-title']}>Staff &amp; Permissions</h1>
+          <p className={StaffStyle['st-sub']}>Manage staff roles, account access, and activity records.</p>
         </div>
-        <div className="st-actions">
-          <button type="button" className="st-btn" onClick={() => setShowFilters((v) => !v)} aria-expanded={showFilters}>
-            <img src={settingsIcon} alt="" className="st-btn__ico" /> Filters
+        <div className={StaffStyle['st-actions']}>
+          <button type="button" className={StaffStyle['st-btn']} onClick={() => setShowFilters((v) => !v)} aria-expanded={showFilters}>
+            <img src={settingsIcon} alt="" className={StaffStyle['st-btn__ico']} /> Filters
           </button>
-          <button type="button" className="st-btn st-btn--primary" onClick={() => setModal({ mode: "invite" })}>
-            <span className="st-btn__plus" aria-hidden="true">+</span> Invite staff
+          <button type="button" className={`${StaffStyle['st-btn']} ${StaffStyle['st-btn--primary']}`} onClick={() => setModal({ mode: "invite" })}>
+            <span className={StaffStyle['st-btn__plus']} aria-hidden="true">+</span> Invite staff
           </button>
         </div>
       </div>
 
       {/* ---------- Table card ---------- */}
-      <article className="st-card st-table-card">
-        <header className="st-toolbar st-toolbar--top">
-          <label className="st-searchbox st-searchbox--sm">
-            <img src={searchIcon} alt="" className="st-btn__ico" />
+      <article className={`${StaffStyle['st-card']} ${StaffStyle['st-table-card']}`}>
+        <header className={`${StaffStyle['st-toolbar']} ${StaffStyle['st-toolbar--top']}`}>
+          <label className={`${StaffStyle['st-searchbox']} ${StaffStyle['st-searchbox--sm']}`}>
+            <img src={searchIcon} alt="" className={StaffStyle['st-btn__ico']} />
             <input type="search" placeholder="Search staff…" value={query} onChange={(e) => setQuery(e.target.value)} />
           </label>
           {showFilters && (
-            <select className="st-select" value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)} aria-label="Filter by role">
+            <select className={StaffStyle['st-select']} value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)} aria-label="Filter by role">
               <option value="">All roles</option>
               {roles.map((r) => <option key={r}>{r}</option>)}
             </select>
           )}
-          <p className="st-count st-count--right">{visible.length} sample record{visible.length === 1 ? "" : "s"}</p>
+          <p className={`${StaffStyle['st-count']} ${StaffStyle['st-count--right']}`}>{visible.length} sample record{visible.length === 1 ? "" : "s"}</p>
         </header>
 
-        <div className="st-tablewrap">
-          <table className="st-table st-table--compact">
+        <div className={StaffStyle['st-tablewrap']}>
+          <table className={`${StaffStyle['st-table']} ${StaffStyle['st-table--compact']}`}>
             <thead>
               <tr>
                 <th>Staff member</th><th>Role</th><th>Department</th>
@@ -97,14 +97,14 @@ export default function StaffPermissions() {
             <tbody>
               {visible.map((r) => (
                 <tr key={r.id}>
-                  <td className="st-ref">{r.name}</td>
-                  <td className="st-muted">{r.role}</td>
-                  <td className="st-muted">{r.department}</td>
-                  <td className="st-muted">{r.lastActive}</td>
-                  <td className="st-muted">{r.account}</td>
-                  <td className="st-muted">{r.mfa}</td>
+                  <td className={StaffStyle['st-ref']}>{r.name}</td>
+                  <td className={StaffStyle['st-muted']}>{r.role}</td>
+                  <td className={StaffStyle['st-muted']}>{r.department}</td>
+                  <td className={StaffStyle['st-muted']}>{r.lastActive}</td>
+                  <td className={StaffStyle['st-muted']}>{r.account}</td>
+                  <td className={StaffStyle['st-muted']}>{r.mfa}</td>
                   <td>
-                    <button type="button" className="st-manage" onClick={() => setModal({ mode: "edit", id: r.id })}
+                    <button type="button" className={StaffStyle['st-manage']} onClick={() => setModal({ mode: "edit", id: r.id })}
                             aria-label={`Manage ${r.name}`}>
                       Manage
                     </button>
@@ -112,7 +112,7 @@ export default function StaffPermissions() {
                 </tr>
               ))}
               {visible.length === 0 && (
-                <tr><td colSpan="7" className="st-empty">No staff match. Clear the search or the filter.</td></tr>
+                <tr><td colSpan="7" className={StaffStyle['st-empty']}>No staff match. Clear the search or the filter.</td></tr>
               )}
             </tbody>
           </table>
@@ -138,17 +138,17 @@ function ModalShell({ titleId, title, onClose, children, footer }) {
   }, [onClose]);
 
   return (
-    <div className="st-overlay" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="st-modal" role="dialog" aria-modal="true" aria-labelledby={titleId}>
-        <header className="st-modal__head">
+    <div className={StaffStyle['st-overlay']} onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+      <div className={StaffStyle['st-modal']} role="dialog" aria-modal="true" aria-labelledby={titleId}>
+        <header className={StaffStyle['st-modal__head']}>
           <div>
-            <p className="st-modal__brand">HealthLocal AI</p>
-            <h2 id={titleId} className="st-modal__title">{title}</h2>
+            <p className={StaffStyle['st-modal__brand']}>HealthLocal AI</p>
+            <h2 id={titleId} className={StaffStyle['st-modal__title']}>{title}</h2>
           </div>
-          <button type="button" className="st-modal__close" onClick={onClose} aria-label="Close">✕</button>
+          <button type="button" className={StaffStyle['st-modal__close']} onClick={onClose} aria-label="Close">✕</button>
         </header>
-        <div className="st-modal__body">{children}</div>
-        <footer className="st-modal__foot">{footer}</footer>
+        <div className={StaffStyle['st-modal__body']}>{children}</div>
+        <footer className={StaffStyle['st-modal__foot']}>{footer}</footer>
       </div>
     </div>
   );
@@ -171,34 +171,34 @@ function StaffActionModal({ staff, initialId, onClose, onSave }) {
       onClose={onClose}
       footer={
         <>
-          <button type="button" className="st-btn" onClick={onClose}>Cancel</button>
-          <button type="button" className="st-btn st-btn--primary" onClick={() => onSave(form)}>Save changes</button>
+          <button type="button" className={StaffStyle['st-btn']} onClick={onClose}>Cancel</button>
+          <button type="button" className={`${StaffStyle['st-btn']} ${StaffStyle['st-btn--primary']}`} onClick={() => onSave(form)}>Save changes</button>
         </>
       }
     >
-      <div className="st-callout st-field--full">
-        <img src={insuranceIcon} alt="" className="st-callout__ico" />
+      <div className={`${StaffStyle['st-callout']} ${StaffStyle['st-field--full']}`}>
+        <img src={insuranceIcon} alt="" className={StaffStyle['st-callout__ico']} />
         <div>
           <strong>Authorized action</strong>
           <p>Changes are simulated and will be recorded in the sample activity log.</p>
         </div>
       </div>
 
-      <label className="st-field">
+      <label className={StaffStyle['st-field']}>
         <span>Selection</span>
         <select value={form.id} onChange={changeSelection}>
           {staff.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
         </select>
       </label>
 
-      <label className="st-field">
+      <label className={StaffStyle['st-field']}>
         <span>Status</span>
         <select value={form.status} onChange={(e) => setForm((f) => ({ ...f, status: e.target.value }))}>
           {accountStatuses.map((s) => <option key={s}>{s}</option>)}
         </select>
       </label>
 
-      <label className="st-field st-field--full">
+      <label className={`${StaffStyle['st-field']} ${StaffStyle['st-field--full']}`}>
         <span>Notes</span>
         <textarea rows="3" placeholder="Add an optional audit note…" value={form.notes}
                   onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} />
@@ -219,29 +219,29 @@ function InviteStaffModal({ onClose, onInvite }) {
       onClose={onClose}
       footer={
         <>
-          <button type="button" className="st-btn" onClick={onClose}>Cancel</button>
-          <button type="button" className="st-btn st-btn--primary" disabled={!form.name.trim()} onClick={() => onInvite(form)}>
+          <button type="button" className={StaffStyle['st-btn']} onClick={onClose}>Cancel</button>
+          <button type="button" className={`${StaffStyle['st-btn']} ${StaffStyle['st-btn--primary']}`} disabled={!form.name.trim()} onClick={() => onInvite(form)}>
             Send invite
           </button>
         </>
       }
     >
-      <label className="st-field">
+      <label className={StaffStyle['st-field']}>
         <span>Full name</span>
         <input placeholder="Full name" value={form.name} onChange={set("name")} autoFocus />
       </label>
-      <label className="st-field">
+      <label className={StaffStyle['st-field']}>
         <span>Email</span>
         <input type="email" placeholder="name@stgabriel.demo" value={form.email} onChange={set("email")} />
       </label>
 
-      <label className="st-field">
+      <label className={StaffStyle['st-field']}>
         <span>Role</span>
         <select value={form.role} onChange={set("role")}>
           {roles.map((r) => <option key={r}>{r}</option>)}
         </select>
       </label>
-      <label className="st-field">
+      <label className={StaffStyle['st-field']}>
         <span>Department</span>
         <input placeholder="e.g. Patient Services" value={form.department} onChange={set("department")} />
       </label>

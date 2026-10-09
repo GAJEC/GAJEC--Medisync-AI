@@ -1,6 +1,10 @@
 import React, { useState } from 'react'
 import Modal from '../../common/Modal'
 import Field from './Field'
+import ModalStyle from '../../../assets/styles/modal.module.css'
+import ProfileStyle from '../../../assets/styles/profile.module.css'
+import ScheduleStyle from '../../../assets/styles/schedule.module.css'
+import SidebarStyle from '../../../assets/styles/sidebar.module.css'
 
 const ChangePasswordModal = ({ onClose, onDone }) => {
   const [current, setCurrent] = useState('')
@@ -23,8 +27,8 @@ const ChangePasswordModal = ({ onClose, onDone }) => {
       onClose={onClose}
       footer={
         <>
-          <button className="btn-outline" onClick={onClose}>Cancel</button>
-          <button className="btn-primary" onClick={submit}>Update password</button>
+          <button className={SidebarStyle['btn-outline']} onClick={onClose}>Cancel</button>
+          <button className={`${ProfileStyle['btn-primary']} ${ScheduleStyle['btn-primary']}`} onClick={submit}>Update password</button>
         </>
       }
     >
@@ -32,7 +36,7 @@ const ChangePasswordModal = ({ onClose, onDone }) => {
         <input
           id="pw-current"
           type="password"
-          className="input"
+          className={ProfileStyle['input']}
           autoComplete="current-password"
           value={current}
           onChange={(e) => setCurrent(e.target.value)}
@@ -42,7 +46,7 @@ const ChangePasswordModal = ({ onClose, onDone }) => {
         <input
           id="pw-new"
           type="password"
-          className="input"
+          className={ProfileStyle['input']}
           autoComplete="new-password"
           value={next}
           onChange={(e) => setNext(e.target.value)}
@@ -52,14 +56,14 @@ const ChangePasswordModal = ({ onClose, onDone }) => {
         <input
           id="pw-confirm"
           type="password"
-          className="input"
+          className={ProfileStyle['input']}
           autoComplete="new-password"
           value={confirm}
           onChange={(e) => setConfirm(e.target.value)}
         />
       </Field>
-      <p className="modal__text">Use at least 8 characters. You'll stay signed in on this device.</p>
-      {error && <p className="form-error" role="alert">{error}</p>}
+      <p className={ModalStyle['modal__text']}>Use at least 8 characters. You'll stay signed in on this device.</p>
+      {error && <p className={ProfileStyle['form-error']} role="alert">{error}</p>}
     </Modal>
   )
 }

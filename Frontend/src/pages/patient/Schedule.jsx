@@ -10,7 +10,9 @@ import {
 import searchIcon from '../../assets/icons/search.png'
 import scheduleIcon from '../../assets/icons/schedule.png'
 
-import '../../assets/styles/schedule.css'
+import ProfileStyle from '../../assets/styles/profile.module.css'
+import ScheduleStyle from '../../assets/styles/schedule.module.css'
+import SidebarStyle from '../../assets/styles/sidebar.module.css'
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const VIEWS = [
@@ -87,27 +89,27 @@ const Schedule = () => {
   const eventsOn = (day) => visible.filter((a) => sameDay(a.date, day))
 
   return (
-    <div className="schedule">
-      <header className="schedule__header">
+    <div className={ScheduleStyle['schedule']}>
+      <header className={ScheduleStyle['schedule__header']}>
         <div>
-          <p className="schedule__eyebrow">Patient schedule</p>
-          <h1 className="schedule__title">Your appointments</h1>
-          <p className="schedule__sub">Manage upcoming visits and keep track of your care.</p>
+          <p className={ScheduleStyle['schedule__eyebrow']}>Patient schedule</p>
+          <h1 className={ScheduleStyle['schedule__title']}>Your appointments</h1>
+          <p className={ScheduleStyle['schedule__sub']}>Manage upcoming visits and keep track of your care.</p>
         </div>
-        <button className="btn-primary" onClick={() => navigate('/patient')}>
+        <button className={`${ScheduleStyle['btn-primary']} ${ProfileStyle['btn-primary']}`} onClick={() => navigate('/patient')}>
           <PlusIcon width={15} height={15} />
           Book appointment
         </button>
       </header>
 
-      <div className="toolbar">
-        <div className="seg" role="tablist" aria-label="Calendar view">
+      <div className={ScheduleStyle['toolbar']}>
+        <div className={ScheduleStyle['seg']} role="tablist" aria-label="Calendar view">
           {VIEWS.map((v) => (
             <button
               key={v.id}
               role="tab"
               aria-selected={view === v.id}
-              className={`seg__btn ${view === v.id ? 'seg__btn--active' : ''}`}
+              className={`${ScheduleStyle['seg__btn']} ${view === v.id ? ScheduleStyle['seg__btn--active'] : ''}`}
               onClick={() => setView(v.id)}
             >
               {v.label}
@@ -115,19 +117,19 @@ const Schedule = () => {
           ))}
         </div>
 
-        <button className="tool-btn" onClick={() => shift(-1)} aria-label="Previous">
+        <button className={ScheduleStyle['tool-btn']} onClick={() => shift(-1)} aria-label="Previous">
           <ChevronLeftIcon width={15} height={15} />
         </button>
-        <button className="tool-btn tool-btn--today" onClick={() => setCursor(TODAY)}>
+        <button className={`${ScheduleStyle['tool-btn']} ${ScheduleStyle['tool-btn--today']}`} onClick={() => setCursor(TODAY)}>
           Today
         </button>
-        <button className="tool-btn" onClick={() => shift(1)} aria-label="Next">
+        <button className={ScheduleStyle['tool-btn']} onClick={() => shift(1)} aria-label="Next">
           <ChevronRightIcon width={15} height={15} />
         </button>
-        <span className="toolbar__title">{title}</span>
+        <span className={ScheduleStyle['toolbar__title']}>{title}</span>
 
-        <label className="toolbar__search">
-          <PngIcon src={searchIcon} size={14} className="icon-muted" />
+        <label className={ScheduleStyle['toolbar__search']}>
+          <PngIcon src={searchIcon} size={14} className={SidebarStyle['icon-muted']} />
           <input
             type="search"
             placeholder="Search appointments"
@@ -137,46 +139,46 @@ const Schedule = () => {
         </label>
       </div>
 
-      <div className="schedule__body">
+      <div className={ScheduleStyle['schedule__body']}>
         {view === 'agenda' ? (
-          <section className="agenda">
+          <section className={ScheduleStyle['agenda']}>
             {agendaItems.length === 0 ? (
-              <p className="agenda__empty">No appointments in {fmt(cursor, { month: 'long', year: 'numeric' })}.</p>
+              <p className={ScheduleStyle['agenda__empty']}>No appointments in {fmt(cursor, { month: 'long', year: 'numeric' })}.</p>
             ) : (
               agendaItems.map((a) => (
-                <div key={a.id} className="agenda__row">
-                  <div className="agenda__date">
+                <div key={a.id} className={ScheduleStyle['agenda__row']}>
+                  <div className={ScheduleStyle['agenda__date']}>
                     <strong>{a.date.getDate()}</strong>
                     <span>{fmt(a.date, { month: 'short' })}</span>
                   </div>
                   <div>
-                    <div className="agenda__title">{a.title}</div>
-                    <div className="agenda__meta">{a.time} · {a.doctor}</div>
+                    <div className={ScheduleStyle['agenda__title']}>{a.title}</div>
+                    <div className={ScheduleStyle['agenda__meta']}>{a.time} · {a.doctor}</div>
                   </div>
                 </div>
               ))
             )}
           </section>
         ) : (
-          <section className="cal">
-            <div className="cal__head">
+          <section className={ScheduleStyle['cal']}>
+            <div className={ScheduleStyle['cal__head']}>
               {WEEKDAYS.map((d) => (
                 <span key={d}>{d}</span>
               ))}
             </div>
             {weeks.map((week) => (
-              <div key={week[0].toISOString()} className="cal__row">
+              <div key={week[0].toISOString()} className={ScheduleStyle['cal__row']}>
                 {week.map((day) => {
                   const outside = view === 'month' && day.getMonth() !== cursor.getMonth()
                   return (
-                    <div key={day.toISOString()} className={`cal__cell ${outside ? 'cal__cell--outside' : ''}`}>
-                      <span className={`cal__day ${sameDay(day, TODAY) ? 'cal__day--today' : ''}`}>
+                    <div key={day.toISOString()} className={`${ScheduleStyle['cal__cell']} ${outside ? ScheduleStyle['cal__cell--outside'] : ''}`}>
+                      <span className={`${ScheduleStyle['cal__day']} ${sameDay(day, TODAY) ? ScheduleStyle['cal__day--today'] : ''}`}>
                         {day.getDate()}
                       </span>
                       {eventsOn(day).map((a) => (
                         <div
                           key={a.id}
-                          className={`cal__event ${a.type === 'follow-up' ? 'cal__event--blue' : 'cal__event--teal'}`}
+                          className={`${ScheduleStyle['cal__event']} ${a.type === 'follow-up' ? ScheduleStyle['cal__event--blue'] : ScheduleStyle['cal__event--teal']}`}
                           title={`${a.title} with ${a.doctor}`}
                         >
                           {a.time} · {a.title}
@@ -190,32 +192,32 @@ const Schedule = () => {
           </section>
         )}
 
-        <aside className="upcoming">
-          <div className="upcoming__head">
+        <aside className={ScheduleStyle['upcoming']}>
+          <div className={ScheduleStyle['upcoming__head']}>
             <div>
-              <p className="upcoming__eyebrow">Next up</p>
-              <h2 className="upcoming__title">Upcoming</h2>
+              <p className={ScheduleStyle['upcoming__eyebrow']}>Next up</p>
+              <h2 className={ScheduleStyle['upcoming__title']}>Upcoming</h2>
             </div>
-            <span className="count">{upcoming.length}</span>
+            <span className={ScheduleStyle['count']}>{upcoming.length}</span>
           </div>
 
           {upcoming.length === 0 ? (
-            <div className="upcoming__empty">
-              <PngIcon src={scheduleIcon} size={16} className="icon-muted" />
-              <p className="upcoming__empty-title">No matching appointments</p>
-              <p className="upcoming__empty-sub">Start a new AI conversation to book care.</p>
+            <div className={ScheduleStyle['upcoming__empty']}>
+              <PngIcon src={scheduleIcon} size={16} className={SidebarStyle['icon-muted']} />
+              <p className={ScheduleStyle['upcoming__empty-title']}>No matching appointments</p>
+              <p className={ScheduleStyle['upcoming__empty-sub']}>Start a new AI conversation to book care.</p>
             </div>
           ) : (
-            <ul className="upcoming__list">
+            <ul className={ScheduleStyle['upcoming__list']}>
               {upcoming.map((a) => (
-                <li key={a.id} className="upcoming__item">
-                  <div className="agenda__date">
+                <li key={a.id} className={ScheduleStyle['upcoming__item']}>
+                  <div className={ScheduleStyle['agenda__date']}>
                     <strong>{a.date.getDate()}</strong>
                     <span>{fmt(a.date, { month: 'short' })}</span>
                   </div>
                   <div>
-                    <div className="agenda__title">{a.title}</div>
-                    <div className="agenda__meta">{a.time} · {a.doctor}</div>
+                    <div className={ScheduleStyle['agenda__title']}>{a.title}</div>
+                    <div className={ScheduleStyle['agenda__meta']}>{a.time} · {a.doctor}</div>
                   </div>
                 </li>
               ))}

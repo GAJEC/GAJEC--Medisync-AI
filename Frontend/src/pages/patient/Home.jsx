@@ -19,7 +19,8 @@ import scheduleIcon from '../../assets/icons/schedule.png'
 import nextIcon from '../../assets/icons/next.png'
 import aiIcon from '../../assets/icons/ai.png'
 
-import '../../assets/styles/home.css'
+import HomeStyle from '../../assets/styles/home.module.css'
+import SidebarStyle from '../../assets/styles/sidebar.module.css'
 
 const SUGGESTIONS = [
   { icon: heartBeatIcon, text: 'I have a headache.' },
@@ -187,36 +188,36 @@ const Home = () => {
 
   return (
     <>
-      <header className="topbar">
-        <span className="topbar__icon">
-          <PngIcon src={aiIcon} size={16} className="icon-teal" />
+      <header className={HomeStyle['topbar']}>
+        <span className={HomeStyle['topbar__icon']}>
+          <PngIcon src={aiIcon} size={16} className={HomeStyle['icon-teal']} />
         </span>
-        <div className="topbar__text">
-          <div className="topbar__title">Your Health, Guided by Syncia</div>
-          <div className="topbar__sub">Secure symptom intake and hospital appointment routing</div>
+        <div className={HomeStyle['topbar__text']}>
+          <div className={HomeStyle['topbar__title']}>Your Health, Guided by Syncia</div>
+          <div className={HomeStyle['topbar__sub']}>Secure symptom intake and hospital appointment routing</div>
         </div>
-        <span className="secure-pill">
+        <span className={HomeStyle['secure-pill']}>
           <ShieldCheckIcon width={13} height={13} />
           Your information is handled securely
         </span>
       </header>
 
-      <main className="hero">
-        <div className="hero__logo">
-          <PngIcon src={heartIcon} size={26} className="icon-white" />
-          <span className="hero__badge">
-            <PngIcon src={aiIcon} size={9} className="icon-white" />
+      <main className={HomeStyle['hero']}>
+        <div className={HomeStyle['hero__logo']}>
+          <PngIcon src={heartIcon} size={26} className={SidebarStyle['icon-white']} />
+          <span className={HomeStyle['hero__badge']}>
+            <PngIcon src={aiIcon} size={9} className={SidebarStyle['icon-white']} />
           </span>
         </div>
 
-        <p className="hero__eyebrow" >Your care companion</p>
-        <h1 className="hero__title">Hi {user.name.split(' ')[0]}, how are you feeling?</h1>
-        <p className="hero__lead">
+        <p className={HomeStyle['hero__eyebrow']} >Your care companion</p>
+        <h1 className={HomeStyle['hero__title']}>Hi {user.name.split(' ')[0]}, how are you feeling?</h1>
+        <p className={HomeStyle['hero__lead']}>
           I'm your MediSync AI assistant. I can help you find appropriate care at your
           hospital and arrange a visit.
         </p>
 
-        <div className="privacy">
+        <div className={HomeStyle['privacy']}>
           <ShieldCheckIcon width={15} height={15} />
           <div>
             <strong>Your privacy matters.</strong>
@@ -227,34 +228,34 @@ const Home = () => {
           </div>
         </div>
 
-        <div className="suggestions">
+        <div className={HomeStyle['suggestions']}>
           {SUGGESTIONS.map((s) => (
-            <button key={s.text} className="suggestion" onClick={() => setMessage(s.text)}>
-              <span className="suggestion__icon">
-                <PngIcon src={s.icon} size={16} className="icon-teal" />
+            <button key={s.text} className={HomeStyle['suggestion']} onClick={() => setMessage(s.text)}>
+              <span className={HomeStyle['suggestion__icon']}>
+                <PngIcon src={s.icon} size={16} className={HomeStyle['icon-teal']} />
               </span>
-              <span className="suggestion__text">{s.text}</span>
-              <PngIcon src={nextIcon} size={12} className="icon-muted" />
+              <span className={HomeStyle['suggestion__text']}>{s.text}</span>
+              <PngIcon src={nextIcon} size={12} className={SidebarStyle['icon-muted']} />
             </button>
           ))}
         </div>
       </main>
 
-      <footer className="composer-wrap">
+      <footer className={HomeStyle['composer-wrap']}>
         {attachments.length > 0 && (
-          <ul className="attachments" aria-label="Attachments">
+          <ul className={HomeStyle['attachments']} aria-label="Attachments">
             {attachments.map((a) => (
-              <li key={a.id} className="chip">
+              <li key={a.id} className={HomeStyle['chip']}>
                 {a.kind === 'image' ? (
-                  <img src={a.url} alt="" className="chip__thumb" />
+                  <img src={a.url} alt="" className={HomeStyle['chip__thumb']} />
                 ) : (
-                  <span className="chip__icon">
+                  <span className={HomeStyle['chip__icon']}>
                     {a.kind === 'audio' ? <MicIcon width={15} height={15} /> : <FileTextIcon width={15} height={15} />}
                   </span>
                 )}
-                <span className="chip__name">{a.file.name}</span>
+                <span className={HomeStyle['chip__name']}>{a.file.name}</span>
                 <button
-                  className="icon-btn"
+                  className={SidebarStyle['icon-btn']}
                   onClick={() => removeAttachment(a.id)}
                   aria-label={`Remove ${a.file.name}`}
                 >
@@ -265,18 +266,18 @@ const Home = () => {
           </ul>
         )}
 
-        {error && <p className="composer__error" role="alert">{error}</p>}
+        {error && <p className={HomeStyle['composer__error']} role="alert">{error}</p>}
 
-        <div className="composer">
+        <div className={HomeStyle['composer']}>
           {recording ? (
             <>
-              <span className="rec-dot" aria-hidden="true" />
-              <span className="rec-time" role="timer">Recording {formatTime(seconds)}</span>
-              <button className="icon-btn" onClick={cancelRecording} aria-label="Discard recording">
+              <span className={HomeStyle['rec-dot']} aria-hidden="true" />
+              <span className={HomeStyle['rec-time']} role="timer">Recording {formatTime(seconds)}</span>
+              <button className={SidebarStyle['icon-btn']} onClick={cancelRecording} aria-label="Discard recording">
                 <CloseIcon width={18} height={18} />
               </button>
               <button
-                className="composer__send composer__send--stop"
+                className={`${HomeStyle['composer__send']} ${HomeStyle['composer__send--stop']}`}
                 onClick={stopRecording}
                 aria-label="Stop and attach recording"
               >
@@ -285,9 +286,9 @@ const Home = () => {
             </>
           ) : (
             <>
-              <div className="attach" ref={menuRef}>
+              <div className={HomeStyle['attach']} ref={menuRef}>
                 <button
-                  className="icon-btn"
+                  className={SidebarStyle['icon-btn']}
                   aria-label="Attach"
                   aria-haspopup="menu"
                   aria-expanded={menuOpen}
@@ -297,26 +298,26 @@ const Home = () => {
                 </button>
 
                 {menuOpen && (
-                  <div className="attach__menu" role="menu">
+                  <div className={HomeStyle['attach__menu']} role="menu">
                     <button
                       role="menuitem"
-                      className="attach__item"
+                      className={HomeStyle['attach__item']}
                       onClick={() => {
                         setMenuOpen(false)
                         fileRef.current?.click()
                       }}
                     >
-                      <span className="attach__icon"><UploadIcon width={17} height={17} /></span>
+                      <span className={HomeStyle['attach__icon']}><UploadIcon width={17} height={17} /></span>
                       <span>
-                        <span className="attach__title">Upload files or images</span>
-                        <span className="attach__sub">JPG, PNG, PDF · up to {MAX_MB} MB</span>
+                        <span className={HomeStyle['attach__title']}>Upload files or images</span>
+                        <span className={HomeStyle['attach__sub']}>JPG, PNG, PDF · up to {MAX_MB} MB</span>
                       </span>
                     </button>
-                    <button role="menuitem" className="attach__item" onClick={startRecording}>
-                      <span className="attach__icon"><MicIcon width={17} height={17} /></span>
+                    <button role="menuitem" className={HomeStyle['attach__item']} onClick={startRecording}>
+                      <span className={HomeStyle['attach__icon']}><MicIcon width={17} height={17} /></span>
                       <span>
-                        <span className="attach__title">Record audio</span>
-                        <span className="attach__sub">Add a voice note, up to 2 minutes</span>
+                        <span className={HomeStyle['attach__title']}>Record audio</span>
+                        <span className={HomeStyle['attach__sub']}>Add a voice note, up to 2 minutes</span>
                       </span>
                     </button>
                   </div>
@@ -329,7 +330,7 @@ const Home = () => {
                 onKeyDown={(e) => e.key === 'Enter' && send(message)}
                 placeholder="Describe your symptoms or ask about an appointment…"
               />
-              <button className="composer__send" onClick={() => send(message)} aria-label="Send">
+              <button className={HomeStyle['composer__send']} onClick={() => send(message)} aria-label="Send">
                 <SendIcon width={16} height={16} />
               </button>
             </>
@@ -337,7 +338,7 @@ const Home = () => {
         </div>
 
         <input ref={fileRef} type="file" hidden multiple accept="image/*,.pdf" onChange={onPickFiles} />
-        <p className="disclaimer">AI guidance does not replace professional medical advice.</p>
+        <p className={HomeStyle['disclaimer']}>AI guidance does not replace professional medical advice.</p>
       </footer>
     </>
   )

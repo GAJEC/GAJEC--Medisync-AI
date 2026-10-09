@@ -1,15 +1,16 @@
 import React from 'react'
 import SectionCard from './SectionCard'
 import Field from './Field'
+import ProfileStyle from '../../../assets/styles/profile.module.css'
 
 const PersonalInfo = ({ form, onChange }) => {
   return (
     <SectionCard title="Personal information" subtitle="Used to coordinate your hospital visits.">
-      <div className="form-grid">
+      <div className={ProfileStyle['form-grid']}>
         <Field label="Full name" htmlFor="fullName">
           <input
             id="fullName"
-            className="input"
+            className={ProfileStyle['input']}
             value={form.fullName}
             onChange={(e) => onChange('fullName', e.target.value)}
             autoComplete="name"
@@ -17,14 +18,14 @@ const PersonalInfo = ({ form, onChange }) => {
         </Field>
 
         <Field label="Patient ID" htmlFor="patientId">
-          <input id="patientId" className="input" value={form.patientId} readOnly />
+          <input id="patientId" className={ProfileStyle['input']} value={form.patientId} readOnly />
         </Field>
 
         <Field label="Date of birth" htmlFor="dob">
           <input
             id="dob"
             type="date"
-            className="input"
+            className={ProfileStyle['input']}
             value={form.dob}
             onChange={(e) => onChange('dob', e.target.value)}
           />
@@ -33,7 +34,7 @@ const PersonalInfo = ({ form, onChange }) => {
         <Field label="Sex" htmlFor="sex">
           <select
             id="sex"
-            className="input"
+            className={ProfileStyle['input']}
             value={form.sex}
             onChange={(e) => onChange('sex', e.target.value)}
           >
@@ -47,7 +48,7 @@ const PersonalInfo = ({ form, onChange }) => {
           <input
             id="mobile"
             type="tel"
-            className="input"
+            className={ProfileStyle['input']}
             value={form.mobile}
             onChange={(e) => onChange('mobile', e.target.value)}
             autoComplete="tel"
@@ -58,7 +59,7 @@ const PersonalInfo = ({ form, onChange }) => {
           <input
             id="email"
             type="email"
-            className="input"
+            className={ProfileStyle['input']}
             value={form.email}
             onChange={(e) => onChange('email', e.target.value)}
             autoComplete="email"
@@ -68,7 +69,7 @@ const PersonalInfo = ({ form, onChange }) => {
         <Field label="Address (optional)" htmlFor="address" full>
           <input
             id="address"
-            className="input"
+            className={ProfileStyle['input']}
             value={form.address}
             onChange={(e) => onChange('address', e.target.value)}
             autoComplete="street-address"

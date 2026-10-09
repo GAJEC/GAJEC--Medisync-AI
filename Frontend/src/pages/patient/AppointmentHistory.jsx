@@ -1,12 +1,17 @@
 import React, { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { PngIcon, MoreIcon } from '../../components/common/Icons'
+
+import HistoryStyle from '../../assets/styles/history.module.css'
+import SidebarStyle from '../../assets/styles/sidebar.module.css'
+
+
 import AppointmentModal from '../../components/patient/AppointmentModal'
 
 import searchIcon from '../../assets/icons/search.png'
 import scheduleIcon from '../../assets/icons/schedule.png'
 
-import '../../assets/styles/history.css'
+
 
 // Mock data. Replace with your backend later.
 const HISTORY = [
@@ -71,18 +76,18 @@ const AppointmentHistory = () => {
   }
 
   return (
-    <div className="page">
-      <header className="page__header">
+    <div className={SidebarStyle['page']}>
+      <header className={SidebarStyle['page__header']}>
         <div>
-          <p className="page__eyebrow">Care record</p>
-          <h1 className="page__title">Appointment history</h1>
-          <p className="page__sub">Review past and upcoming hospital visits.</p>
+          <p className={SidebarStyle['page__eyebrow']}>Care record</p>
+          <h1 className={SidebarStyle['page__title']}>Appointment history</h1>
+          <p className={SidebarStyle['page__sub']}>Review past and upcoming hospital visits.</p>
         </div>
       </header>
 
-      <div className="filters">
-        <label className="filters__search">
-          <PngIcon src={searchIcon} size={14} className="icon-muted" />
+      <div className={HistoryStyle['filters']}>
+        <label className={HistoryStyle['filters__search']}>
+          <PngIcon src={searchIcon} size={14} className={SidebarStyle['icon-muted']} />
           <input
             type="search"
             placeholder="Search doctor, specialty, or reference"
@@ -91,29 +96,29 @@ const AppointmentHistory = () => {
           />
         </label>
 
-        <select className="select" value={status} onChange={(e) => setStatus(e.target.value)} aria-label="Filter by status">
+        <select className={HistoryStyle['select']} value={status} onChange={(e) => setStatus(e.target.value)} aria-label="Filter by status">
           <option value="all">All statuses</option>
           <option value="Completed">Completed</option>
           <option value="Cancelled">Cancelled</option>
         </select>
 
-        <select className="select" value={order} onChange={(e) => setOrder(e.target.value)} aria-label="Sort order">
+        <select className={HistoryStyle['select']} value={order} onChange={(e) => setOrder(e.target.value)} aria-label="Sort order">
           <option value="newest">Newest first</option>
           <option value="oldest">Oldest first</option>
         </select>
 
-        <div className="range">
+        <div className={HistoryStyle['range']}>
           <button
-            className={`btn-outline range__btn ${rangeActive ? 'range__btn--active' : ''}`}
+            className={`${SidebarStyle['btn-outline']} ${HistoryStyle['range__btn']} ${rangeActive ? HistoryStyle['range__btn--active'] : ''}`}
             onClick={() => setRangeOpen((o) => !o)}
             aria-expanded={rangeOpen}
           >
-            <PngIcon src={scheduleIcon} size={15} className="icon-muted" />
+            <PngIcon src={scheduleIcon} size={15} className={SidebarStyle['icon-muted']} />
             Date range
           </button>
 
           {rangeOpen && (
-            <div className="range__pop">
+            <div className={HistoryStyle['range__pop']}>
               <label>
                 From
                 <input type="date" value={from} max={to || undefined} onChange={(e) => setFrom(e.target.value)} />
@@ -122,7 +127,7 @@ const AppointmentHistory = () => {
                 To
                 <input type="date" value={to} min={from || undefined} onChange={(e) => setTo(e.target.value)} />
               </label>
-              <button className="btn-text" onClick={clearRange} disabled={!rangeActive}>
+              <button className={`${HistoryStyle['btn-text']} ${SidebarStyle['btn-text']}`} onClick={clearRange} disabled={!rangeActive}>
                 Clear
               </button>
             </div>
@@ -130,10 +135,10 @@ const AppointmentHistory = () => {
         </div>
       </div>
 
-      <div className="table-card">
-        <div className="table-scroll">
-          <div className="table" role="table">
-            <div className="table__row table__row--head" role="row">
+      <div className={HistoryStyle['table-card']}>
+        <div className={HistoryStyle['table-scroll']}>
+          <div className={HistoryStyle['table']} role="table">
+            <div className={`${HistoryStyle['table__row']} ${HistoryStyle['table__row--head']}`} role="row">
               {COLUMNS.map((c) => (
                 <span key={c} role="columnheader">{c}</span>
               ))}
@@ -141,31 +146,31 @@ const AppointmentHistory = () => {
             </div>
 
             {rows.length === 0 ? (
-              <p className="table__empty">No appointments match your filters.</p>
+              <p className={HistoryStyle['table__empty']}>No appointments match your filters.</p>
             ) : (
               rows.map((a) => (
-                <div key={a.id} className="table__row" role="row">
-                  <span className="cell">
+                <div key={a.id} className={HistoryStyle['table__row']} role="row">
+                  <span className={HistoryStyle['cell']}>
                     <strong>{a.ref}</strong>
                     <small>{a.reason}</small>
                   </span>
-                  <span className="cell">
+                  <span className={HistoryStyle['cell']}>
                     <strong>{a.doctor}</strong>
                     <small>{a.specialty}</small>
                   </span>
-                  <span className="cell">
+                  <span className={HistoryStyle['cell']}>
                     <strong>{formatDate(a.date)}</strong>
                     <small>{formatTime(a.date)}</small>
                   </span>
-                  <span className="cell cell--mode">{a.mode}</span>
-                  <span className="cell">
-                    <span className={`pill ${a.status === 'Completed' ? 'pill--ok' : 'pill--cancel'}`}>
+                  <span className={`${HistoryStyle['cell']} ${HistoryStyle['cell--mode']}`}>{a.mode}</span>
+                  <span className={HistoryStyle['cell']}>
+                    <span className={`${HistoryStyle['pill']} ${a.status === 'Completed' ? HistoryStyle['pill--ok'] : HistoryStyle['pill--cancel']}`}>
                       {a.status}
                     </span>
                   </span>
-                  <span className="cell cell--action">
+                  <span className={`${HistoryStyle['cell']} ${HistoryStyle['cell--action']}`}>
                     <button
-                      className="icon-btn"
+                      className={SidebarStyle['icon-btn']}
                       aria-label={`View details for ${a.ref}`}
                       onClick={() => setSelected(a)}
                     >

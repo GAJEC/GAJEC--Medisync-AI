@@ -11,7 +11,8 @@ import moonIcon from '../../assets/icons/moon.png'
 import logoutIcon from '../../assets/icons/logout.png'
 import mediSyncLogo from '../../assets/images/medisync-logo.png'
 
-import '../../assets/styles/sidebar.css'
+import HomeStyle from '../../assets/styles/home.module.css'
+import SidebarStyle from '../../assets/styles/sidebar.module.css'
 
 const NAV_ITEMS = [
   { to: '/patient/schedule', label: 'Schedule', icon: scheduleIcon },
@@ -46,54 +47,54 @@ const PatientSidebar = ({
     .filter((g) => g.items.length > 0)
 
   return (
-    <aside className={`sidebar ${collapsed ? 'sidebar--collapsed' : ''} ${mobileOpen ? 'sidebar--open' : ''}`}>
-      <div className="sidebar__brand">
-        <span className="logo-mark">
-          <PngIcon src={mediSyncLogo} size={25} className="icon-white" />
+    <aside className={`${SidebarStyle['sidebar']} ${collapsed ? SidebarStyle['sidebar--collapsed'] : ''} ${mobileOpen ? SidebarStyle['sidebar--open'] : ''}`}>
+      <div className={SidebarStyle['sidebar__brand']}>
+        <span className={SidebarStyle['logo-mark']}>
+          <PngIcon src={mediSyncLogo} size={25} className={SidebarStyle['icon-white']} />
         </span>
-        <span className="sidebar__brand-name hide-collapsed">
-          MediSync <span className="accent">AI</span>
+        <span className={`${SidebarStyle['sidebar__brand-name']} ${SidebarStyle['hide-collapsed']}`}>
+          MediSync <span className={SidebarStyle['accent']}>AI</span>
         </span>
         <button
-          className="icon-btn sidebar__collapse"
+          className={`${SidebarStyle['icon-btn']} ${SidebarStyle['sidebar__collapse']}`}
           onClick={onToggleCollapse}
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           <ChevronLeftIcon />
         </button>
-        <button className="icon-btn sidebar__close" onClick={onCloseMobile} aria-label="Close menu">
+        <button className={`${SidebarStyle['icon-btn']} ${SidebarStyle['sidebar__close']}`} onClick={onCloseMobile} aria-label="Close menu">
           <CloseIcon width={18} height={18} />
         </button>
       </div>
 
-      <button className="btn-new" onClick={onNewConversation}>
+      <button className={SidebarStyle['btn-new']} onClick={onNewConversation}>
         <ChatIcon />
-        <span className="hide-collapsed">New conversation</span>
+        <span className={SidebarStyle['hide-collapsed']}>New conversation</span>
       </button>
 
-      <nav className="sidebar__nav" aria-label="Main">
+      <nav className={SidebarStyle['sidebar__nav']} aria-label="Main">
         {NAV_ITEMS.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}
-            className={({ isActive }) => `nav-item ${isActive ? 'nav-item--active' : ''}`}
+            className={({ isActive }) => `${SidebarStyle['nav-item']} ${isActive ? SidebarStyle['nav-item--active'] : ''}`}
           >
             {({ isActive }) => (
               <>
-                <PngIcon src={item.icon} className={isActive ? 'icon-teal' : 'icon-muted'} />
-                <span className="hide-collapsed">{item.label}</span>
-                {item.badge && unreadCount > 0 && <span className="badge">{unreadCount}</span>}
+                <PngIcon src={item.icon} className={isActive ? HomeStyle['icon-teal'] : SidebarStyle['icon-muted']} />
+                <span className={SidebarStyle['hide-collapsed']}>{item.label}</span>
+                {item.badge && unreadCount > 0 && <span className={SidebarStyle['badge']}>{unreadCount}</span>}
               </>
             )}
           </NavLink>
         ))}
       </nav>
 
-      <div className="sidebar__recent hide-collapsed">
-        <h2 className="section-label">Recent conversations</h2>
+      <div className={`${SidebarStyle['sidebar__recent']} ${SidebarStyle['hide-collapsed']}`}>
+        <h2 className={SidebarStyle['section-label']}>Recent conversations</h2>
 
-        <label className="search">
-          <PngIcon src={searchIcon} size={14} className="icon-muted" />
+        <label className={SidebarStyle['search']}>
+          <PngIcon src={searchIcon} size={14} className={SidebarStyle['icon-muted']} />
           <input
             type="search"
             placeholder="Search conversations"
@@ -102,19 +103,19 @@ const PatientSidebar = ({
           />
         </label>
 
-        <div className="convo-list">
+        <div className={SidebarStyle['convo-list']}>
           {groups.map((g) => (
             <div key={g.label}>
-              <h3 className="convo-group">{g.label}</h3>
+              <h3 className={SidebarStyle['convo-group']}>{g.label}</h3>
               {g.items.map((c) => (
                 <div
                   key={c.id}
-                  className={`convo ${c.id === activeId ? 'convo--active' : ''}`}
+                  className={`${SidebarStyle['convo']} ${c.id === activeId ? SidebarStyle['convo--active'] : ''}`}
                 >
-                  <button className="convo__title" onClick={() => onSelectConversation(c.id)}>
+                  <button className={SidebarStyle['convo__title']} onClick={() => onSelectConversation(c.id)}>
                     {c.title}
                   </button>
-                  <button className="icon-btn convo__more" aria-label="Conversation options">
+                  <button className={SidebarStyle['icon-btn']} aria-label="Conversation options">
                     <MoreIcon />
                   </button>
                 </div>
@@ -124,33 +125,33 @@ const PatientSidebar = ({
         </div>
       </div>
 
-      <div className="sidebar__footer">
+      <div className={SidebarStyle['sidebar__footer']}>
         <button
-          className={`profile profile--btn ${onProfile ? 'profile--active' : ''}`}
+          className={`${SidebarStyle['profile']} ${SidebarStyle['profile--btn']} ${onProfile ? SidebarStyle['profile--active'] : ''}`}
           onClick={() => navigate('/patient/profile')}
           aria-label="Open profile and settings"
         >
-          <span className="avatar">{user.initials}</span>
-          <span className="profile__text hide-collapsed">
-            <span className="profile__name">{user.name}</span>
-            <span className="profile__meta">
+          <span className={SidebarStyle['avatar']}>{user.initials}</span>
+          <span className={`${SidebarStyle['profile__text']} ${SidebarStyle['hide-collapsed']}`}>
+            <span className={SidebarStyle['profile__name']}>{user.name}</span>
+            <span className={SidebarStyle['profile__meta']}>
               {user.role} · {user.id}
             </span>
           </span>
-          <MoreIcon className="profile__more hide-collapsed" />
+          <MoreIcon className={`${SidebarStyle['profile__more']} ${SidebarStyle['hide-collapsed']}`} />
         </button>
 
-        <div className="footer-row">
-          <button className="nav-item nav-item--small" onClick={onToggleDark}>
-            <PngIcon src={moonIcon} size={15} className="icon-muted" />
-            <span className="hide-collapsed">{darkMode ? 'Light mode' : 'Dark mode'}</span>
+        <div className={SidebarStyle['footer-row']}>
+          <button className={`${SidebarStyle['nav-item']} ${SidebarStyle['nav-item--small']}`} onClick={onToggleDark}>
+            <PngIcon src={moonIcon} size={15} className={SidebarStyle['icon-muted']} />
+            <span className={SidebarStyle['hide-collapsed']}>{darkMode ? 'Light mode' : 'Dark mode'}</span>
           </button>
-          <span className="footer-row__actions hide-collapsed">
-            <button className="icon-btn" aria-label="Help">
+          <span className={`${SidebarStyle['footer-row__actions']} ${SidebarStyle['hide-collapsed']}`}>
+            <button className={SidebarStyle['icon-btn']} aria-label="Help">
               <HelpIcon />
             </button>
-            <button className="icon-btn" aria-label="Log out" onClick={onLogout}>
-              <PngIcon src={logoutIcon} size={15} className="icon-muted" />
+            <button className={SidebarStyle['icon-btn']} aria-label="Log out" onClick={onLogout}>
+              <PngIcon src={logoutIcon} size={15} className={SidebarStyle['icon-muted']} />
             </button>
           </span>
         </div>

@@ -1,6 +1,10 @@
 import React, { useState } from 'react'
 import Modal from '../../common/Modal'
 import { ShieldCheckIcon } from '../../common/Icons'
+import ModalStyle from '../../../assets/styles/modal.module.css'
+import ProfileStyle from '../../../assets/styles/profile.module.css'
+import ScheduleStyle from '../../../assets/styles/schedule.module.css'
+import SidebarStyle from '../../../assets/styles/sidebar.module.css'
 
 const CHOICES = [
   { id: 'access', title: 'Request a copy of my data', desc: 'We will prepare the information we hold about you.' },
@@ -23,16 +27,16 @@ const DataRequestModal = ({ onClose }) => {
       <Modal
         title="Request received"
         onClose={onClose}
-        footer={<button className="btn-primary" onClick={onClose}>Done</button>}
+        footer={<button className={`${ProfileStyle['btn-primary']} ${ScheduleStyle['btn-primary']}`} onClick={onClose}>Done</button>}
       >
-        <div className="success-box">
+        <div className={ProfileStyle['success-box']}>
           <ShieldCheckIcon width={16} height={16} />
           <span>
             Your {type === 'access' ? 'data access' : 'deletion'} request was submitted. Reference{' '}
             <strong>{reference}</strong>.
           </span>
         </div>
-        <p className="modal__text">
+        <p className={ModalStyle['modal__text']}>
           We will confirm your identity before acting on it. Some records may be kept to meet
           retention requirements.
         </p>
@@ -46,14 +50,14 @@ const DataRequestModal = ({ onClose }) => {
       onClose={onClose}
       footer={
         <>
-          <button className="btn-outline" onClick={onClose}>Cancel</button>
-          <button className="btn-primary" onClick={submit}>Submit request</button>
+          <button className={SidebarStyle['btn-outline']} onClick={onClose}>Cancel</button>
+          <button className={`${ProfileStyle['btn-primary']} ${ScheduleStyle['btn-primary']}`} onClick={submit}>Submit request</button>
         </>
       }
     >
-      <div className="choice-list" role="radiogroup" aria-label="Request type">
+      <div className={ProfileStyle['choice-list']} role="radiogroup" aria-label="Request type">
         {CHOICES.map((c) => (
-          <label key={c.id} className={`choice ${type === c.id ? 'choice--active' : ''}`}>
+          <label key={c.id} className={`${ProfileStyle['choice']} ${type === c.id ? ProfileStyle['choice--active'] : ''}`}>
             <input
               type="radio"
               name="data-request"
@@ -61,25 +65,25 @@ const DataRequestModal = ({ onClose }) => {
               onChange={() => setType(c.id)}
             />
             <span>
-              <span className="choice__title">{c.title}</span>
-              <span className="choice__desc">{c.desc}</span>
+              <span className={ProfileStyle['choice__title']}>{c.title}</span>
+              <span className={ProfileStyle['choice__desc']}>{c.desc}</span>
             </span>
           </label>
         ))}
       </div>
 
-      <div className="field">
+      <div className={ProfileStyle['field']}>
         <label htmlFor="data-note">Details (optional)</label>
         <textarea
           id="data-note"
-          className="input"
+          className={ProfileStyle['input']}
           placeholder="Tell us what you need, such as a date range or a specific visit"
           value={note}
           onChange={(e) => setNote(e.target.value)}
         />
       </div>
 
-      <p className="modal__text">Requests are subject to retention requirements.</p>
+      <p className={ModalStyle['modal__text']}>Requests are subject to retention requirements.</p>
     </Modal>
   )
 }

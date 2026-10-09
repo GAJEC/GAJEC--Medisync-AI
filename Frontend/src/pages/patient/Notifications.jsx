@@ -6,7 +6,9 @@ import scheduleIcon from '../../assets/icons/schedule.png'
 import profileIcon from '../../assets/icons/profile.png'
 import hospitalIcon from '../../assets/icons/hospital.png'
 
-import '../../assets/styles/notifications.css'
+import HomeStyle from '../../assets/styles/home.module.css'
+import NotificationsStyle from '../../assets/styles/notifications.module.css'
+import SidebarStyle from '../../assets/styles/sidebar.module.css'
 
 const TABS = [
   { id: 'all', label: 'All' },
@@ -35,57 +37,57 @@ const Notifications = () => {
   }
 
   return (
-    <div className="page">
-      <div className="notifs">
-        <header className="page__header">
+    <div className={SidebarStyle['page']}>
+      <div className={NotificationsStyle['notifs']}>
+        <header className={SidebarStyle['page__header']}>
           <div>
-            <p className="page__eyebrow">Stay informed</p>
-            <h1 className="page__title">Notifications</h1>
-            <p className="page__sub">Appointment updates without sensitive health details in previews.</p>
+            <p className={SidebarStyle['page__eyebrow']}>Stay informed</p>
+            <h1 className={SidebarStyle['page__title']}>Notifications</h1>
+            <p className={SidebarStyle['page__sub']}>Appointment updates without sensitive health details in previews.</p>
           </div>
-          <div className="notifs__actions">
-            <button className="btn-outline">Preferences</button>
-            <button className="btn-text" onClick={markAllRead}>
+          <div className={NotificationsStyle['notifs__actions']}>
+            <button className={SidebarStyle['btn-outline']}>Preferences</button>
+            <button className={SidebarStyle['btn-text']} onClick={markAllRead}>
               Mark all read
             </button>
           </div>
         </header>
 
-        <div className="tabs" role="tablist" aria-label="Notification categories">
+        <div className={NotificationsStyle['tabs']} role="tablist" aria-label="Notification categories">
           {TABS.map((t) => (
             <button
               key={t.id}
               role="tab"
               aria-selected={tab === t.id}
-              className={`tabs__btn ${tab === t.id ? 'tabs__btn--active' : ''}`}
+              className={`${NotificationsStyle['tabs__btn']} ${tab === t.id ? NotificationsStyle['tabs__btn--active'] : ''}`}
               onClick={() => setTab(t.id)}
             >
               {t.label}
-              {t.id === 'all' && <span className="tabs__count">{notifications.length}</span>}
+              {t.id === 'all' && <span className={NotificationsStyle['tabs__count']}>{notifications.length}</span>}
             </button>
           ))}
         </div>
 
-        <div className="notifs__list">
+        <div className={NotificationsStyle['notifs__list']}>
           {shown.length === 0 ? (
-            <p className="notifs__empty">You're all caught up.</p>
+            <p className={NotificationsStyle['notifs__empty']}>You're all caught up.</p>
           ) : (
             shown.map((n) => (
               <button
                 key={n.id}
-                className={`notif ${n.read ? '' : 'notif--unread'}`}
+                className={`${NotificationsStyle['notif']} ${n.read ? '' : NotificationsStyle['notif--unread']}`}
                 onClick={() => markRead(n.id)}
               >
-                <span className="notif__icon">
-                  <PngIcon src={ICONS[n.type]} size={16} className="icon-teal" />
+                <span className={NotificationsStyle['notif__icon']}>
+                  <PngIcon src={ICONS[n.type]} size={16} className={HomeStyle['icon-teal']} />
                 </span>
-                <span className="notif__text">
-                  <span className="notif__title">{n.title}</span>
-                  <span className="notif__body">{n.body}</span>
-                  <span className="notif__meta">{n.time} · Asia/Manila</span>
+                <span className={NotificationsStyle['notif__text']}>
+                  <span className={NotificationsStyle['notif__title']}>{n.title}</span>
+                  <span className={NotificationsStyle['notif__body']}>{n.body}</span>
+                  <span className={NotificationsStyle['notif__meta']}>{n.time} · Asia/Manila</span>
                 </span>
-                {!n.read && <span className="notif__dot" aria-label="Unread" />}
-                <ChevronRightIcon width={16} height={16} className="notif__chevron" />
+                {!n.read && <span className={NotificationsStyle['notif__dot']} aria-label="Unread" />}
+                <ChevronRightIcon width={16} height={16} className={NotificationsStyle['notif__chevron']} />
               </button>
             ))
           )}

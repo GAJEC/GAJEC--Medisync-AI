@@ -10,7 +10,10 @@ import profileIcon from '../../assets/icons/profile.png'
 import heartIcon from '../../assets/icons/heart.png'
 import settingsIcon from '../../assets/icons/settings.png'
 
-import '../../assets/styles/profile.css'
+import HomeStyle from '../../assets/styles/home.module.css'
+import ProfileStyle from '../../assets/styles/profile.module.css'
+import ScheduleStyle from '../../assets/styles/schedule.module.css'
+import SidebarStyle from '../../assets/styles/sidebar.module.css'
 
 const NAV = [
   { id: 'personal', label: 'Personal information', icon: profileIcon },
@@ -74,27 +77,27 @@ const Profile = () => {
   }
 
   return (
-    <div className="page">
-      <header className="page__header">
+    <div className={SidebarStyle['page']}>
+      <header className={SidebarStyle['page__header']}>
         <div>
-          <p className="page__eyebrow">Your account</p>
-          <h1 className="page__title">Profile & settings</h1>
-          <p className="page__sub">Manage your information, preferences, and privacy.</p>
+          <p className={SidebarStyle['page__eyebrow']}>Your account</p>
+          <h1 className={SidebarStyle['page__title']}>Profile & settings</h1>
+          <p className={SidebarStyle['page__sub']}>Manage your information, preferences, and privacy.</p>
         </div>
-        <button className="btn-primary" onClick={save}>Save changes</button>
+        <button className={`${ProfileStyle['btn-primary']} ${ScheduleStyle['btn-primary']}`} onClick={save}>Save changes</button>
       </header>
 
-      <div className="settings">
-        <nav className="settings__nav" aria-label="Settings sections">
+      <div className={ProfileStyle['settings']}>
+        <nav className={ProfileStyle['settings__nav']} aria-label="Settings sections">
           {NAV.map((item) => (
             <button
               key={item.id}
-              className={`settings__item ${section === item.id ? 'settings__item--active' : ''}`}
+              className={`${ProfileStyle['settings__item']} ${section === item.id ? ProfileStyle['settings__item--active'] : ''}`}
               onClick={() => setSection(item.id)}
               aria-current={section === item.id ? 'page' : undefined}
             >
               {item.icon ? (
-                <PngIcon src={item.icon} size={16} className={section === item.id ? 'icon-teal' : 'icon-muted'} />
+                <PngIcon src={item.icon} size={16} className={section === item.id ? HomeStyle['icon-teal'] : SidebarStyle['icon-muted']} />
               ) : (
                 <ShieldCheckIcon width={16} height={16} />
               )}
@@ -108,7 +111,7 @@ const Profile = () => {
       </div>
 
       {toast && (
-        <div className="toast" role="status">
+        <div className={ProfileStyle['toast']} role="status">
           {toast}
         </div>
       )}
