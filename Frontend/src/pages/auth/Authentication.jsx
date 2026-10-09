@@ -89,8 +89,8 @@ function PasswordField({ id, value, onChange, autoComplete }) {
   );
 }
 
-export default function Login({ onLogin, onSignup }) {
-  const { session, login } = useAuth();
+export default function Login() {
+  const { session, login, signIn, signUp } = useAuth();
   const navigate = useNavigate();
 
   const [view, setView] = useState("signin");
@@ -99,6 +99,8 @@ export default function Login({ onLogin, onSignup }) {
   const [gender, setGender] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const content = VIEWS[view];
 
@@ -108,6 +110,7 @@ export default function Login({ onLogin, onSignup }) {
   const switchView = (next) => {
     setView(next);
     setPassword("");
+    setError("");
   };
 
   // "Hospital staff access" button: sign in as staff and open the staff Dashboard
@@ -116,28 +119,39 @@ export default function Login({ onLogin, onSignup }) {
     navigate("/staff/dashboard", { replace: true });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (view === "signup") {
-      const normalizedFirstName = firstName.trim();
-      const normalizedLastName = lastName.trim();
-      onSignup?.({
-        firstName: normalizedFirstName,
-        lastName: normalizedLastName,
-        fullName: `${normalizedFirstName} ${normalizedLastName}`.trim(),
-        gender,
-        email,
-        password,
-      });
+    if (loading) return;
+
+    // Staff accounts don't exist on the backend yet, so staff sign-in stays local/demo
+    if (view === "staff") {
+      login({ role: "staff", email, name: email });
+      navigate("/staff/dashboard", { replace: true });
       return;
     }
 
-    const role = view === "staff" ? "staff" : "patient";
-    if (onLogin) {
-      onLogin({ role, email, password });
-    } else {
-      login({ role, email, name: email });
-      navigate(role === "staff" ? "/staff/dashboard" : homeFor(role), { replace: true });
+    setError("");
+    setLoading(true);
+    try {
+      if (view === "signup") {
+        if (password.length < 8) {
+          setError("Password must be at least 8 characters.");
+          return;
+        }
+        await signUp({
+          firstname: firstName.trim(),
+          lastname: lastName.trim(),
+          email: email.trim(),
+          password,
+        });
+      } else {
+        await signIn(email.trim(), password);
+      }
+      navigate(homeFor("patient"), { replace: true });
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -186,6 +200,12 @@ export default function Login({ onLogin, onSignup }) {
           <p className="subtitle">{content.subtitle}</p>
 
           <form onSubmit={handleSubmit}>
+            {error && (
+              <div className="form-error" role="alert">
+                {error}
+              </div>
+            )}
+
             {view === "signup" && (
               <>
                 <div className="name-fields">
@@ -272,8 +292,8 @@ export default function Login({ onLogin, onSignup }) {
               </div>
             )}
 
-            <button type="submit" className="primary-btn">
-              {content.submit}
+            <button type="submit" className="primary-btn" disabled={loading}>
+              {loading ? "Please wait…" : content.submit}
               <Logo name="arrow" className="btn-arrow" />
             </button>
           </form>

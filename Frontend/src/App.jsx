@@ -5,23 +5,16 @@ import { AuthProvider, useAuth, homeFor } from './auth/AuthContext'
 import ProtectedRoute from './routes/ProtectedRoute'
 import PatientRoutes from './routes/PatientRoutes'
 import StaffRoutes from './routes/StaffRoutes'
-import Login from './pages/auth/Login'
+import Login from './pages/auth/Authentication'
 
 const LoginRoute = () => {
-  const { session, login } = useAuth()
+  const { session } = useAuth()
 
   if (session) {
     return <Navigate to={homeFor(session.role)} replace />
   }
 
-  return (
-    <Login
-      onLogin={({ role, email }) => login({ role, email })}
-      onSignup={({ fullName, email }) =>
-        login({ role: 'patient', email, name: fullName })
-      }
-    />
-  )
+  return <Login />
 }
 
 const App = () => {
