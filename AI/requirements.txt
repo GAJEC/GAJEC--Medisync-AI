@@ -1,0 +1,26 @@
+# Python AI inference service (Python 3.11).
+# Install CUDA PyTorch FIRST from the PyTorch index (see README), then:
+#   .venv\Scripts\python -m pip install -r requirements.txt
+#
+# torch / torchaudio are intentionally not pinned here because the CUDA
+# build must come from https://download.pytorch.org/whl/cu124 (or newer).
+
+transformers>=4.53,<5          # Gemma3 (MedGemma) + Whisper + MERaLiON remote code
+accelerate>=1.0                # device_map / low-memory loading
+bitsandbytes>=0.45             # 4-bit NF4 quantization so MedGemma fits 6 GB VRAM
+safetensors>=0.4
+sentencepiece>=0.2             # Gemma tokenizer
+peft>=0.13                     # imported by MERaLiON remote code
+omegaconf>=2.3                 # imported by MERaLiON remote code
+fastapi>=0.115
+uvicorn>=0.30
+python-multipart>=0.0.9        # multipart uploads for FastAPI
+pydantic>=2.7
+pydantic-settings>=2.3
+pillow>=10.3                   # image decoding / validation
+av>=12.0                       # PyAV: bundled FFmpeg for decoding webm/ogg/mp3/m4a/wav audio
+numpy>=1.26,<3
+
+# tests
+pytest>=8
+httpx>=0.27                    # FastAPI TestClient
