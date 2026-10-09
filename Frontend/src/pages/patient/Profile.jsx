@@ -5,6 +5,7 @@ import PersonalInfo from '../../components/patient/profile/PersonalInfo'
 import MedicalInfo from '../../components/patient/profile/MedicalInfo'
 import Preferences from '../../components/patient/profile/Preferences'
 import SecurityPrivacy from '../../components/patient/profile/SecurityPrivacy'
+import { patientApi } from '../../api/client'
 
 import profileIcon from '../../assets/icons/profile.png'
 import heartIcon from '../../assets/icons/heart.png'
@@ -22,32 +23,41 @@ const NAV = [
   { id: 'security', label: 'Security & privacy', icon: null },
 ]
 
-const initialsOf = (name) =>
-  name.trim().split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase()
+const EDITABLE = [
+  'firstname', 'lastname', 'email', 'dob', 'sex', 'mobile', 'address',
+  'allergies', 'medications', 'history', 'emergencyName', 'emergencyPhone',
+  'consultType', 'language',
+]
+
+// API profile -> form state (inputs need strings, not null)
+const toForm = (profile) =>
+  Object.fromEntries(EDITABLE.map((key) => [key, profile[key] ?? '']))
 
 const Profile = () => {
-  const { user, updateUser, darkMode, toggleDark } = useOutletContext()
+  const { token, user, updateSessionUser, darkMode, toggleDark } = useOutletContext()
   const [section, setSection] = useState('personal')
   const [toast, setToast] = useState('')
+  const [form, setForm] = useState(null)
+  const [saved, setSaved] = useState(null)
+  const [loadError, setLoadError] = useState('')
+  const [saveError, setSaveError] = useState('')
+  const [saving, setSaving] = useState(false)
   const timer = useRef(null)
 
-  // Mock data. Replace with your backend later.
-  const [form, setForm] = useState({
-    fullName: user.name,
-    patientId: user.id,
-    dob: '1993-06-12',
-    sex: 'Female',
-    mobile: '+63 917 555 0142',
-    email: 'sofia@healthlocal.demo',
-    address: 'Makati City, Metro Manila',
-    allergies: 'Penicillin',
-    medications: '',
-    history: '',
-    emergencyName: 'Marco Reyes',
-    emergencyPhone: '+63 917 555 0188',
-    consultType: 'In-person',
-    language: 'English',
-  })
+  useEffect(() => {
+    let cancelled = false
+    patientApi
+      .profile(token)
+      .then(({ profile }) => {
+        if (cancelled) return
+        setForm(toForm(profile))
+        setSaved(toForm(profile))
+      })
+      .catch((err) => !cancelled && setLoadError(err.message))
+    return () => {
+      cancelled = true
+    }
+  }, [token])
 
   const notify = (message) => {
     setToast(message)
@@ -61,19 +71,39 @@ const Profile = () => {
 
   const setField = (name, value) => setForm((f) => ({ ...f, [name]: value }))
 
-  const save = () => {
-    const name = form.fullName.trim() || user.name
-    updateUser({ name, initials: initialsOf(name) })
-    notify('Changes saved')
+  const dirty = form && saved && EDITABLE.some((key) => form[key] !== saved[key])
+
+  const save = async () => {
+    if (!dirty || saving) return
+    if (!form.firstname.trim() || !form.lastname.trim()) {
+      setSection('personal')
+      setSaveError('Please enter your first and last name.')
+      return
+    }
+    // Only send what changed
+    const changes = Object.fromEntries(EDITABLE.filter((k) => form[k] !== saved[k]).map((k) => [k, form[k]]))
+    setSaving(true)
+    setSaveError('')
+    try {
+      const { profile } = await patientApi.updateProfile(token, changes)
+      setForm(toForm(profile))
+      setSaved(toForm(profile))
+      updateSessionUser({ firstname: profile.firstname, lastname: profile.lastname, email: profile.email })
+      notify('Changes saved')
+    } catch (err) {
+      setSaveError(err.message)
+    } finally {
+      setSaving(false)
+    }
   }
 
-  const panels = {
-    personal: <PersonalInfo form={form} onChange={setField} />,
+  const panels = form && {
+    personal: <PersonalInfo form={form} patientCode={user.code} onChange={setField} />,
     medical: <MedicalInfo form={form} onChange={setField} />,
     preferences: (
       <Preferences form={form} onChange={setField} darkMode={darkMode} onToggleDark={toggleDark} />
     ),
-    security: <SecurityPrivacy onNotify={notify} />,
+    security: <SecurityPrivacy token={token} onNotify={notify} />,
   }
 
   return (
@@ -84,8 +114,16 @@ const Profile = () => {
           <h1 className={SidebarStyle['page__title']}>Profile & settings</h1>
           <p className={SidebarStyle['page__sub']}>Manage your information, preferences, and privacy.</p>
         </div>
-        <button className={`${ProfileStyle['btn-primary']} ${ScheduleStyle['btn-primary']}`} onClick={save}>Save changes</button>
+        <button
+          className={`${ProfileStyle['btn-primary']} ${ScheduleStyle['btn-primary']}`}
+          onClick={save}
+          disabled={!dirty || saving}
+        >
+          {saving ? 'Saving…' : 'Save changes'}
+        </button>
       </header>
+
+      {saveError && <p className={ProfileStyle['form-error']} role="alert">{saveError}</p>}
 
       <div className={ProfileStyle['settings']}>
         <nav className={ProfileStyle['settings__nav']} aria-label="Settings sections">
@@ -107,7 +145,13 @@ const Profile = () => {
           ))}
         </nav>
 
-        {panels[section]}
+        {panels ? (
+          panels[section]
+        ) : (
+          <p className={SidebarStyle['page__sub']} role={loadError ? 'alert' : undefined}>
+            {loadError || 'Loading your profile…'}
+          </p>
+        )}
       </div>
 
       {toast && (

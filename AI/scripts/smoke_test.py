@@ -17,7 +17,6 @@ os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
 os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")
 
 import argparse
-import json
 import sys
 import time
 from pathlib import Path
@@ -65,7 +64,9 @@ def run_whisper(args):
     for lang in ("auto", "en", "fil"):
         t = time.perf_counter()
         out = svc.transcribe(samples, dur, lang)
-        print(f"[whisper:{lang}] {time.perf_counter()-t:.2f}s ->", json.dumps(out, ensure_ascii=False))
+        word_count = len(out["text"].split())
+        print(f"[whisper:{lang}] {time.perf_counter()-t:.2f}s words={word_count} "
+              f"language={out['language']} warnings={len(out['warnings'])}")
     gpu("whisper after inference")
     return svc
 
@@ -81,7 +82,6 @@ def run_medgemma(args, image: bool):
     t = time.perf_counter()
     out = svc.chat(req)
     print(f"[medgemma:chat] {time.perf_counter()-t:.1f}s valid={out['output_valid']} meta={out['meta']}")
-    print(json.dumps(out["result"], indent=1, ensure_ascii=False)[:3000])
     gpu("medgemma after chat")
     if image:
         s = get_settings()
@@ -96,7 +96,6 @@ def run_medgemma(args, image: bool):
         t = time.perf_counter()
         out = svc.analyze_image(img, ImageContext(description="Red itchy patch on forearm for 3 days", body_location="forearm"))
         print(f"[medgemma:image] {time.perf_counter()-t:.1f}s valid={out['output_valid']} meta={out['meta']}")
-        print(json.dumps(out["result"], indent=1, ensure_ascii=False)[:3000])
         gpu("medgemma after image")
     return svc
 
@@ -110,7 +109,8 @@ def run_meralion(args):
     samples, dur = load_audio(args.audio)
     t = time.perf_counter()
     out = svc.analyze(samples, dur)
-    print(f"[meralion] {time.perf_counter()-t:.2f}s ->", json.dumps(out))
+    print(f"[meralion] {time.perf_counter()-t:.2f}s analyzed={out['analyzed_seconds']}s "
+          f"experimental={out['experimental']} warnings={len(out['warnings'])}")
     return svc
 
 

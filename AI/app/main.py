@@ -7,10 +7,10 @@ from __future__ import annotations
 
 import os
 
-# Force fully-offline operation before any Hugging Face import: no weight or config downloads.
-os.environ.setdefault("HF_HUB_OFFLINE", "1")
-os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
-os.environ.setdefault("HF_HUB_DISABLE_TELEMETRY", "1")
+# Force fully-offline operation before any Hugging Face import.
+os.environ["HF_HUB_OFFLINE"] = "1"
+os.environ["TRANSFORMERS_OFFLINE"] = "1"
+os.environ["HF_HUB_DISABLE_TELEMETRY"] = "1"
 os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")
 
 import asyncio
@@ -28,8 +28,9 @@ from fastapi.responses import JSONResponse
 from pydantic import ValidationError
 
 from .config import get_settings
+from .audio import preprocess_audio
 from .errors import ServiceError, bad_input
-from .media import decode_audio, decode_image
+from .media import TARGET_SR, decode_audio, decode_image
 from .model_manager import ModelManager
 from .schemas import ChatRequest, ImageContext
 
@@ -78,7 +79,7 @@ def create_app(manager: ModelManager | None = None) -> FastAPI:
 
     @app.exception_handler(Exception)
     async def _unhandled(request: Request, exc: Exception):
-        log.exception("Unhandled error rid=%s", getattr(request.state, "rid", None))
+        log.error("Unhandled error rid=%s type=%s", getattr(request.state, "rid", None), type(exc).__name__)
         return err(500, "INTERNAL_ERROR", "Inference failed unexpectedly.", request)
 
     # ------------------------------------------------------------------ auth
@@ -116,7 +117,7 @@ def create_app(manager: ModelManager | None = None) -> FastAPI:
 
     @app.post("/internal/medical/chat", dependencies=auth)
     async def medical_chat(request: Request, body: ChatRequest):
-        svc = models(request).get("medgemma")
+        svc = await run_in_threadpool(models(request).get, "medgemma")
         return await run_in_threadpool(svc.chat, body)
 
     @app.post("/internal/medical/analyze-image", dependencies=auth)
@@ -127,27 +128,43 @@ def create_app(manager: ModelManager | None = None) -> FastAPI:
             raise bad_input("INVALID_CONTEXT", "The image context is invalid.")
         data = await _read_limited(image, settings.max_image_bytes)
         img = await run_in_threadpool(decode_image, data, settings.max_image_bytes, settings.max_image_pixels)
-        svc = models(request).get("medgemma")
+        svc = await run_in_threadpool(models(request).get, "medgemma")
         return await run_in_threadpool(svc.analyze_image, img, ctx)
 
     @app.post("/internal/audio/transcribe", dependencies=auth)
     async def transcribe(request: Request, audio: UploadFile = File(...), language: str = Form("auto")):
         if language not in ("auto", "en", "fil"):
             raise bad_input("INVALID_LANGUAGE", "language must be one of auto, en, fil.")
-        svc = models(request).get("whisper")
+        svc = await run_in_threadpool(models(request).get, "whisper")
         samples, duration = await _audio(audio)
         return await run_in_threadpool(svc.transcribe, samples, duration, language)
 
     @app.post("/internal/audio/analyze", dependencies=auth)
     async def analyze_audio(request: Request, audio: UploadFile = File(...)):
-        svc = models(request).get("meralion")
+        svc = await run_in_threadpool(models(request).get, "meralion")
         samples, duration = await _audio(audio)
         return await run_in_threadpool(svc.analyze, samples, duration)
 
     async def _audio(upload: UploadFile):
         data = await _read_limited(upload, settings.max_audio_bytes)
-        return await run_in_threadpool(decode_audio, data, settings.max_audio_bytes,
-                                       settings.max_audio_seconds, settings.min_audio_seconds)
+        samples, duration = await run_in_threadpool(
+            decode_audio,
+            data,
+            settings.max_audio_bytes,
+            settings.max_audio_seconds,
+            settings.min_audio_seconds,
+        )
+        samples, _ = await run_in_threadpool(
+            preprocess_audio,
+            samples,
+            settings.audio_silence_threshold,
+            settings.audio_frame_ms,
+            settings.audio_max_gain,
+        )
+        duration = samples.size / TARGET_SR
+        if duration < settings.min_audio_seconds:
+            raise bad_input("AUDIO_TOO_SHORT", "The recording contains too little speech after silence trimming.")
+        return samples, duration
 
     return app
 

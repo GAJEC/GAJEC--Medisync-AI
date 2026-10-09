@@ -29,7 +29,11 @@ const PatientSidebar = ({
   activeId,
   onNewConversation,
   onSelectConversation,
+<<<<<<< HEAD
   onUpdateConversation,
+=======
+  onDeleteConversation,
+>>>>>>> 1936436307949cccdd901a1cc6c35d360653ae72
   darkMode,
   onToggleDark,
   onLogout,
@@ -44,10 +48,15 @@ const PatientSidebar = ({
   const filtered = conversations.filter((c) =>
     c.title.toLowerCase().includes(query.trim().toLowerCase())
   )
+<<<<<<< HEAD
   const pinned = filtered.filter((c) => c.pinned && !c.archived)
   const recent = filtered.filter((c) => !c.pinned && !c.archived)
   const groups = ['Today', 'Yesterday', 'Previous 7 days']
     .map((label) => ({ label, items: recent.filter((c) => c.group === label) }))
+=======
+  const groups = ['Today', 'Yesterday', 'Previous 7 days', 'Older']
+    .map((label) => ({ label, items: filtered.filter((c) => c.group === label) }))
+>>>>>>> 1936436307949cccdd901a1cc6c35d360653ae72
     .filter((g) => g.items.length > 0)
 
   const closeMenu = () => setOpenMenuId(null)
@@ -188,10 +197,39 @@ const PatientSidebar = ({
         )}
 
         <div className={SidebarStyle['convo-list']}>
+<<<<<<< HEAD
           {groups.map((group) => (
             <div key={group.label}>
               <h3 className={SidebarStyle['convo-group']}>{group.label}</h3>
               {group.items.map(renderConversation)}
+=======
+          {conversations.length === 0 && (
+            <h3 className={SidebarStyle['convo-group']}>No conversations yet</h3>
+          )}
+          {groups.map((g) => (
+            <div key={g.label}>
+              <h3 className={SidebarStyle['convo-group']}>{g.label}</h3>
+              {g.items.map((c) => (
+                <div
+                  key={c.id}
+                  className={`${SidebarStyle['convo']} ${c.id === activeId ? SidebarStyle['convo--active'] : ''}`}
+                >
+                  <button className={SidebarStyle['convo__title']} onClick={() => onSelectConversation(c.id)}>
+                    {c.title}
+                  </button>
+                  <button
+                    className={SidebarStyle['icon-btn']}
+                    aria-label={`Delete conversation "${c.title}"`}
+                    title="Delete conversation"
+                    onClick={() => {
+                      if (window.confirm(`Delete "${c.title}"? This cannot be undone.`)) onDeleteConversation(c.id)
+                    }}
+                  >
+                    <CloseIcon width={14} height={14} />
+                  </button>
+                </div>
+              ))}
+>>>>>>> 1936436307949cccdd901a1cc6c35d360653ae72
             </div>
           ))}
           {recent.length === 0 && pinned.length === 0 && (
@@ -210,7 +248,7 @@ const PatientSidebar = ({
           <span className={`${SidebarStyle['profile__text']} ${SidebarStyle['hide-collapsed']}`}>
             <span className={SidebarStyle['profile__name']}>{user.name}</span>
             <span className={SidebarStyle['profile__meta']}>
-              {user.role} · {user.id}
+              {user.role} · {user.code}
             </span>
           </span>
           <MoreIcon className={`${SidebarStyle['profile__more']} ${SidebarStyle['hide-collapsed']}`} />

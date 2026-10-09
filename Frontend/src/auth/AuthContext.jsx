@@ -42,8 +42,16 @@ export const AuthProvider = ({ children }) => {
   const [status, setStatus] = useState(() => (storage.get() ? 'loading' : 'ready'))
 
   const logout = useCallback(() => {
+    const token = storage.get()
+    // Revoke the session server-side; sign out locally even if that fails
+    if (token) authApi.logout(token).catch(() => {})
     storage.set(null)
     setSession(null)
+  }, [])
+
+  // Replace the cached user after a profile edit (e.g. name or email changed)
+  const updateSessionUser = useCallback((changes) => {
+    setSession((current) => (current ? toSession({ ...current.user, ...changes }, current.token) : current))
   }, [])
 
   useEffect(() => {
@@ -85,8 +93,8 @@ export const AuthProvider = ({ children }) => {
   )
 
   const value = useMemo(
-    () => ({ session, status, logout, signIn, signUp }),
-    [session, status, logout, signIn, signUp],
+    () => ({ session, status, logout, signIn, signUp, updateSessionUser }),
+    [session, status, logout, signIn, signUp, updateSessionUser],
   )
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

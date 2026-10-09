@@ -51,6 +51,7 @@ const MedicalInfo = ({ form, onChange }) => {
             type="tel"
             className={ProfileStyle['input']}
             value={form.emergencyPhone}
+            maxLength={30}
             onChange={(e) => onChange('emergencyPhone', e.target.value)}
           />
         </Field>

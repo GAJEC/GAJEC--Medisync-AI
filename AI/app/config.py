@@ -63,6 +63,9 @@ class Settings(BaseSettings):
     max_audio_bytes: int = Field(15 * 1024 * 1024, alias="AI_MAX_AUDIO_BYTES")
     max_audio_seconds: float = Field(120.0, alias="AI_MAX_AUDIO_SECONDS")
     min_audio_seconds: float = Field(0.5, alias="AI_MIN_AUDIO_SECONDS")
+    audio_silence_threshold: float = Field(0.003, ge=0, le=0.1, alias="AI_AUDIO_SILENCE_THRESHOLD")
+    audio_frame_ms: int = Field(20, ge=5, le=100, alias="AI_AUDIO_FRAME_MS")
+    audio_max_gain: float = Field(4.0, ge=1, le=20, alias="AI_AUDIO_MAX_GAIN")
     # How long a request waits for the GPU/CPU inference slot before 503.
     queue_timeout_seconds: float = Field(120.0, alias="AI_QUEUE_TIMEOUT_SECONDS")
 

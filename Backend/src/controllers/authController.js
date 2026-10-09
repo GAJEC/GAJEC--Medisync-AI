@@ -22,6 +22,24 @@ export async function Register(firstname, lastname, email, password) {
 }
 
 export async function GetUserById(id) {
-    const [rows] = await db.execute('SELECT id, firstname, lastname, email, role, created_at FROM users WHERE id = ?', [id]);
+    const [rows] = await db.execute(
+        'SELECT id, firstname, lastname, email, role, created_at, password_changed_at FROM users WHERE id = ?',
+        [id],
+    );
     return rows[0] || null;
+}
+
+export async function ChangePassword(userId, currentPassword, newPassword) {
+    const [rows] = await db.execute('SELECT password FROM users WHERE id = ?', [userId]);
+    if (rows.length === 0) { return { success: false, status: 404, message: 'User not found' }; }
+    if (!(await verifyPassword(currentPassword, rows[0].password))) {
+        return { success: false, status: 400, message: 'Your current password is incorrect.' };
+    }
+    if (await verifyPassword(newPassword, rows[0].password)) {
+        return { success: false, status: 400, message: 'Choose a password you have not used before.' };
+    }
+
+    const hashedPassword = await hashPassword(newPassword);
+    await db.execute('UPDATE users SET password = ?, password_changed_at = NOW() WHERE id = ?', [hashedPassword, userId]);
+    return { success: true, message: 'Password updated' };
 }
