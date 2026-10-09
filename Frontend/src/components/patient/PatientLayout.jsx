@@ -34,6 +34,7 @@ const PatientLayout = () => {
   const [collapsed, setCollapsed] = useState(false)
   const [dark, setDark] = useState(false)
   const [activeId, setActiveId] = useState(1)
+  const [user, setUser] = useState(USER)
   const [notifications, setNotifications] = useState(NOTIFICATIONS)
 
   const unreadCount = notifications.filter((n) => !n.read).length
@@ -43,6 +44,8 @@ const PatientLayout = () => {
     setDark(next)
     document.documentElement.dataset.theme = next ? 'dark' : 'light'
   }
+
+  const updateUser = (changes) => setUser((u) => ({ ...u, ...changes }))
 
   const openConversation = (id) => {
     setActiveId(id)
@@ -59,7 +62,7 @@ const PatientLayout = () => {
       <PatientSidebar
         collapsed={collapsed}
         onToggleCollapse={() => setCollapsed((c) => !c)}
-        user={USER}
+        user={user}
         conversations={CONVERSATIONS}
         activeId={activeId}
         onNewConversation={newConversation}
@@ -71,7 +74,16 @@ const PatientLayout = () => {
       />
 
       <div className="main">
-        <Outlet context={{ user: USER, notifications, setNotifications }} />
+        <Outlet
+          context={{
+            user,
+            updateUser,
+            notifications,
+            setNotifications,
+            darkMode: dark,
+            toggleDark,
+          }}
+        />
       </div>
     </div>
   )

@@ -148,3 +148,15 @@ a.nav-item { text-decoration: none; }
   background: none; color: var(--text); font-size: 12px; font-weight: 600;
 }
 .btn-text:hover { background: var(--surface-hover); }
+
+/* Profile row is a button that opens Profile & settings */
+button.profile--btn {
+  width: 100%; border: 0; border-radius: 10px; background: none;
+  color: inherit; text-align: left; padding: 6px 4px;
+}
+button.profile--btn:hover { background: var(--surface-hover); }
+.profile--active,
+button.profile--active:hover { background: var(--primary-soft); }
+.profile__text { display: flex; flex-direction: column; }
+.profile__more { flex: none; color: var(--muted); }
+.sidebar--collapsed button.profile--btn { width: auto; }

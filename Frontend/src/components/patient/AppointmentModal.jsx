@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react'
 import { CloseIcon, ShieldCheckIcon } from '../common/Icons'
+import '../../assets/styles/modal.css'
 
 const AppointmentModal = ({ appointment, onClose, onBookAgain }) => {
   useEffect(() => {

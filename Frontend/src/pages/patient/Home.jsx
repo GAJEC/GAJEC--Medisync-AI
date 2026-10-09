@@ -42,7 +42,7 @@ const Home = () => {
           <PngIcon src={aiIcon} size={16} className="icon-teal" />
         </span>
         <div className="topbar__text">
-          <div className="topbar__title">Your Health, Guided by AI</div>
+          <div className="topbar__title">Your Health, Guided by Syncia</div>
           <div className="topbar__sub">Secure symptom intake and hospital appointment routing</div>
         </div>
         <span className="secure-pill">

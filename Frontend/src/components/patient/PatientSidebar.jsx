@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { NavLink } from 'react-router-dom'
+import { NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { PngIcon, ChatIcon, ChevronLeftIcon, MoreIcon, HelpIcon } from '../common/Icons'
 
 import heartIcon from '../../assets/icons/heart.png'
@@ -32,6 +32,8 @@ const PatientSidebar = ({
   unreadCount = 0,
 }) => {
   const [query, setQuery] = useState('')
+  const navigate = useNavigate()
+  const onProfile = useLocation().pathname.startsWith('/patient/profile')
 
   const filtered = conversations.filter((c) =>
     c.title.toLowerCase().includes(query.trim().toLowerCase())
@@ -47,7 +49,7 @@ const PatientSidebar = ({
           <PngIcon src={heartIcon} size={16} className="icon-white" />
         </span>
         <span className="sidebar__brand-name hide-collapsed">
-          HealthLocal <span className="accent">AI</span>
+          MediSync <span className="accent">AI</span>
         </span>
         <button
           className="icon-btn sidebar__collapse"
@@ -117,18 +119,20 @@ const PatientSidebar = ({
       </div>
 
       <div className="sidebar__footer">
-        <div className="profile">
+        <button
+          className={`profile profile--btn ${onProfile ? 'profile--active' : ''}`}
+          onClick={() => navigate('/patient/profile')}
+          aria-label="Open profile and settings"
+        >
           <span className="avatar">{user.initials}</span>
-          <div className="profile__text hide-collapsed">
-            <div className="profile__name">{user.name}</div>
-            <div className="profile__meta">
+          <span className="profile__text hide-collapsed">
+            <span className="profile__name">{user.name}</span>
+            <span className="profile__meta">
               {user.role} · {user.id}
-            </div>
-          </div>
-          <button className="icon-btn hide-collapsed" aria-label="Account options">
-            <MoreIcon />
-          </button>
-        </div>
+            </span>
+          </span>
+          <MoreIcon className="profile__more hide-collapsed" />
+        </button>
 
         <div className="footer-row">
           <button className="nav-item nav-item--small" onClick={onToggleDark}>
