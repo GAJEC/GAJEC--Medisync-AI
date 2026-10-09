@@ -31,3 +31,4 @@ AI/tmp/
 *.log
 .DS_Store
 Thumbs.db
+Frontend/package-lock.json
