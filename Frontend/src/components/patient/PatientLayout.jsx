@@ -82,13 +82,13 @@ const PatientLayout = () => {
   const openConversation = (id) => {
     setActiveId(id)
     setMenuOpen(false)
-    navigate('/patient')
+    navigate('/patient/dashboard')
   }
 
   const newConversation = () => {
     setActiveId(null)
     setMenuOpen(false)
-    navigate('/patient')
+    navigate('/patient/dashboard')
   }
 
   const handleLogout = () => {

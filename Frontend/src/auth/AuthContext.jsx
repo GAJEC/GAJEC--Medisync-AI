@@ -1,97 +1,97 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { authApi } from '../api/client'
 
-const STORAGE_KEY = 'medisync.session'
-const AuthContext = createContext(null)
+const TOKEN_KEY = 'medisync.token'
+const LEGACY_SESSION_KEY = 'medisync.session'
 
-const readSession = () => {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY))
-  } catch {
-    return null
-  }
+const storage = {
+  get() {
+    try {
+      return localStorage.getItem(TOKEN_KEY)
+    } catch {
+      return null
+    }
+  },
+  set(token) {
+    try {
+      if (token) localStorage.setItem(TOKEN_KEY, token)
+      else localStorage.removeItem(TOKEN_KEY)
+    } catch { }
+  },
 }
 
-const saveSession = (session) => {
-  try {
-    if (session) localStorage.setItem(STORAGE_KEY, JSON.stringify(session))
-    else localStorage.removeItem(STORAGE_KEY)
-  } catch {
-    /* storage unavailable: session lasts until refresh */
-  }
+try {
+  localStorage.removeItem(LEGACY_SESSION_KEY)
+} catch {
+  /* ignore */
 }
 
-const sessionFromUser = (user, token) => ({
-  role: 'patient',
+const toSession = (user, token) => ({
+  role: user.role,
   email: user.email,
   name: `${user.firstname} ${user.lastname}`.trim(),
   user,
   token,
 })
 
-export const homeFor = (role) => (role === 'staff' ? '/staff' : '/patient')
+const AuthContext = createContext(null)
 
 export const AuthProvider = ({ children }) => {
-  const [session, setSession] = useState(readSession)
-
-  // Local-only login (used by the demo staff shortcut; no backend token)
-  const login = useCallback(({ role, email, name }) => {
-    const next = { role, email, name }
-    saveSession(next)
-    setSession(next)
-  }, [])
+  const [session, setSession] = useState(null)
+  // 'loading' while a stored token is being checked, then 'ready'
+  const [status, setStatus] = useState(() => (storage.get() ? 'loading' : 'ready'))
 
   const logout = useCallback(() => {
-    saveSession(null)
+    storage.set(null)
     setSession(null)
+  }, [])
+
+  useEffect(() => {
+    const token = storage.get()
+    if (!token) return
+    let cancelled = false
+    authApi
+      .me(token)
+      .then(({ user }) => {
+        if (!cancelled) setSession(toSession(user, token))
+      })
+      .catch((error) => {
+        if (!cancelled && (error.status === 401 || error.status === 404)) storage.set(null)
+      })
+      .finally(() => {
+        if (!cancelled) setStatus('ready')
+      })
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   // Backend login: POST /api/auth/login
   const signIn = useCallback(async (email, password) => {
     const { token, user } = await authApi.login(email, password)
-    const next = sessionFromUser(user, token)
-    saveSession(next)
+    storage.set(token)
+    const next = toSession(user, token)
     setSession(next)
     return next
   }, [])
 
   // Backend register, then sign in with the same credentials
-  const signUp = useCallback(async ({ firstname, lastname, email, password }) => {
-    await authApi.register({ firstname, lastname, email, password })
-    return signIn(email, password)
-  }, [signIn])
-
-  // On app load, make sure a stored token is still valid (it expires after JWT_EXPIRES_IN)
-  const token = session?.token
-  useEffect(() => {
-    if (!token) return
-    let cancelled = false
-    authApi.me(token).then(
-      ({ user }) => {
-        if (cancelled) return
-        setSession((prev) => {
-          if (!prev || prev.token !== token) return prev
-          const next = sessionFromUser(user, token)
-          saveSession(next)
-          return next
-        })
-      },
-      (error) => {
-        if (!cancelled && error.status === 401) logout()
-      },
-    )
-    return () => {
-      cancelled = true
-    }
-  }, [token, logout])
+  const signUp = useCallback(
+    async ({ firstname, lastname, email, password }) => {
+      await authApi.register({ firstname, lastname, email, password })
+      return signIn(email, password)
+    },
+    [signIn],
+  )
 
   const value = useMemo(
-    () => ({ session, login, logout, signIn, signUp }),
-    [session, login, logout, signIn, signUp],
+    () => ({ session, status, logout, signIn, signUp }),
+    [session, status, logout, signIn, signUp],
   )
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => {
   const ctx = useContext(AuthContext)
   if (!ctx) throw new Error('useAuth must be used inside <AuthProvider>')

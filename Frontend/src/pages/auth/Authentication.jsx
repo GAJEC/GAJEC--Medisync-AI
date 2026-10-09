@@ -1,8 +1,12 @@
 import { useState } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
-import "../../assets/styles/Login.css";
-import { useAuth, homeFor } from "../../auth/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../auth/AuthContext";
+import { homeFor } from "../../auth/roles";
 
+// Style
+import AuthenticationStyle from "../../assets/styles/Authentication.module.css";
+
+// Assets
 import heartIcon from "../../assets/images/medisync-logo.png";
 import aiIcon from "../../assets/icons/ai.png";
 import insuranceIcon from "../../assets/icons/insurance.png";
@@ -59,17 +63,21 @@ const VIEWS = {
   },
 };
 
-// Demo staff identity used by the "Hospital staff access" shortcut
-const DEMO_STAFF = { role: "staff", email: "staff@stgabriel.demo", name: "Ana Mendoza" };
-
+// className is an extra (already-resolved) module class, e.g. AuthenticationStyle['btn-arrow']
 function Logo({ name, className = "" }) {
-  return <img src={LOGOS[name]} alt="" className={`logo-img ${className}`} />;
+  return (
+    <img
+      src={LOGOS[name]}
+      alt=""
+      className={`${AuthenticationStyle['logo-img']} ${className}`.trim()}
+    />
+  );
 }
 
 function PasswordField({ id, value, onChange, autoComplete }) {
   const [visible, setVisible] = useState(false);
   return (
-    <div className="input-wrap">
+    <div className={AuthenticationStyle['input-wrap']}>
       <input
         id={id}
         type={visible ? "text" : "password"}
@@ -80,7 +88,7 @@ function PasswordField({ id, value, onChange, autoComplete }) {
       />
       <button
         type="button"
-        className="show-btn"
+        className={AuthenticationStyle['show-btn']}
         onClick={() => setVisible((v) => !v)}
       >
         {visible ? "Hide" : "Show"}
@@ -90,7 +98,7 @@ function PasswordField({ id, value, onChange, autoComplete }) {
 }
 
 export default function Login() {
-  const { session, login, signIn, signUp } = useAuth();
+  const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
 
   const [view, setView] = useState("signin");
@@ -104,8 +112,7 @@ export default function Login() {
 
   const content = VIEWS[view];
 
-  // Already signed in -> go straight to the right home (staff -> /staff -> dashboard)
-  if (session) return <Navigate to={homeFor(session.role)} replace />;
+  // Already-signed-in users are redirected away from /login by ProtectedRoute
 
   const switchView = (next) => {
     setView(next);
@@ -113,41 +120,30 @@ export default function Login() {
     setError("");
   };
 
-  // "Hospital staff access" button: sign in as staff and open the staff Dashboard
-  const openStaffDashboard = () => {
-    login(DEMO_STAFF);
-    navigate("/staff/dashboard", { replace: true });
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (loading) return;
 
-    // Staff accounts don't exist on the backend yet, so staff sign-in stays local/demo
-    if (view === "staff") {
-      login({ role: "staff", email, name: email });
-      navigate("/staff/dashboard", { replace: true });
-      return;
-    }
-
     setError("");
     setLoading(true);
     try {
+      let session;
       if (view === "signup") {
         if (password.length < 8) {
           setError("Password must be at least 8 characters.");
           return;
         }
-        await signUp({
+        session = await signUp({
           firstname: firstName.trim(),
           lastname: lastName.trim(),
           email: email.trim(),
           password,
         });
       } else {
-        await signIn(email.trim(), password);
+        session = await signIn(email.trim(), password);
       }
-      navigate(homeFor("patient"), { replace: true });
+      // Send the user to the home for the role the backend gave them
+      navigate(homeFor(session.role), { replace: true });
     } catch (err) {
       setError(err.message);
     } finally {
@@ -156,19 +152,19 @@ export default function Login() {
   };
 
   return (
-    <div className="login-page">
-      <aside className="login-left">
-        <div className="brand">
-          <span className="brand-mark">
+    <div className={AuthenticationStyle['login-page']}>
+      <aside className={AuthenticationStyle['login-left']}>
+        <div className={AuthenticationStyle['brand']}>
+          <span className={AuthenticationStyle['brand-mark']}>
             <Logo name="brand" />
           </span>
-          <span className="brand-name">
-            {BRAND.name} <span className="brand-accent">{BRAND.accent}</span>
+          <span className={AuthenticationStyle['brand-name']}>
+            {BRAND.name} <span className={AuthenticationStyle['brand-accent']}>{BRAND.accent}</span>
           </span>
         </div>
 
-        <div className="hero">
-          <span className="hero-badge">
+        <div className={AuthenticationStyle['hero']}>
+          <span className={AuthenticationStyle['hero-badge']}>
             <Logo name="badge" />
             {HERO.badge}
           </span>
@@ -180,7 +176,7 @@ export default function Login() {
           <p>{HERO.text}</p>
         </div>
 
-        <ul className="features">
+        <ul className={AuthenticationStyle['features']}>
           {FEATURES.map((f) => (
             <li key={f.key}>
               <Logo name={f.key} />
@@ -189,29 +185,29 @@ export default function Login() {
           ))}
         </ul>
 
-        <span className="ring ring-1" aria-hidden="true" />
-        <span className="ring ring-2" aria-hidden="true" />
+        <span className={AuthenticationStyle['ring']} aria-hidden="true" />
+        <span className={AuthenticationStyle['ring']} aria-hidden="true" />
       </aside>
 
-      <main className="login-right">
-        <div className="form-card" key={view}>
-          <span className="eyebrow">{content.eyebrow}</span>
+      <main className={AuthenticationStyle['login-right']}>
+        <div className={AuthenticationStyle['form-card']} key={view}>
+          <span className={AuthenticationStyle['eyebrow']}>{content.eyebrow}</span>
           <h2>{content.title}</h2>
-          <p className="subtitle">{content.subtitle}</p>
+          <p className={AuthenticationStyle['subtitle']}>{content.subtitle}</p>
 
           <form onSubmit={handleSubmit}>
             {error && (
-              <div className="form-error" role="alert">
+              <div className={AuthenticationStyle['form-error']} role="alert">
                 {error}
               </div>
             )}
 
             {view === "signup" && (
               <>
-                <div className="name-fields">
-                  <div className="field">
+                <div className={AuthenticationStyle['name-fields']}>
+                  <div className={AuthenticationStyle['field']}>
                     <label htmlFor="firstName">First name</label>
-                    <div className="input-wrap">
+                    <div className={AuthenticationStyle['input-wrap']}>
                       <input
                         id="firstName"
                         type="text"
@@ -223,9 +219,9 @@ export default function Login() {
                       />
                     </div>
                   </div>
-                  <div className="field">
+                  <div className={AuthenticationStyle['field']}>
                     <label htmlFor="lastName">Last name</label>
-                    <div className="input-wrap">
+                    <div className={AuthenticationStyle['input-wrap']}>
                       <input
                         id="lastName"
                         type="text"
@@ -239,9 +235,9 @@ export default function Login() {
                   </div>
                 </div>
 
-                <div className="field gender-field">
+                <div className={`${AuthenticationStyle['field']} ${AuthenticationStyle['gender-field']}`}>
                   <label htmlFor="gender">Gender</label>
-                  <div className="input-wrap">
+                  <div className={AuthenticationStyle['input-wrap']}>
                     <select
                       id="gender"
                       value={gender}
@@ -257,9 +253,9 @@ export default function Login() {
               </>
             )}
 
-            <div className="field">
+            <div className={AuthenticationStyle['field']}>
               <label htmlFor="email">Email address</label>
-              <div className="input-wrap">
+              <div className={AuthenticationStyle['input-wrap']}>
                 <input
                   id="email"
                   type="email"
@@ -272,7 +268,7 @@ export default function Login() {
               </div>
             </div>
 
-            <div className="field">
+            <div className={AuthenticationStyle['field']}>
               <label htmlFor="password">Password</label>
               <PasswordField
                 id="password"
@@ -285,25 +281,28 @@ export default function Login() {
             </div>
 
             {view === "signin" && (
-              <div className="forgot-row">
-                <button type="button" className="link-btn small">
+              <div className={AuthenticationStyle['forgot-row']}>
+                <button
+                  type="button"
+                  className={`${AuthenticationStyle['link-btn']} ${AuthenticationStyle['small']}`}
+                >
                   Forgot password?
                 </button>
               </div>
             )}
 
-            <button type="submit" className="primary-btn" disabled={loading}>
+            <button type="submit" className={AuthenticationStyle['primary-btn']} disabled={loading}>
               {loading ? "Please wait…" : content.submit}
-              <Logo name="arrow" className="btn-arrow" />
+              <Logo name="arrow" className={AuthenticationStyle['btn-arrow']} />
             </button>
           </form>
 
           {view === "signin" && (
-            <p className="switch-text">
+            <p className={AuthenticationStyle['switch-text']}>
               New to {BRAND.name}?{" "}
               <button
                 type="button"
-                className="link-btn"
+                className={AuthenticationStyle['link-btn']}
                 onClick={() => switchView("signup")}
               >
                 Create an account
@@ -312,11 +311,11 @@ export default function Login() {
           )}
 
           {view === "signup" && (
-            <p className="switch-text">
+            <p className={AuthenticationStyle['switch-text']}>
               Already registered?{" "}
               <button
                 type="button"
-                className="link-btn"
+                className={AuthenticationStyle['link-btn']}
                 onClick={() => switchView("signin")}
               >
                 Sign in
@@ -327,20 +326,20 @@ export default function Login() {
           {view === "signin" && (
             <button
               type="button"
-              className="role-card"
-              onClick={openStaffDashboard}
+              className={AuthenticationStyle['role-card']}
+              onClick={() => switchView("staff")}
             >
-              <Logo name="staff" className="role-icon" />
+              <Logo name="staff" className={AuthenticationStyle['role-icon']} />
               <span>Hospital staff access</span>
-              <Logo name="arrow" className="role-arrow" />
+              <Logo name="arrow" className={AuthenticationStyle['role-arrow']} />
             </button>
           )}
 
           {view === "staff" && (
-            <p className="switch-text">
+            <p className={AuthenticationStyle['switch-text']}>
               <button
                 type="button"
-                className="link-btn"
+                className={AuthenticationStyle['link-btn']}
                 onClick={() => switchView("signin")}
               >
                 Return to patient sign in
