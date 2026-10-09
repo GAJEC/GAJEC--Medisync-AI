@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import "./Staff.css";
+import "../staff/Staff.css";
 import searchIcon from "../../assets/icons/search.png";
 import settingsIcon from "../../assets/icons/settings.png";
 import nextIcon from "../../assets/icons/next.png";
