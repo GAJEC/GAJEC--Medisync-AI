@@ -5,9 +5,7 @@ import ProtectedRoute from './routes/ProtectedRoute'
 import PatientRoutes from './routes/PatientRoutes'
 import Login from './pages/auth/Login'
 
-// Login page wrapper. Already signed in? Skip straight to the right home page.
-// After login() runs, this component re-renders and the <Navigate> below fires,
-// so signing in lands on /patient (or /staff).
+
 const LoginRoute = () => {
   const { session, login } = useAuth()
 
