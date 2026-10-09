@@ -136,3 +136,35 @@ select.input {
   .settings__item { flex: none; }
   .form-grid { grid-template-columns: 1fr; }
 }
+
+@media (max-width: 800px) {
+  .settings { margin-top: 20px; gap: 14px; }
+  .settings__nav { gap: 6px; margin: 0 -16px; padding: 0 16px 4px; scrollbar-width: none; }
+  .settings__item { height: 42px; font-size: 13px; white-space: nowrap; }
+  .settings__item > svg:last-child { display: none; }
+
+  .panel__head { padding: 16px; }
+  .panel__body { padding: 16px; }
+  .panel__sub { font-size: 12px; }
+  .form-grid { gap: 16px; }
+  .field label { font-size: 13px; }
+  .input { height: 48px; font-size: 16px; }
+  textarea.input { height: 96px; }
+  .form-error { font-size: 12px; }
+
+  .pref-row { flex-wrap: wrap; padding: 16px; }
+  .pref-row__title { font-size: 14px; }
+  .pref-row__sub { font-size: 12px; }
+  .pref-row .input { height: 44px; font-size: 16px; }
+
+  .sec-row { padding: 14px 16px; }
+  .sec-row__title { font-size: 14px; }
+  .sec-row__sub { font-size: 12px; }
+  .sec-notice { margin: 2px 16px 16px; font-size: 12px; }
+
+  .consent-row__title, .session-row__title, .choice__title { font-size: 14px; }
+  .consent-row__desc, .session-row__meta, .choice__desc { font-size: 12px; }
+  .success-box { font-size: 13px; }
+
+  .toast { bottom: calc(20px + env(safe-area-inset-bottom)); max-width: calc(100vw - 32px); text-align: center; }
+}

@@ -155,3 +155,43 @@
   .schedule__body { grid-template-columns: 1fr; }
   .toolbar__search { width: 100%; margin-left: 0; }
 }
+
+@media (max-width: 800px) {
+  .schedule { padding: 64px 16px 28px; }
+  .schedule__header { flex-direction: column; align-items: stretch; gap: 14px; }
+  .schedule__eyebrow { font-size: 11px; }
+  .schedule__title { font-size: 28px; }
+  .schedule__sub { font-size: 14px; }
+  .btn-primary { min-height: 44px; font-size: 14px; }
+  .schedule__header .btn-primary { justify-content: center; }
+
+  .toolbar { margin-top: 20px; }
+  .seg { width: 100%; }
+  .seg__btn { flex: 1; height: 36px; font-size: 13px; }
+  .tool-btn { height: 40px; min-width: 40px; }
+  .toolbar__title { flex: 1; margin: 0; text-align: right; font-size: 14px; }
+  .toolbar__search { height: 44px; }
+  .toolbar__search input { font-size: 16px; }
+
+  /* Calendar cells show colored dots. Details are in the list below. */
+  .cal__head span { font-size: 10px; letter-spacing: 0.02em; }
+  .cal__cell { min-height: 56px; padding: 8px 0 6px; align-items: center; justify-content: flex-start; gap: 4px; }
+  .cal__day { font-size: 13px; }
+  .cal__event {
+    width: 7px; height: 7px; padding: 0; border: 0; border-radius: 50%;
+    font-size: 0; line-height: 0;
+  }
+  .cal__event--blue { background: var(--evt-blue-line); }
+  .cal__event--teal { background: var(--primary); }
+
+  .upcoming { padding: 16px; }
+  .upcoming__eyebrow { font-size: 11px; }
+  .count { font-size: 11px; }
+  .agenda { padding: 4px 16px; }
+  .agenda__title { font-size: 14px; }
+  .agenda__meta { font-size: 12px; }
+  .agenda__date span { font-size: 10px; }
+  .agenda__empty { font-size: 14px; }
+  .upcoming__empty-title { font-size: 14px; }
+  .upcoming__empty-sub { font-size: 12px; }
+}

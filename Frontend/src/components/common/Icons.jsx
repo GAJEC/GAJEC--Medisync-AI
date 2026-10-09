@@ -196,3 +196,13 @@ export const StopIcon = (props) => {
     </svg>
   )
 }
+
+export const MenuIcon = (props) => {
+  return (
+    <svg {...svgProps} {...props}>
+      <path d="M4 7h16" />
+      <path d="M4 12h16" />
+      <path d="M4 17h16" />
+    </svg>
+  )
+}

@@ -1,6 +1,7 @@
-import React, { useState } from 'react'
-import { Outlet, useNavigate } from 'react-router-dom'
+import React, { useEffect, useState } from 'react'
+import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import PatientSidebar from './PatientSidebar'
+import { MenuIcon } from '../common/Icons'
 
 const USER = { name: 'Sofia Reyes', initials: 'SR', role: 'Patient', id: 'P-20481' }
 
@@ -29,15 +30,44 @@ const NOTIFICATIONS = [
   },
 ]
 
+const MOBILE_QUERY = '(max-width: 800px)'
+
 const PatientLayout = () => {
   const navigate = useNavigate()
+  const { pathname } = useLocation()
   const [collapsed, setCollapsed] = useState(false)
   const [dark, setDark] = useState(false)
   const [activeId, setActiveId] = useState(1)
   const [user, setUser] = useState(USER)
   const [notifications, setNotifications] = useState(NOTIFICATIONS)
+  const [mobile, setMobile] = useState(() => window.matchMedia(MOBILE_QUERY).matches)
+  const [menuOpen, setMenuOpen] = useState(false)
 
   const unreadCount = notifications.filter((n) => !n.read).length
+
+  // Track the mobile breakpoint
+  useEffect(() => {
+    const mq = window.matchMedia(MOBILE_QUERY)
+    const onChange = (e) => {
+      setMobile(e.matches)
+      if (!e.matches) setMenuOpen(false)
+    }
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [])
+
+  // Close the drawer after navigating
+  useEffect(() => {
+    setMenuOpen(false)
+  }, [pathname])
+
+  // Esc closes the drawer
+  useEffect(() => {
+    if (!menuOpen) return
+    const onKey = (e) => e.key === 'Escape' && setMenuOpen(false)
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [menuOpen])
 
   const toggleDark = () => {
     const next = !dark
@@ -49,19 +79,34 @@ const PatientLayout = () => {
 
   const openConversation = (id) => {
     setActiveId(id)
+    setMenuOpen(false)
     navigate('/patient')
   }
 
   const newConversation = () => {
     setActiveId(null)
+    setMenuOpen(false)
     navigate('/patient')
   }
 
   return (
     <div className="app-shell">
+      <button
+        className="mobile-menu"
+        onClick={() => setMenuOpen(true)}
+        aria-label="Open menu"
+        aria-expanded={menuOpen}
+      >
+        <MenuIcon width={20} height={20} />
+      </button>
+
+      {menuOpen && <div className="sidebar-backdrop" onClick={() => setMenuOpen(false)} />}
+
       <PatientSidebar
-        collapsed={collapsed}
+        collapsed={collapsed && !mobile}
         onToggleCollapse={() => setCollapsed((c) => !c)}
+        mobileOpen={menuOpen}
+        onCloseMobile={() => setMenuOpen(false)}
         user={user}
         conversations={CONVERSATIONS}
         activeId={activeId}

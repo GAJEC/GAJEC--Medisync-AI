@@ -44,7 +44,17 @@
 .notif__dot { flex: none; width: 6px; height: 6px; border-radius: 50%; background: var(--blue); margin-right: 8px; }
 .notif__chevron { flex: none; color: var(--text); }
 
-@media (max-width: 700px) {
-  .page { padding: 24px 20px 32px; }
-  .page__header { flex-direction: column; align-items: flex-start; }
+@media (max-width: 800px) {
+  .notifs { max-width: 100%; }
+  .notifs__actions { justify-content: space-between; }
+  .tabs { gap: 20px; margin-top: 22px; overflow-x: auto; scrollbar-width: none; }
+  .tabs__btn { flex: none; height: 44px; font-size: 14px; }
+  .tabs__count { font-size: 12px; }
+  .notif { align-items: flex-start; gap: 12px; min-height: 0; padding: 14px 14px 14px 12px; }
+  .notif__title { font-size: 14px; }
+  .notif__body { font-size: 13px; line-height: 1.45; }
+  .notif__meta { font-size: 11px; }
+  .notif__dot { margin: 6px 0 0; }
+  .notif__chevron { display: none; }
+  .notifs__empty { font-size: 14px; }
 }

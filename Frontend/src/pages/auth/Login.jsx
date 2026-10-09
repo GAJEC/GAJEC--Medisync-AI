@@ -1,7 +1,7 @@
 import { useState } from "react";
 import "./Login.css";
 
-import heartIcon from "../../assets/icons/heart.png";
+import heartIcon from "../../assets/images/medisync-logo.png";
 import aiIcon from "../../assets/icons/ai.png";
 import insuranceIcon from "../../assets/icons/insurance.png";
 import hospitalIcon from "../../assets/icons/hospital.png";
@@ -10,7 +10,7 @@ import stetIcon from "../../assets/icons/stet.png";
 import nextIcon from "../../assets/icons/next.png";
 
 const BRAND = {
-  name: "HealthLocal",
+  name: "MediSync",
   accent: "AI",
 };
 

@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { NavLink, useNavigate, useLocation } from 'react-router-dom'
-import { PngIcon, ChatIcon, ChevronLeftIcon, MoreIcon, HelpIcon } from '../common/Icons'
+import { PngIcon, ChatIcon, ChevronLeftIcon, MoreIcon, HelpIcon, CloseIcon } from '../common/Icons'
 
 import heartIcon from '../../assets/icons/heart.png'
 import scheduleIcon from '../../assets/icons/schedule.png'
@@ -9,7 +9,6 @@ import historyIcon from '../../assets/icons/history.png'
 import searchIcon from '../../assets/icons/search.png'
 import moonIcon from '../../assets/icons/moon.png'
 import logoutIcon from '../../assets/icons/logout.png'
-import medisyncLogo from '../../assets/images/medisync-logo.png'
 
 import '../../assets/styles/sidebar.css'
 
@@ -22,6 +21,8 @@ const NAV_ITEMS = [
 const PatientSidebar = ({
   collapsed,
   onToggleCollapse,
+  mobileOpen = false,
+  onCloseMobile,
   user,
   conversations,
   activeId,
@@ -44,13 +45,13 @@ const PatientSidebar = ({
     .filter((g) => g.items.length > 0)
 
   return (
-    <aside className={`sidebar ${collapsed ? 'sidebar--collapsed' : ''}`}>
+    <aside className={`sidebar ${collapsed ? 'sidebar--collapsed' : ''} ${mobileOpen ? 'sidebar--open' : ''}`}>
       <div className="sidebar__brand">
         <span className="logo-mark">
-          <PngIcon src={medisyncLogo} size={25} className="icon-white" />
+          <PngIcon src={heartIcon} size={16} className="icon-white" />
         </span>
         <span className="sidebar__brand-name hide-collapsed">
-          MediSync <span className="accent">AI</span>
+          HealthLocal <span className="accent">AI</span>
         </span>
         <button
           className="icon-btn sidebar__collapse"
@@ -58,6 +59,9 @@ const PatientSidebar = ({
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           <ChevronLeftIcon />
+        </button>
+        <button className="icon-btn sidebar__close" onClick={onCloseMobile} aria-label="Close menu">
+          <CloseIcon width={18} height={18} />
         </button>
       </div>
 

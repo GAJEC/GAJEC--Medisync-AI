@@ -163,8 +163,29 @@
 @keyframes rec-blink { 50% { opacity: 0.25; } }
 
 @media (max-width: 800px) {
-  .hero { padding-top: 40px; }
-  .hero__title { font-size: 28px; }
-  .suggestions { grid-template-columns: 1fr; }
+  .app-shell { height: 100vh; height: 100dvh; }
+
+  .topbar { height: 60px; padding: 0 16px 0 64px; }
+  .topbar__icon { display: none; }
+  .topbar__title { font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .topbar__sub, .secure-pill { display: none; }
+
+  .hero { padding: 28px 16px 16px; }
+  .hero__eyebrow { font-size: 11px; }
+  .hero__title { font-size: 26px; }
+  .hero__lead { font-size: 14px; }
+  .privacy { max-width: 100%; }
+  .privacy strong { font-size: 13px; }
+  .privacy span { font-size: 12px; }
+  .hero__try { margin-top: 28px; font-size: 11px; }
+  .suggestions { grid-template-columns: 1fr; }
+  .suggestion { min-height: 56px; }
+  .suggestion__text { font-size: 14px; }
+
+  .composer-wrap { padding: 0 12px calc(6px + env(safe-area-inset-bottom)); }
+  .composer input { font-size: 16px; }
+  .composer__send { width: 42px; height: 38px; }
+  .disclaimer { font-size: 11px; }
+  .attach__menu { left: -6px; width: min(276px, calc(100vw - 40px)); }
+  .chip { max-width: 100%; }
 }
