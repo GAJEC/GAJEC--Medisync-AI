@@ -1,14 +1,6 @@
-<<<<<<< HEAD
 import { useMemo, useState } from "react";
 import "../../assets/styles/Staff.css";
 =======
-import { useNavigate } from "react-router-dom";
-
-import scheduleIcon from "../../assets/icons/schedule.png";
-import historyIcon from "../../assets/icons/history.png";
-import stetIcon from "../../assets/icons/stet.png";
-import nextIcon from "../../assets/icons/next.png";
-import StaffStyle from "../../assets/styles/Staff.module.css";
 >>>>>>> e3bbfeb67c065bb1c352f8afcc950969f241ae4a
 
 const INITIAL_INTAKES = [
@@ -71,7 +63,6 @@ export default function AIIntake() {
   const [notes, setNotes] = useState("");
   const [error, setError] = useState("");
 
-<<<<<<< HEAD
   const pendingCount = intakes.filter(
     (intake) => intake.reviewStatus === "Pending"
   ).length;
@@ -152,7 +143,6 @@ const statusClass = (s) => `${StaffStyle["st-pill"]} ${StaffStyle["st-pill--" + 
   }
 
   return (
-<<<<<<< HEAD
     <main className="st-page ai-intake-page">
       <header className="st-pagehead">
         <div>
@@ -202,7 +192,6 @@ const statusClass = (s) => `${StaffStyle["st-pill"]} ${StaffStyle["st-pill--" + 
         </div>
       </header>
 
-<<<<<<< HEAD
       {showFilters && (
         <section className="ai-filter-panel">
           <label>
@@ -214,68 +203,10 @@ const statusClass = (s) => `${StaffStyle["st-pill"]} ${StaffStyle["st-pill--" + 
               <option>All statuses</option>
               {REVIEW_STATUSES.map((status) => (
                 <option key={status}>{status}</option>
-=======
-      {/* ---------- Stat cards ---------- */}
-      <section className={StaffStyle['st-stats']}>
-        {stats.map((s) => (
-          <article className={`${StaffStyle['st-card']} ${StaffStyle['st-stat']}`} key={s.label}>
-            <span className={`${StaffStyle['st-stat__icon']} ${StaffStyle[`st-tone--${s.tone}`]}`}>
-              {s.icon ? <img src={s.icon} alt="" /> : s.glyph}
-            </span>
-            <div>
-              <p className={StaffStyle['st-stat__label']}>{s.label}</p>
-              <p className={StaffStyle['st-stat__value']}>{s.value}</p>
-              <p className={StaffStyle['st-stat__note']}>{s.note}</p>
-            </div>
-          </article>
-        ))}
-      </section>
-
-      {/* ---------- Charts ---------- */}
-      <section className={StaffStyle['st-grid2']}>
-        <article className={StaffStyle['st-card']}>
-          <header className={StaffStyle['st-card__head']}>
-            <div>
-              <p className={StaffStyle['st-eyebrow']}>Appointment volume</p>
-              <h2 className={StaffStyle['st-h2']}>Weekly activity</h2>
-            </div>
-            <select className={StaffStyle['st-select']} defaultValue="7" aria-label="Date range">
-              <option value="7">Last 7 days</option>
-              <option value="30">Last 30 days</option>
-            </select>
-          </header>
-          <div className={StaffStyle['st-bars']}>
-            {weekly.map((w) => (
-              <div className={StaffStyle['st-bar']} key={w.day}>
-                <span className={StaffStyle['st-bar__val']}>{w.v}</span>
-                <span className={StaffStyle['st-bar__fill']} style={{ height: `${(w.v / max) * 100}%` }} />
-                <span className={StaffStyle['st-bar__day']}>{w.day}</span>
-              </div>
-            ))}
-          </div>
-        </article>
-
-        <article className={StaffStyle['st-card']}>
-          <header className={StaffStyle['st-card__head']}>
-            <div>
-              <p className={StaffStyle['st-eyebrow']}>Status mix</p>
-              <h2 className={StaffStyle['st-h2']}>Today's appointments</h2>
-            </div>
-            <button type="button" className={StaffStyle['st-more']} aria-label="More options">···</button>
-          </header>
-          <div className={StaffStyle['st-donutwrap']}>
-            <div className={StaffStyle['st-donut']} style={{ background: `conic-gradient(${donut})` }}>
-              <div className={StaffStyle['st-donut__hole']}><strong>128</strong><small>Total</small></div>
-            </div>
-            <ul className={StaffStyle['st-legend']}>
-              {mix.map((m) => (
-                <li key={m.label}><i style={{ background: m.color }} />{m.label}<b>{m.pct}%</b></li>
->>>>>>> e3bbfeb67c065bb1c352f8afcc950969f241ae4a
               ))}
             </select>
           </label>
 
-<<<<<<< HEAD
           <button
             type="button"
             className="st-btn"
@@ -313,20 +244,15 @@ const statusClass = (s) => `${StaffStyle["st-pill"]} ${StaffStyle["st-pill--" + 
 
         <div className="st-tablewrap">
           <table className="st-table ai-intake-table">
-=======
-      {/* ---------- Appointment requests ---------- */}
-      <article className={`${StaffStyle['st-card']} ${StaffStyle['st-table-card']}`}>
-        <header className={StaffStyle['st-card__head']}>
-          <div>
-            <p className={StaffStyle['st-eyebrow']}>Recent activity</p>
-            <h2 className={StaffStyle['st-h2']}>Appointment requests</h2>
-          </div>
           <button type="button" className={StaffStyle['st-link']} onClick={goToAppointments}>
             View all <img src={nextIcon} alt="" className={StaffStyle['st-btn__ico']} />
           </button>
         </header>
         <div className={StaffStyle['st-tablewrap']}>
           <table className={StaffStyle['st-table']}>
+<<<<<<< HEAD
+>>>>>>> e3bbfeb67c065bb1c352f8afcc950969f241ae4a
+=======
 >>>>>>> e3bbfeb67c065bb1c352f8afcc950969f241ae4a
             <thead>
               <tr>
@@ -342,45 +268,7 @@ const statusClass = (s) => `${StaffStyle["st-pill"]} ${StaffStyle["st-pill--" + 
             </thead>
 
             <tbody>
-<<<<<<< HEAD
-              {filteredIntakes.map((intake) => (
-                <tr key={intake.id}>
-                  <td>
-                    <strong>{intake.id}</strong>
-                  </td>
-                  <td>{intake.patient}</td>
-                  <td>{intake.concern}</td>
-                  <td>{intake.pain}</td>
-                  <td>{intake.specialty}</td>
-                  <td>{intake.doctor}</td>
-                  <td>
-                    <span
-                      className={`ai-review-status ai-status-${intake.reviewStatus
-                        .toLowerCase()
-                        .replace(/\s+/g, "-")}`}
-                    >
-                      {intake.reviewStatus}
-                    </span>
-                  </td>
-                  <td>
-                    <button
-                      type="button"
-                      className="ai-action-button"
-                      onClick={() => openAction(intake)}
-                    >
-                      Review
-                    </button>
-                  </td>
 =======
-              {requests.map((r) => (
-                <tr key={r.ref}>
-                  <td><strong>{r.patient}</strong><small>{r.pid}</small></td>
-                  <td className={StaffStyle['st-ref']}>{r.ref}</td>
-                  <td className={StaffStyle['st-muted']}>{r.doctor}</td>
-                  <td className={StaffStyle['st-muted']}>{r.specialty}</td>
-                  <td className={StaffStyle['st-muted']}>{r.when}</td>
-                  <td><span className={statusClass(r.status)}>{r.status}</span></td>
-                  <td><button type="button" className={StaffStyle['st-more']} aria-label="More actions">···</button></td>
 >>>>>>> e3bbfeb67c065bb1c352f8afcc950969f241ae4a
                 </tr>
               ))}
