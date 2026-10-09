@@ -1,7 +1,7 @@
 """Validation and decoding of uploaded images and audio.
 
-Files are decoded entirely in memory; nothing is written to disk, so there is
-no temporary-file cleanup or path traversal surface in the AI service.
+Decoded media is processed in memory. FastAPI/Starlette may temporarily spool
+multipart uploads to local storage before this module receives them.
 """
 from __future__ import annotations
 
@@ -58,7 +58,7 @@ def decode_audio(data: bytes, max_bytes: int, max_seconds: float, min_seconds: f
     chunks: list[np.ndarray] = []
     total = 0
     try:
-        with av.open(io.BytesIO(data), mode="r", metadata_errors="ignore") as container:
+        with av.open(io.BytesIO(data), mode="r") as container:
             streams = [s for s in container.streams if s.type == "audio"]
             if not streams:
                 raise bad_input("NO_AUDIO_STREAM", "The file does not contain an audio track.")
