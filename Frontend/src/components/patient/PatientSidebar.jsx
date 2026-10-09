@@ -2,7 +2,6 @@ import React, { useState } from 'react'
 import { NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { PngIcon, ChatIcon, ChevronLeftIcon, MoreIcon, HelpIcon, CloseIcon } from '../common/Icons'
 
-import heartIcon from '../../assets/icons/heart.png'
 import scheduleIcon from '../../assets/icons/schedule.png'
 import notificationIcon from '../../assets/icons/notification.png'
 import historyIcon from '../../assets/icons/history.png'
@@ -30,21 +29,98 @@ const PatientSidebar = ({
   activeId,
   onNewConversation,
   onSelectConversation,
+  onUpdateConversation,
   darkMode,
   onToggleDark,
   onLogout,
   unreadCount = 0,
 }) => {
   const [query, setQuery] = useState('')
+  const [openMenuId, setOpenMenuId] = useState(null)
+  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 })
   const navigate = useNavigate()
   const onProfile = useLocation().pathname.startsWith('/patient/profile')
 
   const filtered = conversations.filter((c) =>
     c.title.toLowerCase().includes(query.trim().toLowerCase())
   )
+  const pinned = filtered.filter((c) => c.pinned && !c.archived)
+  const recent = filtered.filter((c) => !c.pinned && !c.archived)
   const groups = ['Today', 'Yesterday', 'Previous 7 days']
-    .map((label) => ({ label, items: filtered.filter((c) => c.group === label) }))
+    .map((label) => ({ label, items: recent.filter((c) => c.group === label) }))
     .filter((g) => g.items.length > 0)
+
+  const closeMenu = () => setOpenMenuId(null)
+  const toggleMenu = (event, conversationId) => {
+    if (openMenuId === conversationId) {
+      closeMenu()
+      return
+    }
+
+    const rect = event.currentTarget.getBoundingClientRect()
+    const menuHeight = 92
+    const menuWidth = 156
+    const spaceBelow = window.innerHeight - rect.bottom
+    const top = spaceBelow >= menuHeight + 8
+      ? rect.bottom + 6
+      : Math.max(8, rect.top - menuHeight - 6)
+    const left = Math.min(
+      window.innerWidth - menuWidth - 8,
+      Math.max(8, rect.right - menuWidth)
+    )
+
+    setMenuPosition({ top, left })
+    setOpenMenuId(conversationId)
+  }
+  const togglePinned = (conversation) => {
+    onUpdateConversation(conversation.id, { pinned: !conversation.pinned, archived: false })
+    closeMenu()
+  }
+  const toggleArchived = (conversation) => {
+    onUpdateConversation(conversation.id, { archived: !conversation.archived, pinned: false })
+    closeMenu()
+  }
+
+  const renderConversation = (conversation) => (
+    <div
+      key={conversation.id}
+      className={`${SidebarStyle['convo']} ${conversation.id === activeId ? SidebarStyle['convo--active'] : ''}`}
+    >
+      <button className={SidebarStyle['convo__title']} onClick={() => onSelectConversation(conversation.id)}>
+        {conversation.title}
+      </button>
+      <div className={SidebarStyle['convo__actions']}>
+        <button
+          className={SidebarStyle['icon-btn']}
+          aria-label={`Options for ${conversation.title}`}
+          aria-haspopup="menu"
+          aria-expanded={openMenuId === conversation.id}
+          onClick={(event) => toggleMenu(event, conversation.id)}
+        >
+          <MoreIcon />
+        </button>
+        {openMenuId === conversation.id && (
+          <>
+            <button className={SidebarStyle['convo-menu__backdrop']} aria-label="Close conversation options" onClick={closeMenu} />
+            <div
+              className={SidebarStyle['convo-menu']}
+              role="menu"
+              style={{ position: 'fixed', top: menuPosition.top, left: menuPosition.left }}
+            >
+              <button role="menuitem" onClick={() => togglePinned(conversation)}>
+                <span aria-hidden="true">{conversation.pinned ? '' : ''}</span>
+                {conversation.pinned ? 'Unpin' : 'Pin'}
+              </button>
+              <button role="menuitem" onClick={() => toggleArchived(conversation)}>
+                <span aria-hidden="true">▣</span>
+                {conversation.archived ? 'Unarchive' : 'Archive'}
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  )
 
   return (
     <aside className={`${SidebarStyle['sidebar']} ${collapsed ? SidebarStyle['sidebar--collapsed'] : ''} ${mobileOpen ? SidebarStyle['sidebar--open'] : ''}`}>
@@ -91,8 +167,7 @@ const PatientSidebar = ({
       </nav>
 
       <div className={`${SidebarStyle['sidebar__recent']} ${SidebarStyle['hide-collapsed']}`}>
-        <h2 className={SidebarStyle['section-label']}>Recent conversations</h2>
-
+        <h2 className={SidebarStyle['section-label']}>Conversations</h2>
         <label className={SidebarStyle['search']}>
           <PngIcon src={searchIcon} size={14} className={SidebarStyle['icon-muted']} />
           <input
@@ -103,25 +178,25 @@ const PatientSidebar = ({
           />
         </label>
 
+        {pinned.length > 0 && (
+          <section className={SidebarStyle['convo-section']} aria-label="Pinned conversations">
+            <h3 className={SidebarStyle['convo-group']}><span aria-hidden="true">📌</span> Pinned</h3>
+            <div className={SidebarStyle['convo-list']}>
+              {pinned.map(renderConversation)}
+            </div>
+          </section>
+        )}
+
         <div className={SidebarStyle['convo-list']}>
-          {groups.map((g) => (
-            <div key={g.label}>
-              <h3 className={SidebarStyle['convo-group']}>{g.label}</h3>
-              {g.items.map((c) => (
-                <div
-                  key={c.id}
-                  className={`${SidebarStyle['convo']} ${c.id === activeId ? SidebarStyle['convo--active'] : ''}`}
-                >
-                  <button className={SidebarStyle['convo__title']} onClick={() => onSelectConversation(c.id)}>
-                    {c.title}
-                  </button>
-                  <button className={SidebarStyle['icon-btn']} aria-label="Conversation options">
-                    <MoreIcon />
-                  </button>
-                </div>
-              ))}
+          {groups.map((group) => (
+            <div key={group.label}>
+              <h3 className={SidebarStyle['convo-group']}>{group.label}</h3>
+              {group.items.map(renderConversation)}
             </div>
           ))}
+          {recent.length === 0 && pinned.length === 0 && (
+            <p className={SidebarStyle['convo-empty']}>No conversations found.</p>
+          )}
         </div>
       </div>
 
@@ -144,7 +219,7 @@ const PatientSidebar = ({
         <div className={SidebarStyle['footer-row']}>
           <button className={`${SidebarStyle['nav-item']} ${SidebarStyle['nav-item--small']}`} onClick={onToggleDark}>
             <PngIcon src={moonIcon} size={15} className={SidebarStyle['icon-muted']} />
-            <span className={SidebarStyle['hide-collapsed']}>{darkMode ? 'Light mode' : 'Dark mode'}</span>
+            <span className={SidebarStyle['hide-collapsed']}>{darkMode ? '' : ''}</span>
           </button>
           <span className={`${SidebarStyle['footer-row__actions']} ${SidebarStyle['hide-collapsed']}`}>
             <button className={SidebarStyle['icon-btn']} aria-label="Help">

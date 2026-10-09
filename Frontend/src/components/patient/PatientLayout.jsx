@@ -8,10 +8,10 @@ import SidebarStyle from '../../assets/styles/sidebar.module.css'
 
 const USER = { name: 'Sofia Reyes', initials: 'SR', role: 'Patient', id: 'P-20481' }
 
-const CONVERSATIONS = [
-  { id: 1, title: 'Recurring headache concern', group: 'Today' },
-  { id: 2, title: 'General checkup request', group: 'Yesterday' },
-  { id: 3, title: 'Follow-up appointment', group: 'Previous 7 days' },
+const INITIAL_CONVERSATIONS = [
+  { id: 1, title: 'Recurring headache concern', group: 'Today', pinned: false, archived: false },
+  { id: 2, title: 'General checkup request', group: 'Yesterday', pinned: false, archived: false },
+  { id: 3, title: 'Follow-up appointment', group: 'Previous 7 days', pinned: false, archived: false },
 ]
 
 // Mock data. Replace with your backend later.
@@ -43,13 +43,13 @@ const PatientLayout = () => {
   const [dark, setDark] = useState(false)
   const [activeId, setActiveId] = useState(1)
   const [user, setUser] = useState(USER)
+  const [conversations, setConversations] = useState(INITIAL_CONVERSATIONS)
   const [notifications, setNotifications] = useState(NOTIFICATIONS)
   const [mobile, setMobile] = useState(() => window.matchMedia(MOBILE_QUERY).matches)
   const [menuOpen, setMenuOpen] = useState(false)
 
   const unreadCount = notifications.filter((n) => !n.read).length
 
-  // Track the mobile breakpoint
   useEffect(() => {
     const mq = window.matchMedia(MOBILE_QUERY)
     const onChange = (e) => {
@@ -60,12 +60,10 @@ const PatientLayout = () => {
     return () => mq.removeEventListener('change', onChange)
   }, [])
 
-  // Close the drawer after navigating
   useEffect(() => {
     setMenuOpen(false)
   }, [pathname])
 
-  // Esc closes the drawer
   useEffect(() => {
     if (!menuOpen) return
     const onKey = (e) => e.key === 'Escape' && setMenuOpen(false)
@@ -80,6 +78,12 @@ const PatientLayout = () => {
   }
 
   const updateUser = (changes) => setUser((u) => ({ ...u, ...changes }))
+
+  const updateConversation = (id, changes) => {
+    setConversations((current) => current.map((conversation) =>
+      conversation.id === id ? { ...conversation, ...changes } : conversation
+    ))
+  }
 
   const openConversation = (id) => {
     setActiveId(id)
@@ -117,10 +121,11 @@ const PatientLayout = () => {
         mobileOpen={menuOpen}
         onCloseMobile={() => setMenuOpen(false)}
         user={user}
-        conversations={CONVERSATIONS}
+        conversations={conversations}
         activeId={activeId}
         onNewConversation={newConversation}
         onSelectConversation={openConversation}
+        onUpdateConversation={updateConversation}
         darkMode={dark}
         onToggleDark={toggleDark}
         onLogout={handleLogout}
