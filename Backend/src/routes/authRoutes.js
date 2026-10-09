@@ -38,7 +38,7 @@ export default async function authRoutes(fastify) {
         return reply.code(401).send({ error: result.message });
       }
 
-      const token = fastify.jwt.sign({ id: result.user.id, email: result.user.email });
+      const token = fastify.jwt.sign({ id: result.user.id, email: result.user.email, role: result.user.role });
       return { message: result.message, token, user: result.user };
     } catch (error) {
       request.log.error(error, 'Login failed');
