@@ -18,6 +18,7 @@ import stetIcon from '../../assets/icons/stet.png'
 import scheduleIcon from '../../assets/icons/schedule.png'
 import nextIcon from '../../assets/icons/next.png'
 import aiIcon from '../../assets/icons/ai.png'
+import mediSyncLogo from '../../assets/images/medisync-logo.png'
 
 import { patientApi } from '../../api/client'
 import { AssistantAvatar, AssistantThinking, TypewriterText } from '../../components/patient/AssistantTyping'
@@ -403,7 +404,7 @@ const Home = () => {
       ) : (
       <main className={HomeStyle['hero']}>
         <div className={HomeStyle['hero__logo']}>
-          <PngIcon src={heartIcon} size={26} className={SidebarStyle['icon-white']} />
+          <PngIcon src={mediSyncLogo} size={26} className={SidebarStyle['icon-white']} />
           <span className={HomeStyle['hero__badge']}>
             <PngIcon src={aiIcon} size={9} className={SidebarStyle['icon-white']} />
           </span>

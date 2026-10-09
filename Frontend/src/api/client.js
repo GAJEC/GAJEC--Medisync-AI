@@ -120,12 +120,36 @@ export const patientApi = {
     apiRequest('/patient/data-requests', { method: 'POST', token, body: { type, note } }),
 }
 
+// Staff portal. All endpoints require a staff token.
 export const staffApi = {
-  dashboard: (token) => apiRequest('/staff/dashboard', { token }),
-  patients: (token, filters) => apiRequest(`/staff/patients${toQuery(filters)}`, { token }),
-  patient: (token, id) => apiRequest(`/staff/patients/${id}`, { token }),
+  dashboard: (token, filters) => apiRequest(`/staff/dashboard${toQuery(filters)}`, { token }),
+
   appointments: (token, filters) => apiRequest(`/staff/appointments${toQuery(filters)}`, { token }),
+  appointment: (token, id) => apiRequest(`/staff/appointments/${id}`, { token }),
+  createAppointment: (token, data) => apiRequest('/staff/appointments', { method: 'POST', token, body: data }),
   updateAppointment: (token, id, changes) =>
     apiRequest(`/staff/appointments/${id}`, { method: 'PATCH', token, body: changes }),
-  doctors: (token) => apiRequest('/staff/doctors', { token }),
+
+  patients: (token, filters) => apiRequest(`/staff/patients${toQuery(filters)}`, { token }),
+  patientOptions: (token, search) => apiRequest(`/staff/patients/options${toQuery({ search })}`, { token }),
+  patient: (token, id) => apiRequest(`/staff/patients/${id}`, { token }),
+  createPatient: (token, data) => apiRequest('/staff/patients', { method: 'POST', token, body: data }),
+  updatePatient: (token, id, changes) =>
+    apiRequest(`/staff/patients/${id}`, { method: 'PATCH', token, body: changes }),
+
+  doctors: (token, filters) => apiRequest(`/staff/doctors${toQuery(filters)}`, { token }),
+  createDoctor: (token, data) => apiRequest('/staff/doctors', { method: 'POST', token, body: data }),
+  updateDoctor: (token, id, changes) =>
+    apiRequest(`/staff/doctors/${id}`, { method: 'PATCH', token, body: changes }),
+
+  schedule: (token, filters) => apiRequest(`/staff/schedule${toQuery(filters)}`, { token }),
+  setSchedule: (token, data) => apiRequest('/staff/schedule', { method: 'PUT', token, body: data }),
+
+  departments: (token, filters) => apiRequest(`/staff/departments${toQuery(filters)}`, { token }),
+  createDepartment: (token, data) => apiRequest('/staff/departments', { method: 'POST', token, body: data }),
+  updateDepartment: (token, id, changes) =>
+    apiRequest(`/staff/departments/${id}`, { method: 'PATCH', token, body: changes }),
+
+  reports: (token, filters) => apiRequest(`/staff/reports${toQuery(filters)}`, { token }),
+  activity: (token, filters) => apiRequest(`/staff/activity${toQuery(filters)}`, { token }),
 }

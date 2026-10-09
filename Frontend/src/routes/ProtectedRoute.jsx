@@ -6,12 +6,6 @@ const ProtectedRoute = () => {
   const { session, status } = useAuth()
   const { pathname } = useLocation()
 
-  // Development only: skip auth and role checks so /login, /patient/* and /staff/*
-  // are all directly reachable. Vite sets DEV to false in production builds.
-  if (import.meta.env.DEV && (isPublicPath(pathname) || rolesFor(pathname))) {
-    return <Outlet />
-  }
-
   if (status === 'loading') {
     return (
       <div role="status" style={{ display: 'grid', placeItems: 'center', minHeight: '100vh', color: '#687b78' }}>

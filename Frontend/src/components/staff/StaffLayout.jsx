@@ -3,18 +3,15 @@ import StaffLayoutStyle from "../../assets/styles/StaffLayout.module.css";
 import { useAuth } from "../../auth/AuthContext";
 import { animateTheme, originOf } from "../../auth/theme";
 
-import heartIcon from "../../assets/icons/heart.png";
+import mediSyncLogo from "../../assets/images/medisync-logo.png";
 import hospitalIcon from "../../assets/icons/hospital.png";
 import heartBeatIcon from "../../assets/icons/heart-beat.png";
 import scheduleIcon from "../../assets/icons/schedule.png";
-import aiIcon from "../../assets/icons/ai.png";
 import stetIcon from "../../assets/icons/stet.png";
 import historyIcon from "../../assets/icons/history.png";
 import patientsIcon from "../../assets/icons/patients.png";
 import barChartIcon from "../../assets/icons/bar-chart.png";
-import profileIcon from "../../assets/icons/profile.png";
 import logoutIcon from "../../assets/icons/logout.png";
-import nextIcon from "../../assets/icons/next.png";
 import searchIcon from "../../assets/icons/search.png";
 import moonIcon from "../../assets/icons/moon.png";
 import bellIcon from "../../assets/icons/notification.png";
@@ -26,7 +23,6 @@ const sections = [
     items: [
       { to: "/staff/dashboard", text: "Dashboard", icon: heartBeatIcon },
       { to: "/staff/appointments", text: "Appointments", icon: scheduleIcon },
-      { to: "/staff/ai-intake", text: "AI Intake & Matching", icon: aiIcon, badge: 8 },
     ],
   },
   {
@@ -42,16 +38,20 @@ const sections = [
     label: "Administration",
     items: [
       { to: "/staff/reports", text: "Reports", icon: barChartIcon },
-      { to: "/staff/permissions", text: "Staff & Permissions", icon: profileIcon },
     ],
   },
 ];
 
-const currentUser = { name: "Ana Mendoza", role: "Hospital Administrator", initials: "AM" };
-const workspace = "St. Gabriel Medical";
+const initialsOf = (name) =>
+  name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0].toUpperCase()).join("");
 
-export default function StaffLayout({ onLogout, onToggleTheme, hasNotifications = true }) {
+export default function StaffLayout({ onLogout, onToggleTheme, hasNotifications = false }) {
   const { logout, session, setTheme } = useAuth();
+  const currentUser = {
+    name: session?.name || "Staff",
+    role: "Hospital Staff",
+    initials: initialsOf(session?.name || "Staff"),
+  };
   const navigate = useNavigate();
 
   // Light / dark is saved per account (users.theme). Without a signed-in session (dev preview) it
@@ -79,21 +79,10 @@ export default function StaffLayout({ onLogout, onToggleTheme, hasNotifications 
       <aside className={StaffLayoutStyle['sx-sidebar']}>
         <div className={StaffLayoutStyle['sx-brand']}>
           <span className={StaffLayoutStyle['sx-brand__logo']}>
-            <img src={heartIcon} alt="" className={StaffLayoutStyle['sx-ico']} />
+            <img src={mediSyncLogo} alt="" className={`${StaffLayoutStyle['sx-ico']} ${StaffLayoutStyle['sx-brand__img']}`} />
           </span>
           <span className={StaffLayoutStyle['sx-brand__name']}>MediSync <em>AI</em></span>
         </div>
-
-        <button className={StaffLayoutStyle['sx-workspace']} type="button">
-          <span className={StaffLayoutStyle['sx-workspace__icon']}>
-            <img src={hospitalIcon} alt="" className={StaffLayoutStyle['sx-ico']} />
-          </span>
-          <span className={StaffLayoutStyle['sx-workspace__text']}>
-            <small>Hospital workspace</small>
-            <strong>{workspace}</strong>
-          </span>
-          <img src={nextIcon} alt="" className={`${StaffLayoutStyle['sx-ico']} ${StaffLayoutStyle['sx-ico--sm']} ${StaffLayoutStyle['sx-ico--down']}`} />
-        </button>
 
         <nav className={StaffLayoutStyle['sx-nav']} aria-label="Staff navigation">
           {sections.map((s) => (
@@ -132,12 +121,9 @@ export default function StaffLayout({ onLogout, onToggleTheme, hasNotifications 
           <label className={StaffLayoutStyle['sx-search']}>
             <img src={searchIcon} alt="" className={`${StaffLayoutStyle['sx-ico']} ${StaffLayoutStyle['sx-ico--sm']} ${StaffLayoutStyle['sx-ico--dark']}`} />
             <input type="search" placeholder="Search patients, appointments, doctors…" />
-            <kbd>⌘ K</kbd>
           </label>
 
           <div className={StaffLayoutStyle['sx-header__right']}>
-            <span className={StaffLayoutStyle['sx-chip']}>Sample data</span>
-
             <button type="button" className={StaffLayoutStyle['sx-iconbtn']} onClick={toggleTheme} aria-label="Toggle dark mode">
               <img src={moonIcon} alt="" className={`${StaffLayoutStyle['sx-ico']} ${StaffLayoutStyle['sx-ico--dark']}`} />
             </button>
@@ -146,14 +132,6 @@ export default function StaffLayout({ onLogout, onToggleTheme, hasNotifications 
               <img src={bellIcon} alt="" className={`${StaffLayoutStyle['sx-ico']} ${StaffLayoutStyle['sx-ico--dark']}`} />
               {hasNotifications && <i className={StaffLayoutStyle['sx-dot']} />}
             </button>
-
-            <div className={StaffLayoutStyle['sx-header__user']}>
-              <span className={`${StaffLayoutStyle['sx-avatar']} ${StaffLayoutStyle['sx-avatar--light']}`}>{currentUser.initials}</span>
-              <span className={StaffLayoutStyle['sx-user__text']}>
-                <strong>{currentUser.name}</strong>
-                <small>Administrator</small>
-              </span>
-            </div>
           </div>
         </header>
 

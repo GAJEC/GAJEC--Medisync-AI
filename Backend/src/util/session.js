@@ -19,9 +19,11 @@ export async function CreateSession(sid, userId, expiresAtSeconds, request) {
 export async function IsSessionActive(sid, userId) {
     if (typeof sid !== 'string' || !userId) return false;
     const [rows] = await db.execute(
-        `SELECT last_seen_at < NOW() - INTERVAL 1 MINUTE AS stale
-           FROM user_sessions
-          WHERE id = ? AND user_id = ? AND revoked_at IS NULL AND expires_at > NOW()`,
+        `SELECT s.last_seen_at < NOW() - INTERVAL 1 MINUTE AS stale
+           FROM user_sessions s
+           JOIN users u ON u.id = s.user_id
+          WHERE s.id = ? AND s.user_id = ? AND s.revoked_at IS NULL AND s.expires_at > NOW()
+            AND u.account_status = 'Active'`,
         [sid, userId],
     );
     if (rows.length === 0) return false;

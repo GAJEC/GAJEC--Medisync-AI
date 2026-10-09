@@ -1,46 +1,45 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+
+import { staffApi } from "../../api/client";
+import { formatDate, useDebounced, useStaffData } from "../../components/staff/useStaffData";
+import ModalShell from "../../components/staff/ModalShell";
 
 import searchIcon from "../../assets/icons/search.png";
 import settingsIcon from "../../assets/icons/settings.png";
 import StaffStyle from "../../assets/styles/Staff.module.css";
 
-const initialPatients = [
-  { id: "P-20481", name: "Sofia Reyes", contact: "+63 917 ••• 0142", registered: "Jun 12, 2024", appointments: 4, lastVisit: "Mar 18, 2025", status: "Active", notes: "" },
-  { id: "P-20479", name: "Luis Garcia", contact: "+63 905 ••• 2241", registered: "May 4, 2024", appointments: 2, lastVisit: "Jun 20, 2025", status: "Active", notes: "" },
-  { id: "P-20472", name: "Amelia Torres", contact: "+63 998 ••• 1088", registered: "Apr 28, 2024", appointments: 6, lastVisit: "Jun 24, 2025", status: "Active", notes: "" },
-];
-
+const PAGE_SIZE = 50;
 const statuses = ["Active", "Inactive"];
 const statusClass = (s) => `${StaffStyle["st-pill"]} ${StaffStyle["st-pill--" + s.toLowerCase()]}`;
 
 export default function Patients() {
-  const [rows, setRows] = useState(initialPatients);
   const [query, setQuery] = useState("");
+  const search = useDebounced(query.trim());
   const [showFilters, setShowFilters] = useState(false);
   const [statusFilter, setStatusFilter] = useState("");
-  const [modal, setModal] = useState(null); // null | { mode: "edit", id } | { mode: "add" }
+  const [page, setPage] = useState(1);
+  const [modal, setModal] = useState(null); // null | { mode: "edit", patient } | { mode: "add" }
 
-  const visible = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return rows.filter(
-      (r) =>
-        (!q || r.name.toLowerCase().includes(q) || r.id.toLowerCase().includes(q)) &&
-        (!statusFilter || r.status === statusFilter)
-    );
-  }, [rows, query, statusFilter]);
-
-  const handleSave = ({ id, status, notes }) => {
-    setRows((prev) => prev.map((r) => (r.id === id ? { ...r, status, notes } : r)));
-    setModal(null);
+  const onSearch = (e) => {
+    setQuery(e.target.value);
+    setPage(1);
+  };
+  const onStatus = (e) => {
+    setStatusFilter(e.target.value);
+    setPage(1);
   };
 
-  const handleAdd = ({ name, contact, status, notes }) => {
-    const next = Math.max(...rows.map((r) => Number(r.id.split("-")[1]))) + 1;
-    setRows((prev) => [
-      { id: `P-${next}`, name: name.trim(), contact: contact.trim() || "—", registered: "Jun 24, 2025", appointments: 0, lastVisit: "—", status, notes },
-      ...prev,
-    ]);
+  const { data, error, loading, reload, token } = useStaffData(
+    (t) => staffApi.patients(t, { search, status: statusFilter, page, pageSize: PAGE_SIZE }),
+    [search, statusFilter, page],
+  );
+  const rows = data?.patients ?? [];
+  const total = data?.total ?? 0;
+  const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+
+  const done = () => {
     setModal(null);
+    reload();
   };
 
   return (
@@ -49,7 +48,7 @@ export default function Patients() {
       <div className={StaffStyle['st-pagehead']}>
         <div>
           <h1 className={StaffStyle['st-title']}>Patient Directory</h1>
-          <p className={StaffStyle['st-sub']}>View account and appointment information according to staff permissions.</p>
+          <p className={StaffStyle['st-sub']}>View account and appointment information for patients who allow staff review.</p>
         </div>
         <div className={StaffStyle['st-actions']}>
           <button type="button" className={StaffStyle['st-btn']} onClick={() => setShowFilters((v) => !v)} aria-expanded={showFilters}>
@@ -61,20 +60,22 @@ export default function Patients() {
         </div>
       </div>
 
+      {error && <p className={StaffStyle['st-alert']} role="alert">{error}</p>}
+
       {/* ---------- Table card ---------- */}
-      <article className={`${StaffStyle['st-card']} ${StaffStyle['st-table-card']}`}>
+      <article className={`${StaffStyle['st-card']} ${StaffStyle['st-table-card']} ${loading ? StaffStyle['st-loading'] : ""}`}>
         <header className={`${StaffStyle['st-toolbar']} ${StaffStyle['st-toolbar--top']}`}>
           <label className={`${StaffStyle['st-searchbox']} ${StaffStyle['st-searchbox--sm']}`}>
             <img src={searchIcon} alt="" className={StaffStyle['st-btn__ico']} />
-            <input type="search" placeholder="Search patients…" value={query} onChange={(e) => setQuery(e.target.value)} />
+            <input type="search" placeholder="Search name, email or patient ID…" value={query} onChange={onSearch} />
           </label>
           {showFilters && (
-            <select className={StaffStyle['st-select']} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} aria-label="Filter by status">
+            <select className={StaffStyle['st-select']} value={statusFilter} onChange={onStatus} aria-label="Filter by status">
               <option value="">All statuses</option>
               {statuses.map((s) => <option key={s}>{s}</option>)}
             </select>
           )}
-          <p className={`${StaffStyle['st-count']} ${StaffStyle['st-count--right']}`}>{visible.length} sample record{visible.length === 1 ? "" : "s"}</p>
+          <p className={`${StaffStyle['st-count']} ${StaffStyle['st-count--right']}`}>{total} patient{total === 1 ? "" : "s"}</p>
         </header>
 
         <div className={StaffStyle['st-tablewrap']}>
@@ -86,119 +87,159 @@ export default function Patients() {
               </tr>
             </thead>
             <tbody>
-              {visible.map((r) => (
+              {rows.map((r) => (
                 <tr key={r.id} className={StaffStyle['st-row--click']} tabIndex={0}
-                    onClick={() => setModal({ mode: "edit", id: r.id })}
-                    onKeyDown={(e) => e.key === "Enter" && setModal({ mode: "edit", id: r.id })}>
+                    onClick={() => setModal({ mode: "edit", patient: r })}
+                    onKeyDown={(e) => e.key === "Enter" && setModal({ mode: "edit", patient: r })}>
                   <td className={StaffStyle['st-ref']}>{r.name}</td>
-                  <td className={StaffStyle['st-muted']}>{r.id}</td>
-                  <td className={StaffStyle['st-muted']}>{r.contact}</td>
-                  <td className={StaffStyle['st-muted']}>{r.registered}</td>
+                  <td className={StaffStyle['st-muted']}>{r.code}</td>
+                  <td className={StaffStyle['st-muted']}>{r.contact || "—"}</td>
+                  <td className={StaffStyle['st-muted']}>{formatDate(r.registeredAt)}</td>
                   <td className={StaffStyle['st-muted']}>{r.appointments}</td>
-                  <td className={StaffStyle['st-muted']}>{r.lastVisit}</td>
+                  <td className={StaffStyle['st-muted']}>{formatDate(r.lastVisit)}</td>
                   <td><span className={statusClass(r.status)}>{r.status}</span></td>
                 </tr>
               ))}
-              {visible.length === 0 && (
-                <tr><td colSpan="7" className={StaffStyle['st-empty']}>No patients match. Clear the search or the filter.</td></tr>
+              {!loading && rows.length === 0 && (
+                <tr><td colSpan="7" className={StaffStyle['st-empty']}>
+                  {search || statusFilter ? "No patients match. Clear the search or the filter." : "No patients yet."}
+                </td></tr>
               )}
             </tbody>
           </table>
         </div>
+
+        {pages > 1 && (
+          <footer className={StaffStyle['st-toolbar']} style={{ paddingTop: 14 }}>
+            <p className={StaffStyle['st-count']}>Page {page} of {pages}</p>
+            <div className={StaffStyle['st-toolbar__actions']}>
+              <button type="button" className={StaffStyle['st-btn']} disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>Previous</button>
+              <button type="button" className={StaffStyle['st-btn']} disabled={page >= pages} onClick={() => setPage((p) => p + 1)}>Next</button>
+            </div>
+          </footer>
+        )}
       </article>
 
       {modal?.mode === "edit" && (
-        <PatientActionModal patients={rows} initialId={modal.id} onClose={() => setModal(null)} onSave={handleSave} />
+        <PatientActionModal token={token} patient={modal.patient} onClose={() => setModal(null)} onDone={done} />
       )}
       {modal?.mode === "add" && (
-        <AddPatientModal onClose={() => setModal(null)} onAdd={handleAdd} />
+        <AddPatientModal token={token} onClose={() => setModal(null)} onDone={done} />
       )}
     </div>
   );
 }
 
-/* ---------- Shared pop-up shell ---------- */
-function ModalShell({ titleId, title, onClose, children, footer }) {
-  useEffect(() => {
-    const onKey = (e) => e.key === "Escape" && onClose();
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+/* ---------- Patient details + status / note ---------- */
+function PatientActionModal({ token, patient, onClose, onDone }) {
+  const [form, setForm] = useState({ status: patient.status, notes: "" });
+  const [details, setDetails] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
 
-  return (
-    <div className={StaffStyle['st-overlay']} onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className={StaffStyle['st-modal']} role="dialog" aria-modal="true" aria-labelledby={titleId}>
-        <header className={StaffStyle['st-modal__head']}>
-          <div>
-            <p className={StaffStyle['st-modal__brand']}>MediSync AI</p>
-            <h2 id={titleId} className={StaffStyle['st-modal__title']}>{title}</h2>
-          </div>
-          <button type="button" className={StaffStyle['st-modal__close']} onClick={onClose} aria-label="Close">✕</button>
-        </header>
-        <div className={StaffStyle['st-modal__body']}>{children}</div>
-        <footer className={StaffStyle['st-modal__foot']}>{footer}</footer>
-      </div>
+  useEffect(() => {
+    let cancelled = false;
+    staffApi.patient(token, patient.id)
+      .then(({ patient: p }) => !cancelled && setDetails(p))
+      .catch((err) => !cancelled && setError(err.message));
+    return () => { cancelled = true; };
+  }, [token, patient.id]);
+
+  const changed = form.status !== patient.status || form.notes.trim();
+
+  const save = async () => {
+    if (form.status === "Inactive" && patient.status !== "Inactive" &&
+        !window.confirm(`Deactivate ${patient.name}? They will be signed out and cannot sign in.`)) return;
+    setSaving(true);
+    setError("");
+    try {
+      await staffApi.updatePatient(token, patient.id, {
+        ...(form.status !== patient.status && { status: form.status }),
+        ...(form.notes.trim() && { notes: form.notes.trim() }),
+      });
+      onDone();
+    } catch (err) {
+      setError(err.message);
+      setSaving(false);
+    }
+  };
+
+  const info = (label, value) => (
+    <div className={StaffStyle['st-field']}>
+      <span>{label}</span>
+      <p className={StaffStyle['st-muted']} style={{ margin: 0, whiteSpace: "pre-wrap" }}>{value || "—"}</p>
     </div>
   );
-}
-
-/* ---------- Row action pop-up (matches your screenshot) ---------- */
-function PatientActionModal({ patients, initialId, onClose, onSave }) {
-  const first = patients.find((r) => r.id === initialId);
-  const [form, setForm] = useState({ id: first.id, status: first.status, notes: first.notes });
-
-  const changeSelection = (e) => {
-    const next = patients.find((r) => r.id === e.target.value);
-    setForm({ id: next.id, status: next.status, notes: next.notes });
-  };
 
   return (
     <ModalShell
       titleId="patient-title"
-      title="Patient Directory action"
+      title={`${patient.name} · ${patient.code}`}
       onClose={onClose}
       footer={
         <>
           <button type="button" className={StaffStyle['st-btn']} onClick={onClose}>Cancel</button>
-          <button type="button" className={`${StaffStyle['st-btn']} ${StaffStyle['st-btn--primary']}`} onClick={() => onSave(form)}>Save changes</button>
+          <button type="button" className={`${StaffStyle['st-btn']} ${StaffStyle['st-btn--primary']}`} disabled={!changed || saving} onClick={save}>
+            {saving ? "Saving…" : "Save changes"}
+          </button>
         </>
       }
     >
-      <div className={`${StaffStyle['st-callout']} ${StaffStyle['st-field--full']}`}>
-        <img src={settingsIcon} alt="" className={StaffStyle['st-callout__ico']} />
-        <div>
-          <strong>Authorized action</strong>
-          <p>Changes are simulated and will be recorded in the sample activity log.</p>
-        </div>
-      </div>
+      {error && <p className={StaffStyle['st-modal__error']} role="alert">{error}</p>}
+
+      {info("Email", details?.email ?? patient.email)}
+      {info("Mobile", details?.mobile)}
+      {info("Date of birth", details?.dob)}
+      {info("Sex", details?.sex)}
+      {info("Allergies", details?.allergies)}
+      {info("Current medications", details?.medications)}
 
       <label className={StaffStyle['st-field']}>
-        <span>Selection</span>
-        <select value={form.id} onChange={changeSelection}>
-          {patients.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
-        </select>
-      </label>
-
-      <label className={StaffStyle['st-field']}>
-        <span>Status</span>
+        <span>Account status</span>
         <select value={form.status} onChange={(e) => setForm((f) => ({ ...f, status: e.target.value }))}>
           {statuses.map((s) => <option key={s}>{s}</option>)}
         </select>
       </label>
+      {info("Last note", patient.notes)}
 
       <label className={`${StaffStyle['st-field']} ${StaffStyle['st-field--full']}`}>
-        <span>Notes</span>
-        <textarea rows="3" placeholder="Add an optional audit note…" value={form.notes}
+        <span>Add note</span>
+        <textarea rows="3" maxLength={1000} placeholder="Add an optional audit note…" value={form.notes}
                   onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} />
       </label>
     </ModalShell>
   );
 }
 
-/* ---------- Add patient pop-up ---------- */
-function AddPatientModal({ onClose, onAdd }) {
-  const [form, setForm] = useState({ name: "", contact: "", status: "Active", notes: "" });
+/* ---------- Register a patient at the front desk ---------- */
+function AddPatientModal({ token, onClose, onDone }) {
+  const [form, setForm] = useState({ firstname: "", lastname: "", email: "", mobile: "", password: "", status: "Active", notes: "" });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
+  const canSubmit = form.firstname.trim() && form.lastname.trim() && /\S+@\S+\.\S+/.test(form.email)
+    && form.password.length >= 8 && !saving;
+
+  const submit = async () => {
+    setSaving(true);
+    setError("");
+    try {
+      const body = {
+        firstname: form.firstname.trim(),
+        lastname: form.lastname.trim(),
+        email: form.email.trim(),
+        password: form.password,
+        status: form.status,
+      };
+      if (form.mobile.trim()) body.mobile = form.mobile.trim();
+      if (form.notes.trim()) body.notes = form.notes.trim();
+      await staffApi.createPatient(token, body);
+      onDone();
+    } catch (err) {
+      setError(err.message);
+      setSaving(false);
+    }
+  };
 
   return (
     <ModalShell
@@ -208,20 +249,30 @@ function AddPatientModal({ onClose, onAdd }) {
       footer={
         <>
           <button type="button" className={StaffStyle['st-btn']} onClick={onClose}>Cancel</button>
-          <button type="button" className={`${StaffStyle['st-btn']} ${StaffStyle['st-btn--primary']}`} disabled={!form.name.trim()} onClick={() => onAdd(form)}>
-            Add patient
+          <button type="button" className={`${StaffStyle['st-btn']} ${StaffStyle['st-btn--primary']}`} disabled={!canSubmit} onClick={submit}>
+            {saving ? "Adding…" : "Add patient"}
           </button>
         </>
       }
     >
+      {error && <p className={StaffStyle['st-modal__error']} role="alert">{error}</p>}
+
       <label className={StaffStyle['st-field']}>
-        <span>Full name</span>
-        <input placeholder="Patient full name" value={form.name} onChange={set("name")} autoFocus />
+        <span>First name</span>
+        <input maxLength={100} value={form.firstname} onChange={set("firstname")} autoFocus />
+      </label>
+      <label className={StaffStyle['st-field']}>
+        <span>Last name</span>
+        <input maxLength={100} value={form.lastname} onChange={set("lastname")} />
       </label>
 
       <label className={StaffStyle['st-field']}>
-        <span>Contact</span>
-        <input placeholder="+63 9XX ••• XXXX" value={form.contact} onChange={set("contact")} />
+        <span>Email</span>
+        <input type="email" maxLength={255} placeholder="patient@email.com" value={form.email} onChange={set("email")} />
+      </label>
+      <label className={StaffStyle['st-field']}>
+        <span>Mobile</span>
+        <input maxLength={30} placeholder="+63 9XX XXX XXXX" value={form.mobile} onChange={set("mobile")} />
       </label>
 
       <label className={`${StaffStyle['st-field']} ${StaffStyle['st-field--full']}`}>
@@ -233,7 +284,13 @@ function AddPatientModal({ onClose, onAdd }) {
 
       <label className={`${StaffStyle['st-field']} ${StaffStyle['st-field--full']}`}>
         <span>Notes</span>
-        <textarea rows="3" placeholder="Add an optional audit note…" value={form.notes} onChange={set("notes")} />
+        <textarea rows="3" maxLength={1000} placeholder="Add an optional audit note…" value={form.notes} onChange={set("notes")} />
+      </label>
+
+      <label className={`${StaffStyle['st-field']} ${StaffStyle['st-field--full']}`}>
+        <span>Temporary password</span>
+        <input type="text" minLength={8} maxLength={128} placeholder="At least 8 characters" value={form.password} onChange={set("password")} autoComplete="new-password" />
+        <small className={StaffStyle['st-muted']}>Give this to the patient; they can change it in their account settings.</small>
       </label>
     </ModalShell>
   );

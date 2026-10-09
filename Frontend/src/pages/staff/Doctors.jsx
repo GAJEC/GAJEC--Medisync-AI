@@ -1,197 +1,61 @@
+import { useMemo, useState } from "react";
 
-import { useEffect, useMemo, useState } from "react";
+import { staffApi } from "../../api/client";
+import { useDebounced, useStaffData } from "../../components/staff/useStaffData";
+import ModalShell from "../../components/staff/ModalShell";
 
 import searchIcon from "../../assets/icons/search.png";
 import StaffStyle from "../../assets/styles/Staff.module.css";
 
 const specialties = [
-  "Internal Medicine",
-  "Family Medicine",
-  "Pediatrics",
-  "Neurology",
-  "Cardiology",
-  "Emergency Medicine",
-  "Dermatology",
-  "Obstetrics and Gynecology",
-  "Orthopedics",
-  "Ophthalmology",
-  "Otolaryngology (ENT)",
-  "Psychiatry",
-  "General Surgery",
-  "Anesthesiology",
-  "Radiology",
-  "Pathology",
-  "Pulmonology",
-  "Gastroenterology",
-  "Nephrology",
-  "Endocrinology",
-  "Oncology",
-  "Infectious Disease",
-  "Rheumatology",
-  "Urology",
-  "Physical Medicine and Rehabilitation",
-  "Geriatrics",
-  "Hematology",
-  "Plastic Surgery",
-  "Thoracic Surgery",
-  "Vascular Surgery",
-  "Neurosurgery",
-  "Pain Medicine",
-  "Preventive Medicine",
+  "Internal Medicine", "Family Medicine", "Pediatrics", "Neurology", "Cardiology", "Emergency Medicine",
+  "Dermatology", "Obstetrics and Gynecology", "Orthopedics", "Ophthalmology", "Otolaryngology (ENT)",
+  "Psychiatry", "General Surgery", "Anesthesiology", "Radiology", "Pathology", "Pulmonology",
+  "Gastroenterology", "Nephrology", "Endocrinology", "Oncology", "Infectious Disease", "Rheumatology",
+  "Urology", "Physical Medicine and Rehabilitation", "Geriatrics", "Hematology", "Plastic Surgery",
+  "Thoracic Surgery", "Vascular Surgery", "Neurosurgery", "Pain Medicine", "Preventive Medicine",
 ];
 
-const availabilities = [
-  "Available",
-  "In consultation",
-  "On leave",
-];
+const availabilities = ["Available", "In consultation", "On leave", "Inactive"];
+const avatarTones = ["#c0392b", "#2f6f8f", "#7a8f9e", "#4f46a5", "#0f766e", "#b7791f"];
 
-const consultationTypes = [
-  "In-person and Online",
-  "In-person only",
-  "Online only",
-];
-
-const avatarTones = [
-  "#c0392b",
-  "#2f6f8f",
-  "#7a8f9e",
-  "#4f46a5",
-  "#0f766e",
-  "#b7791f",
-];
-
-const initialDoctors = [
-  {
-    id: 1,
-    name: "Dr. Maria Santos",
-    specialty: "Internal Medicine",
-    department: "Adult Medicine",
-    today: 8,
-    availability: "Available",
-    license: "PRC-MD-102938",
-    email: "doctor@stgabriel.demo",
-    consultation: "In-person and Online",
-    intro:
-      "Experienced in evaluating general symptoms and coordinating whole-person care.",
-  },
-  {
-    id: 2,
-    name: "Dr. Daniel Reyes",
-    specialty: "Family Medicine",
-    department: "Primary Care",
-    today: 6,
-    availability: "In consultation",
-    license: "",
-    email: "",
-    consultation: "In-person and Online",
-    intro: "",
-  },
-  {
-    id: 3,
-    name: "Dr. Angela Cruz",
-    specialty: "Pediatrics",
-    department: "Child Health",
-    today: 5,
-    availability: "Available",
-    license: "",
-    email: "",
-    consultation: "In-person and Online",
-    intro: "",
-  },
-  {
-    id: 4,
-    name: "Dr. Gabriel Mendoza",
-    specialty: "Neurology",
-    department: "Neurosciences",
-    today: 7,
-    availability: "On leave",
-    license: "",
-    email: "",
-    consultation: "In-person and Online",
-    intro: "",
-  },
-];
-
-const slug = (value) =>
-  value.toLowerCase().replace(/\s+/g, "-");
-
-const unique = (key, list) =>
-  [...new Set(list.map((item) => item[key]))];
-
+const slug = (value) => value.toLowerCase().replace(/\s+/g, "-");
 const initials = (name) =>
-  name
-    .replace(/^Dr\.\s*/i, "")
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((word) => word[0].toUpperCase())
-    .join("");
+  name.replace(/^Dr\.\s*/i, "").split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0].toUpperCase()).join("");
 
 export default function Doctors() {
-  const [doctors, setDoctors] = useState(initialDoctors);
   const [query, setQuery] = useState("");
+  const search = useDebounced(query.trim());
+  const [filters, setFilters] = useState({ specialty: "", departmentId: "", availability: "" });
+  const [modal, setModal] = useState(null); // null | { mode: "add" } | { mode: "edit", doctor }
 
-  const [filters, setFilters] = useState({
-    specialty: "",
-    department: "",
-    availability: "",
-  });
+  const setFilter = (key) => (e) => setFilters((f) => ({ ...f, [key]: e.target.value }));
 
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [selectedDoctor, setSelectedDoctor] = useState(null);
+  const { data, error, loading, reload, token } = useStaffData(
+    (t) => staffApi.doctors(t, {
+      search,
+      specialty: filters.specialty,
+      departmentId: filters.departmentId,
+      includeInactive: filters.availability === "Inactive" ? true : undefined,
+    }),
+    [search, filters.specialty, filters.departmentId, filters.availability],
+  );
+  const departmentsData = useStaffData((t) => staffApi.departments(t));
+  const departments = departmentsData.data?.departments ?? [];
 
-  const setFilter = (key) => (event) => {
-    setFilters((previous) => ({
-      ...previous,
-      [key]: event.target.value,
-    }));
-  };
+  const doctors = useMemo(() => data?.doctors ?? [], [data]);
+  const visible = useMemo(
+    () => doctors.filter((d) => !filters.availability || d.availability === filters.availability),
+    [doctors, filters.availability],
+  );
+  const specialtyOptions = useMemo(
+    () => [...new Set([...doctors.map((d) => d.specialty), ...specialties])].sort(),
+    [doctors],
+  );
 
-  const visibleDoctors = useMemo(() => {
-    const search = query.trim().toLowerCase();
-
-    return doctors.filter(
-      (doctor) =>
-        (!search ||
-          doctor.name.toLowerCase().includes(search) ||
-          doctor.specialty.toLowerCase().includes(search) ||
-          doctor.department.toLowerCase().includes(search)) &&
-        (!filters.specialty ||
-          doctor.specialty === filters.specialty) &&
-        (!filters.department ||
-          doctor.department === filters.department) &&
-        (!filters.availability ||
-          doctor.availability === filters.availability)
-    );
-  }, [doctors, query, filters]);
-
-  const handleAddDoctor = (form) => {
-    const name = form.name.trim();
-
-    const newDoctor = {
-      ...form,
-      id: Date.now(),
-      name: /^Dr\.\s*/i.test(name) ? name : `Dr. ${name}`,
-      department: form.department.trim() || form.specialty,
-      today: 0,
-      availability: "Available",
-    };
-
-    setDoctors((previous) => [...previous, newDoctor]);
-    setShowAddModal(false);
-  };
-
-  const handleSaveProfile = (updatedDoctor) => {
-    setDoctors((previous) =>
-      previous.map((doctor) =>
-        doctor.id === updatedDoctor.id
-          ? { ...doctor, ...updatedDoctor }
-          : doctor
-      )
-    );
-
-    setSelectedDoctor(null);
+  const done = () => {
+    setModal(null);
+    reload();
   };
 
   return (
@@ -199,20 +63,11 @@ export default function Doctors() {
       <div className={StaffStyle['st-pagehead']}>
         <div>
           <h1 className={StaffStyle['st-title']}>Doctor Management</h1>
-          <p className={StaffStyle['st-sub']}>
-            Manage verified hospital doctors, profiles, and availability.
-          </p>
+          <p className={StaffStyle['st-sub']}>Manage verified hospital doctors, profiles, and availability.</p>
         </div>
-
         <div className={StaffStyle['st-actions']}>
-          <button
-            type="button"
-            className={`${StaffStyle['st-btn']} ${StaffStyle['st-btn--primary']}`}
-            onClick={() => setShowAddModal(true)}
-          >
-            <span className={StaffStyle['st-btn__plus']} aria-hidden="true">
-              +
-            </span>
+          <button type="button" className={`${StaffStyle['st-btn']} ${StaffStyle['st-btn--primary']}`} onClick={() => setModal({ mode: "add" })}>
+            <span className={StaffStyle['st-btn__plus']} aria-hidden="true">+</span>
             Add doctor
           </button>
         </div>
@@ -221,340 +76,201 @@ export default function Doctors() {
       <div className={StaffStyle['st-filters']}>
         <label className={StaffStyle['st-searchbox']}>
           <img src={searchIcon} alt="" className={StaffStyle['st-btn__ico']} />
-          <input
-            type="search"
-            placeholder="Search doctors"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-          />
+          <input type="search" placeholder="Search doctors" value={query} onChange={(e) => setQuery(e.target.value)} />
         </label>
 
-        <select
-          className={StaffStyle['st-select']}
-          value={filters.specialty}
-          onChange={setFilter("specialty")}
-          aria-label="Filter by specialty"
-        >
+        <select className={StaffStyle['st-select']} value={filters.specialty} onChange={setFilter("specialty")} aria-label="Filter by specialty">
           <option value="">All specialties</option>
-          {unique("specialty", doctors).map((specialty) => (
-            <option key={specialty} value={specialty}>
-              {specialty}
-            </option>
-          ))}
+          {specialtyOptions.map((s) => <option key={s} value={s}>{s}</option>)}
         </select>
 
-        <select
-          className={StaffStyle['st-select']}
-          value={filters.department}
-          onChange={setFilter("department")}
-          aria-label="Filter by department"
-        >
+        <select className={StaffStyle['st-select']} value={filters.departmentId} onChange={setFilter("departmentId")} aria-label="Filter by department">
           <option value="">All departments</option>
-          {unique("department", doctors).map((department) => (
-            <option key={department} value={department}>
-              {department}
-            </option>
-          ))}
+          {departments.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
         </select>
 
-        <select
-          className={StaffStyle['st-select']}
-          value={filters.availability}
-          onChange={setFilter("availability")}
-          aria-label="Filter by availability"
-        >
+        <select className={StaffStyle['st-select']} value={filters.availability} onChange={setFilter("availability")} aria-label="Filter by availability">
           <option value="">All availability</option>
-          {availabilities.map((availability) => (
-            <option key={availability} value={availability}>
-              {availability}
-            </option>
-          ))}
+          {availabilities.map((a) => <option key={a} value={a}>{a}</option>)}
         </select>
       </div>
 
-      <section className={StaffStyle['st-docgrid']}>
-        {visibleDoctors.map((doctor, index) => (
+      {error && <p className={StaffStyle['st-alert']} role="alert">{error}</p>}
+
+      <section className={`${StaffStyle['st-docgrid']} ${loading ? StaffStyle['st-loading'] : ""}`}>
+        {visible.map((doctor, index) => (
           <article className={`${StaffStyle['st-card']} ${StaffStyle['st-doc']}`} key={doctor.id}>
             <div className={StaffStyle['st-doc__avatarwrap']}>
-              {doctor.photo ? (
-                <img
-                  src={doctor.photo}
-                  alt={doctor.name}
-                  className={StaffStyle['st-doc__avatar']}
-                />
-              ) : (
-                <span
-                  className={StaffStyle['st-doc__avatar']}
-                  style={{
-                    background:
-                      avatarTones[index % avatarTones.length],
-                  }}
-                >
-                  {initials(doctor.name)}
-                </span>
-              )}
-
-              <i
-                className={`${StaffStyle['st-doc__dot']} ${StaffStyle[`st-doc__dot--${slug(
-                  doctor.availability
-                )}`]}`}
-              />
+              <span className={StaffStyle['st-doc__avatar']} style={{ background: avatarTones[index % avatarTones.length] }}>
+                {initials(doctor.name)}
+              </span>
+              <i className={`${StaffStyle['st-doc__dot']} ${StaffStyle[`st-doc__dot--${slug(doctor.availability)}`] || ""}`} />
             </div>
 
             <h2 className={StaffStyle['st-doc__name']}>{doctor.name}</h2>
             <p className={StaffStyle['st-doc__spec']}>{doctor.specialty}</p>
-            <p className={StaffStyle['st-doc__dept']}>{doctor.department}</p>
+            <p className={StaffStyle['st-doc__dept']}>{doctor.department || "No department"}</p>
 
             <div className={StaffStyle['st-doc__stats']}>
               <div>
                 <strong>{doctor.today}</strong>
                 <small>Appointments today</small>
               </div>
-
-              <span
-                className={`${StaffStyle['st-pill']} ${StaffStyle[`st-pill--${slug(
-                  doctor.availability
-                )}`]}`}
-              >
+              <span className={`${StaffStyle['st-pill']} ${StaffStyle[`st-pill--${slug(doctor.availability)}`] || ""}`}>
                 {doctor.availability}
               </span>
             </div>
 
             <div className={StaffStyle['st-doc__actions']}>
-              <button
-                type="button"
-                className={StaffStyle['st-btn']}
-                onClick={() => setSelectedDoctor({ ...doctor })}
-              >
+              <button type="button" className={StaffStyle['st-btn']} onClick={() => setModal({ mode: "edit", doctor })}>
                 View profile
-              </button>
-
-              <button
-                type="button"
-                className={`${StaffStyle['st-btn']} ${StaffStyle['st-btn--icon']}`}
-                aria-label={`View profile for ${doctor.name}`}
-                onClick={() => setSelectedDoctor({ ...doctor })}
-              >
-                ···
               </button>
             </div>
           </article>
         ))}
 
-        {visibleDoctors.length === 0 && (
+        {!loading && visible.length === 0 && (
           <p className={`${StaffStyle['st-empty']} ${StaffStyle['st-empty--grid']}`}>
-            No doctors match these filters. Clear a filter or change your search.
+            {search || Object.values(filters).some(Boolean)
+              ? "No doctors match these filters. Clear a filter or change your search."
+              : "No doctors yet. Add the first one."}
           </p>
         )}
       </section>
 
-      {showAddModal && (
+      {modal && (
         <DoctorModal
-          title="Add doctor"
-          submitLabel="Add doctor"
-          onClose={() => setShowAddModal(false)}
-          onSubmit={handleAddDoctor}
-        />
-      )}
-
-      {selectedDoctor && (
-        <DoctorModal
-          key={selectedDoctor.id}
-          title="Doctor profile"
-          submitLabel="Save changes"
-          doctor={selectedDoctor}
-          onClose={() => setSelectedDoctor(null)}
-          onSubmit={handleSaveProfile}
+          key={modal.doctor?.id ?? "new"}
+          token={token}
+          doctor={modal.doctor}
+          departments={departments}
+          onClose={() => setModal(null)}
+          onDone={done}
         />
       )}
     </div>
   );
 }
 
-function DoctorModal({
-  title,
-  submitLabel,
-  doctor,
-  onClose,
-  onSubmit,
-}) {
+function DoctorModal({ token, doctor, departments, onClose, onDone }) {
+  const editing = Boolean(doctor);
   const [form, setForm] = useState({
-    id: doctor?.id,
     name: doctor?.name || "",
     specialty: doctor?.specialty || specialties[0],
-    department: doctor?.department || "",
+    departmentId: doctor?.departmentId ? String(doctor.departmentId) : "",
     license: doctor?.license || "",
     email: doctor?.email || "",
-    consultation: doctor?.consultation || consultationTypes[0],
     intro: doctor?.intro || "",
-    today: doctor?.today ?? 0,
-    availability: doctor?.availability || "Available",
-    photo: doctor?.photo || "",
+    workStart: doctor?.workStart || "08:00",
+    workEnd: doctor?.workEnd || "17:00",
+    active: doctor ? doctor.active : true,
   });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const update = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
+  const specialtyChoices = specialties.includes(form.specialty) ? specialties : [form.specialty, ...specialties];
 
-  const updateField = (key) => (event) => {
-    setForm((previous) => ({
-      ...previous,
-      [key]: event.target.value,
-    }));
-  };
-
-  useEffect(() => {
-    const handleKeyDown = (event) => {
-      if (event.key === "Escape") onClose();
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [onClose]);
-
-  const handleSubmit = (event) => {
+  const submit = async (event) => {
     event.preventDefault();
-
     if (!form.name.trim()) return;
+    if (form.workStart >= form.workEnd) return setError("Working hours must end after they start.");
 
-    onSubmit({
-      ...form,
-      name: /^Dr\.\s*/i.test(form.name.trim())
-        ? form.name.trim()
-        : `Dr. ${form.name.trim()}`,
-      department: form.department.trim() || form.specialty,
-    });
+    const body = {
+      name: form.name.trim(),
+      specialty: form.specialty,
+      departmentId: form.departmentId ? Number(form.departmentId) : null,
+      license: form.license.trim(),
+      email: form.email.trim(),
+      intro: form.intro.trim(),
+      workStart: form.workStart,
+      workEnd: form.workEnd,
+    };
+    if (editing) body.active = form.active;
+
+    setSaving(true);
+    setError("");
+    try {
+      if (editing) await staffApi.updateDoctor(token, doctor.id, body);
+      else await staffApi.createDoctor(token, body);
+      onDone();
+    } catch (err) {
+      setError(err.message);
+      setSaving(false);
+    }
   };
 
   return (
-    <div
-      className={StaffStyle['st-overlay']}
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget) onClose();
-      }}
+    <ModalShell
+      as="form"
+      onSubmit={submit}
+      titleId="doctor-modal-title"
+      title={editing ? "Doctor profile" : "Add doctor"}
+      onClose={onClose}
+      footer={
+        <>
+          <button type="button" className={StaffStyle['st-btn']} onClick={onClose}>Cancel</button>
+          <button type="submit" className={`${StaffStyle['st-btn']} ${StaffStyle['st-btn--primary']}`} disabled={!form.name.trim() || saving}>
+            {saving ? "Saving…" : editing ? "Save changes" : "Add doctor"}
+          </button>
+        </>
+      }
     >
-      <form
-        className={StaffStyle['st-modal']}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="doctor-modal-title"
-        onSubmit={handleSubmit}
-      >
-        <header className={StaffStyle['st-modal__head']}>
-          <div>
-            <p className={StaffStyle['st-modal__brand']}>MediSync AI</p>
-            <h2 id="doctor-modal-title" className={StaffStyle['st-modal__title']}>
-              {title}
-            </h2>
-          </div>
+      {error && <p className={StaffStyle['st-modal__error']} role="alert">{error}</p>}
 
-          <button
-            type="button"
-            className={StaffStyle['st-modal__close']}
-            onClick={onClose}
-            aria-label="Close modal"
-          >
-            ×
-          </button>
-        </header>
+      <label className={StaffStyle['st-field']}>
+        <span>Full name</span>
+        <input value={form.name} onChange={update("name")} placeholder="Dr. Full Name" maxLength={150} required autoFocus />
+      </label>
 
-        <div className={StaffStyle['st-modal__body']}>
-          <label className={StaffStyle['st-field']}>
-            <span>Full name</span>
-            <input
-              value={form.name}
-              onChange={updateField("name")}
-              placeholder="Dr. Full Name"
-              required
-              autoFocus
-            />
-          </label>
+      <label className={StaffStyle['st-field']}>
+        <span>Specialty</span>
+        <select value={form.specialty} onChange={update("specialty")} required>
+          {specialtyChoices.map((s) => <option key={s} value={s}>{s}</option>)}
+        </select>
+      </label>
 
-          <label className={StaffStyle['st-field']}>
-            <span>Specialty</span>
-            <select
-              value={form.specialty}
-              onChange={updateField("specialty")}
-              required
-            >
-              {specialties.map((specialty) => (
-                <option key={specialty} value={specialty}>
-                  {specialty}
-                </option>
-              ))}
-            </select>
-          </label>
+      <label className={StaffStyle['st-field']}>
+        <span>Department</span>
+        <select value={form.departmentId} onChange={update("departmentId")}>
+          <option value="">No department</option>
+          {departments.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
+        </select>
+      </label>
 
-          <label className={StaffStyle['st-field']}>
-            <span>Department</span>
-            <input
-              value={form.department}
-              onChange={updateField("department")}
-              placeholder="Enter department"
-            />
-          </label>
+      <label className={StaffStyle['st-field']}>
+        <span>License / registration</span>
+        <input value={form.license} onChange={update("license")} placeholder="PRC-MD-000000" maxLength={60} />
+      </label>
 
-          <label className={StaffStyle['st-field']}>
-            <span>License / registration</span>
-            <input
-              value={form.license}
-              onChange={updateField("license")}
-              placeholder="PRC-MD-102938"
-            />
-          </label>
+      <label className={`${StaffStyle['st-field']} ${StaffStyle['st-field--full']}`}>
+        <span>Email</span>
+        <input type="email" value={form.email} onChange={update("email")} placeholder="doctor@hospital.com" maxLength={255} />
+      </label>
 
-          <label className={StaffStyle['st-field']}>
-            <span>Email</span>
-            <input
-              type="email"
-              value={form.email}
-              onChange={updateField("email")}
-              placeholder="doctor@stgabriel.demo"
-            />
-          </label>
+      <label className={StaffStyle['st-field']}>
+        <span>Working hours start</span>
+        <input type="time" value={form.workStart} onChange={update("workStart")} required />
+      </label>
 
-          <label className={StaffStyle['st-field']}>
-            <span>Consultation types</span>
-            <select
-              value={form.consultation}
-              onChange={updateField("consultation")}
-            >
-              {consultationTypes.map((type) => (
-                <option key={type} value={type}>
-                  {type}
-                </option>
-              ))}
-            </select>
-          </label>
+      <label className={StaffStyle['st-field']}>
+        <span>Working hours end</span>
+        <input type="time" value={form.workEnd} onChange={update("workEnd")} required />
+      </label>
 
-          <label className={`${StaffStyle['st-field']} ${StaffStyle['st-field--full']}`}>
-            <span>Professional introduction</span>
-            <textarea
-              rows="4"
-              value={form.intro}
-              onChange={updateField("intro")}
-              placeholder="Write a professional introduction..."
-            />
-          </label>
-        </div>
+      {editing && (
+        <label className={`${StaffStyle['st-field']} ${StaffStyle['st-field--full']}`}>
+          <span>Status</span>
+          <select value={form.active ? "active" : "inactive"} onChange={(e) => setForm((f) => ({ ...f, active: e.target.value === "active" }))}>
+            <option value="active">Active (bookable)</option>
+            <option value="inactive">Inactive (hidden from booking)</option>
+          </select>
+        </label>
+      )}
 
-        <footer className={StaffStyle['st-modal__foot']}>
-          <button
-            type="button"
-            className={StaffStyle['st-btn']}
-            onClick={onClose}
-          >
-            Cancel
-          </button>
-
-          <button
-            type="submit"
-            className={`${StaffStyle['st-btn']} ${StaffStyle['st-btn--primary']}`}
-            disabled={!form.name.trim()}
-          >
-            {submitLabel}
-          </button>
-        </footer>
-      </form>
-    </div>
+      <label className={`${StaffStyle['st-field']} ${StaffStyle['st-field--full']}`}>
+        <span>Professional introduction</span>
+        <textarea rows="4" maxLength={2000} value={form.intro} onChange={update("intro")} placeholder="Write a professional introduction..." />
+      </label>
+    </ModalShell>
   );
 }

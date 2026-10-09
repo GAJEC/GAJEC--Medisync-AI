@@ -4,11 +4,19 @@ import { verifyPassword, hashPassword, EmailSanitizer } from '../util/checker.js
 // User Authentication Functions
 export async function Login(email, password) {
     email = EmailSanitizer(email);
-    const [rows] = await db.execute('SELECT id, firstname, lastname, email, role, theme, password FROM users WHERE email = ?', [email]);
+    const [rows] = await db.execute(
+        'SELECT id, firstname, lastname, email, role, theme, password, account_status FROM users WHERE email = ?',
+        [email],
+    );
     if (rows.length === 0) { return { success: false, message: 'Invalid email or password' }; }
 
-    const { password: storedHash, ...user } = rows[0];
+    const { password: storedHash, account_status: accountStatus, ...user } = rows[0];
     if (!(await verifyPassword(password, storedHash))) { return { success: false, message: 'Invalid email or password' }; }
+
+    // Checked after the password so the status of an account is not revealed to guessers.
+    if (accountStatus === 'Inactive') {
+        return { success: false, status: 403, message: 'This account is not active. Please contact the hospital.' };
+    }
 
     return { success: true, message: 'Login successful', user };
 }

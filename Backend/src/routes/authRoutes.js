@@ -64,7 +64,7 @@ export default async function authRoutes(fastify) {
     try {
       const result = await Login(email, password);
       if (!result.success) {
-        return reply.code(401).send({ error: result.message });
+        return reply.code(result.status || 401).send({ error: result.message });
       }
 
       // Every login is a tracked session so it can be listed and signed out later

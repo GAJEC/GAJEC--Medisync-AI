@@ -7,7 +7,7 @@ import { homeFor } from "../../auth/roles";
 import AuthenticationStyle from "../../assets/styles/Authentication.module.css";
 
 // Assets
-import heartIcon from "../../assets/images/medisync-logo.png";
+import mediSyncLogo from "../../assets/images/medisync-logo.png";
 import aiIcon from "../../assets/icons/ai.png";
 import insuranceIcon from "../../assets/icons/insurance.png";
 import hospitalIcon from "../../assets/icons/hospital.png";
@@ -22,7 +22,7 @@ const BRAND = {
 };
 
 const LOGOS = {
-  brand: heartIcon,
+  brand: mediSyncLogo,
   badge: aiIcon,
   privacy: insuranceIcon,
   hospital: hospitalIcon,
