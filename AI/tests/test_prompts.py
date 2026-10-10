@@ -11,6 +11,7 @@ def test_prompt_files_are_local_versioned_content():
     assert "{{LANGUAGE_INSTRUCTION}}" not in chat + image
     assert "You are Syncia" in chat and "MediSync AI" in chat
     assert "You are Syncia" in image and "MediSync AI" in image
+    assert '"options"' in chat and '"options"' in image
 
 
 def test_prompt_loader_rejects_path_traversal():

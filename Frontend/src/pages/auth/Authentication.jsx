@@ -324,18 +324,6 @@ export default function Login() {
             </p>
           )}
 
-          {view === "signin" && (
-            <button
-              type="button"
-              className={AuthenticationStyle['role-card']}
-              onClick={() => switchView("staff")}
-            >
-              <Logo name="staff" className={AuthenticationStyle['role-icon']} />
-              <span>Hospital staff access</span>
-              <Logo name="arrow" className={AuthenticationStyle['role-arrow']} />
-            </button>
-          )}
-
           {view === "staff" && (
             <p className={AuthenticationStyle['switch-text']}>
               <button

@@ -22,6 +22,9 @@ import mediSyncLogo from '../../assets/images/medisync-logo.png'
 
 import { patientApi } from '../../api/client'
 import { AssistantAvatar, AssistantThinking, TypewriterText } from '../../components/patient/AssistantTyping'
+import FollowUpQuestions from '../../components/patient/FollowUpQuestions'
+import BookingFlow from '../../components/patient/BookingFlow'
+import { composeAnswer, stripFollowUps } from '../../components/patient/followUps'
 
 import HomeStyle from '../../assets/styles/home.module.css'
 import SidebarStyle from '../../assets/styles/sidebar.module.css'
@@ -33,12 +36,12 @@ const SUGGESTIONS = [
   { icon: scheduleIcon, text: 'I want to book a follow-up appointment.' },
 ]
 
-// Limits match the AI service (AI/app/media.py, AI/app/config.py):
-// MedGemma analyses one JPEG/PNG/WebP photo up to 10 MB; Whisper takes up to 120 s of audio.
 const MAX_FILES = 1
 const MAX_MB = 10
 const MAX_RECORD_S = 120
 const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp']
+
+const NEW_CHAT = 'new'
 
 const formatTime = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
 
@@ -46,9 +49,9 @@ const Home = () => {
   const { token, user, activeConversationId, setActiveConversationId, reloadConversations } = useOutletContext()
   const [message, setMessage] = useState('')
   const [loaded, setLoaded] = useState({ id: null, messages: [] })
-  const [sending, setSending] = useState(false)
-  const [thinking, setThinking] = useState(false)
-  const [triage, setTriage] = useState(null)
+  const [sendingIn, setSendingIn] = useState({})
+  const [thinkingIn, setThinkingIn] = useState({}) // { [conversationId]: { progressId, startedAt, withImage } }
+  const [triageIn, setTriageIn] = useState({})
   const [attachments, setAttachments] = useState([])
   const [sentFiles, setSentFiles] = useState({})
   const [menuOpen, setMenuOpen] = useState(false)
@@ -56,9 +59,16 @@ const Home = () => {
   const [seconds, setSeconds] = useState(0)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
-  const [pendingImage, setPendingImage] = useState(null)
+  const [pendingImages, setPendingImages] = useState({}) // { [conversationId]: File } kept for "Get Syncia's reply"
   const [transcribing, setTranscribing] = useState(false)
   const [typingId, setTypingId] = useState(null)
+  const [picked, setPicked] = useState({ messageId: null, answers: {} })
+
+  const activeRef = useRef(activeConversationId)
+  useEffect(() => {
+    activeRef.current = activeConversationId
+  }, [activeConversationId])
+  const lateRepliesRef = useRef({})
 
   const threadRef = useRef(null)
   const stickRef = useRef(true)
@@ -217,6 +227,9 @@ const Home = () => {
   }
 
   const thread = activeConversationId && loaded.id === activeConversationId ? loaded.messages : []
+  const chatKey = activeConversationId ?? NEW_CHAT
+  const sending = Boolean(sendingIn[chatKey])
+  const thinking = activeConversationId ? thinkingIn[activeConversationId] || null : null
 
   const onThreadScroll = () => {
     const el = threadRef.current
@@ -231,35 +244,66 @@ const Home = () => {
   useEffect(() => {
     const el = threadRef.current
     if (el && stickRef.current) el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' })
-  }, [thread.length, thinking, loaded.id])
+  }, [thread.length, thinking, loaded.id, typingId])
+
+  const [shownChat, setShownChat] = useState(activeConversationId)
+  if (shownChat !== activeConversationId) {
+    setShownChat(activeConversationId)
+    setError('')
+    setNotice('')
+    setTypingId(null)
+    setPicked({ messageId: null, answers: {} })
+  }
 
   useEffect(() => {
     if (!activeConversationId) return
     let cancelled = false
     patientApi
       .conversation(token, activeConversationId)
-      .then(({ conversation }) => !cancelled && setLoaded({ id: conversation.id, messages: conversation.messages }))
+      .then(({ conversation }) => {
+        if (cancelled) return
+        let messages = conversation.messages
+        const late = lateRepliesRef.current[conversation.id]
+        if (late && !messages.some((m) => m.id === late.id)) {
+          messages = [...messages, late].sort((a, b) => a.id - b.id)
+        }
+        setLoaded({ id: conversation.id, messages })
+      })
       .catch((err) => !cancelled && setError(err.message))
     return () => {
       cancelled = true
     }
   }, [token, activeConversationId])
 
+  const setIn = (setter, key, value) =>
+    setter((map) => {
+      const next = { ...map }
+      if (value === undefined) delete next[key]
+      else next[key] = value
+      return next
+    })
+
   const askAssistant = async (conversationId, image) => {
     const progressId = crypto.randomUUID()
-    setThinking(progressId)
-    setError('')
+    setIn(setThinkingIn, conversationId, { progressId, startedAt: Date.now(), withImage: Boolean(image) })
+    if (activeRef.current === conversationId) setError('')
     try {
       const { message: reply, triage: result } = await patientApi.requestReply(token, conversationId, image, progressId)
-      setTypingId(reply.id)
-      setLoaded((l) => (l.id === conversationId ? { ...l, messages: [...l.messages, reply] } : l))
-      setTriage({ conversationId, ...result })
-      setPendingImage(null)
+      const here = activeRef.current === conversationId
+      if (here) setTypingId(stripFollowUps(reply.body, reply.followUps) ? reply.id : null)
+      lateRepliesRef.current[conversationId] = reply
+      setLoaded((l) =>
+        l.id !== conversationId || l.messages.some((m) => m.id === reply.id)
+          ? l
+          : { ...l, messages: [...l.messages, reply] },
+      )
+      setIn(setTriageIn, conversationId, result)
+      setIn(setPendingImages, conversationId, undefined)
       reloadConversations()
     } catch (err) {
-      setError(err.message)
+      if (activeRef.current === conversationId) setError(err.message)
     } finally {
-      setThinking(false)
+      setIn(setThinkingIn, conversationId, undefined)
     }
   }
 
@@ -270,8 +314,11 @@ const Home = () => {
       if (attachments.length) setError('Describe what the photo shows or how you feel, then send.')
       return
     }
-    const image = attachments.find((a) => a.kind === 'image')?.file || null
-    setSending(true)
+    const sent = attachments
+    const image = sent.find((a) => a.kind === 'image')?.file || null
+    const key = chatKey
+    const startedIn = activeConversationId
+    setIn(setSendingIn, key, true)
     setError('')
     setNotice('')
     stickRef.current = true
@@ -281,40 +328,53 @@ const Home = () => {
       if (conversationId) {
         const { message: saved } = await patientApi.sendMessage(token, conversationId, value)
         savedId = saved.id
-        setLoaded((l) => ({ ...l, messages: [...l.messages, saved] }))
+        setLoaded((l) => (l.id === conversationId ? { ...l, messages: [...l.messages, saved] } : l))
       } else {
         const { conversation } = await patientApi.startConversation(token, value)
         conversationId = conversation.id
         savedId = conversation.messages[conversation.messages.length - 1]?.id
-        setLoaded({ id: conversation.id, messages: conversation.messages })
-        setActiveConversationId(conversation.id)
+        if (activeRef.current === null) {
+          activeRef.current = conversation.id
+          setLoaded({ id: conversation.id, messages: conversation.messages })
+          setActiveConversationId(conversation.id)
+        }
       }
       reloadConversations()
-      setMessage('')
-      if (attachments.length && savedId != null) {
-        const files = attachments.map(({ id, kind, url, file }) => ({ id, kind, url, name: file.name }))
+      if (activeRef.current === startedIn || activeRef.current === conversationId) {
+        setMessage('')
+        setPicked({ messageId: null, answers: {} })
+      }
+      if (sent.length && savedId != null) {
+        const files = sent.map(({ id, kind, url, file }) => ({ id, kind, url, name: file.name }))
         setSentFiles((map) => ({ ...map, [savedId]: files }))
       } else {
-        attachments.forEach((a) => URL.revokeObjectURL(a.url))
+        sent.forEach((a) => URL.revokeObjectURL(a.url))
       }
-      setAttachments([])
+      const sentIds = new Set(sent.map((a) => a.id))
+      setAttachments((list) => list.filter((a) => !sentIds.has(a.id)))
     } catch (err) {
-      setError(err.message)
-      setSending(false)
+      if (activeRef.current === startedIn) setError(err.message)
+      setIn(setSendingIn, key, undefined)
       return
     }
-    setSending(false)
-    setPendingImage(image ? { conversationId, file: image } : null)
+    setIn(setSendingIn, key, undefined)
+    if (image) setIn(setPendingImages, conversationId, image)
     await askAssistant(conversationId, image)
   }
 
-  const retryReply = () => {
-    const image = pendingImage?.conversationId === activeConversationId ? pendingImage.file : null
-    askAssistant(activeConversationId, image)
-  }
+  const retryReply = () => askAssistant(activeConversationId, pendingImages[activeConversationId] || null)
 
   const awaitingReply = thread.length > 0 && thread[thread.length - 1].sender === 'patient'
-  const shownTriage = triage && triage.conversationId === activeConversationId ? triage : null
+  const shownTriage = activeConversationId ? triageIn[activeConversationId] || null : null
+
+  const latest = thread[thread.length - 1]
+  const answerable =
+    latest?.sender === 'assistant' && latest.followUps?.length > 0 && latest.id !== typingId ? latest : null
+  const pickedAnswers = answerable && picked.messageId === answerable.id ? picked.answers : {}
+  const hasPicked = Object.keys(pickedAnswers).length > 0
+  const busy = sending || Boolean(thinking) || transcribing
+
+  const submit = () => send(answerable ? composeAnswer(answerable.followUps, pickedAnswers, message) : message)
 
   return (
     <>
@@ -338,18 +398,37 @@ const Home = () => {
             const files = sentFiles[m.id]
             const mine = m.sender === 'patient'
             if (!mine) {
+              const followUps = m.followUps || []
+              const text = stripFollowUps(m.body, followUps)
+              const typing = m.id === typingId
               return (
-                <div key={m.id} className={`${HomeStyle['msg']} ${HomeStyle['msg--ai']} ${HomeStyle['msg--enter']}`}>
-                  <AssistantAvatar />
-                  <div className={HomeStyle['bubble']}>
-                    <span className={HomeStyle['sr-only']}>Syncia: </span>
-                    {m.id === typingId ? (
-                      <TypewriterText text={m.body} onProgress={scrollToBottom} onDone={() => setTypingId(null)} />
-                    ) : (
-                      m.body
-                    )}
-                  </div>
-                </div>
+                <React.Fragment key={m.id}>
+                  {text && (
+                    <div className={`${HomeStyle['msg']} ${HomeStyle['msg--ai']} ${HomeStyle['msg--enter']}`}>
+                      <AssistantAvatar />
+                      <div className={HomeStyle['bubble']}>
+                        <span className={HomeStyle['sr-only']}>Syncia: </span>
+                        {typing ? (
+                          <TypewriterText text={text} onProgress={scrollToBottom} onDone={() => setTypingId(null)} />
+                        ) : (
+                          text
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  {followUps.length > 0 && !typing && (
+                    <FollowUpQuestions
+                      messageId={m.id}
+                      followUps={followUps}
+                      active={m.id === answerable?.id}
+                      disabled={busy}
+                      picked={m.id === answerable?.id ? pickedAnswers : {}}
+                      typed={message}
+                      onPick={(answers) => setPicked({ messageId: m.id, answers })}
+                      onSend={send}
+                    />
+                  )}
+                </React.Fragment>
               )
             }
             return (
@@ -387,8 +466,22 @@ const Home = () => {
             </div>
           )}
 
+          {shownTriage?.intent === 'book_appointment' && !typingId && (
+            <BookingFlow 
+              token={token} 
+              triage={shownTriage} 
+              onClose={() => setIn(setTriageIn, activeConversationId, { ...shownTriage, intent: 'consultation' })} 
+            />
+          )}
+
           {thinking && (
-            <AssistantThinking key={thinking} token={token} progressId={thinking} withImage={Boolean(pendingImage)} />
+            <AssistantThinking
+              key={thinking.progressId}
+              token={token}
+              progressId={thinking.progressId}
+              startedAt={thinking.startedAt}
+              withImage={thinking.withImage}
+            />
           )}
 
           {!thinking && !sending && awaitingReply && (
@@ -543,14 +636,20 @@ const Home = () => {
               <input
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && send(message)}
-                placeholder={thinking ? 'Syncia is replying…' : 'Tell Syncia your symptoms or ask about an appointment…'}
+                onKeyDown={(e) => e.key === 'Enter' && submit()}
+                placeholder={
+                  thinking
+                    ? 'Syncia is replying…'
+                    : answerable
+                      ? 'Pick an answer above or type your reply…'
+                      : 'Tell Syncia your symptoms or ask about an appointment…'
+                }
                 maxLength={4000}
                 disabled={sending || thinking}
               />
               <button
-                className={`${HomeStyle['composer__send']} ${message.trim() && !sending && !thinking ? HomeStyle['composer__send--ready'] : ''}`}
-                onClick={() => send(message)}
+                className={`${HomeStyle['composer__send']} ${(message.trim() || hasPicked) && !sending && !thinking ? HomeStyle['composer__send--ready'] : ''}`}
+                onClick={submit}
                 aria-label={thinking ? 'Waiting for Syncia' : 'Send'}
                 aria-busy={Boolean(sending || thinking)}
                 disabled={sending || thinking || transcribing}

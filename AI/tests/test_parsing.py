@@ -27,7 +27,34 @@ def test_parse_output_valid_and_coerces_values():
     assert [p.condition for p in out.possible_explanations] == ["Migraine", "Tension headache"]
     assert out.possible_explanations[0].likelihood == "more_likely"
     assert len(out.follow_up_questions) == 3
+    assert [q.question for q in out.follow_up_questions] == ["a", "b", "c"]
+    assert all(q.options == [] for q in out.follow_up_questions)
     assert out.symptom_summary.reported_symptoms == ["headache"]
+
+
+def test_parse_output_follow_up_options():
+    raw = """{"reply": "ok", "follow_up_questions": [
+        {"question": "How long have you had it?", "options": ["Today", "1-3 days", "1-3 days", "Over a week", ""]},
+        {"question": "Describe the pain.", "options": []},
+        {"question": "Any fever?", "options": ["Yes"]},
+        {"text": "Severity?", "choices": ["Mild", "Moderate", "Severe", "a", "b", "c", "d"]},
+        {"options": ["x", "y"]}
+    ]}"""
+    out, valid = parse_output(raw, ChatOutput)
+    assert valid
+    qs = out.follow_up_questions
+    assert [q.question for q in qs] == ["How long have you had it?", "Describe the pain.", "Any fever?"]
+    assert qs[0].options == ["Today", "1-3 days", "Over a week"]  # deduplicated, blanks dropped
+    assert qs[1].options == []  # open-ended
+    assert qs[2].options == []  # a single option is not a choice
+
+
+def test_parse_output_follow_up_option_aliases_and_cap():
+    raw = '{"reply": "ok", "follow_up_questions": [{"text": "Severity?", "choices": [1,2,3,4,5,6,7,8,9,10,11,12]}]}'
+    out, _ = parse_output(raw, ChatOutput)
+    assert out.follow_up_questions[0].question == "Severity?"
+    # Numbers become strings; a 1-10 scale fits, anything beyond 10 options is dropped.
+    assert out.follow_up_questions[0].options == [str(n) for n in range(1, 11)]
 
 
 def test_parse_output_unknown_urgency_becomes_undetermined():

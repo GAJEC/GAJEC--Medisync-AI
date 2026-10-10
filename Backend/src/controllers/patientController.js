@@ -219,13 +219,43 @@ export async function GetConversation(userId, conversationId) {
     );
     if (rows.length === 0) return null;
     const [messages] = await db.execute(
-        `SELECT id, sender, body, created_at AS createdAt
+        `SELECT ${MESSAGE_COLUMNS}
            FROM conversation_messages
           WHERE conversation_id = ?
           ORDER BY id`,
         [conversationId],
     );
-    return { ...rows[0], messages };
+    return { ...rows[0], messages: messages.map(withFollowUps) };
+}
+
+const MESSAGE_COLUMNS = 'id, sender, body, follow_ups AS followUps, created_at AS createdAt';
+
+// Normalizes the follow_ups JSON column into an array of { question, options } objects, with limits on length and number of options
+function normalizeFollowUps(value) {
+    if (!Array.isArray(value)) return [];
+    return value
+        .map((item) => (typeof item === 'string' ? { question: item, options: [] } : item))
+        .filter((item) => item && typeof item.question === 'string' && item.question.trim())
+        .slice(0, 3)
+        .map((item) => {
+            const options = Array.isArray(item.options)
+                ? [...new Set(item.options.filter((o) => typeof o === 'string').map((o) => o.trim().slice(0, 80)).filter(Boolean))].slice(0, 10)
+                : [];
+            return { question: item.question.trim().slice(0, 300), options: options.length >= 2 ? options : [] };
+        });
+}
+
+// Parses the stored follow_ups JSON column into an array on the message.
+function withFollowUps(row) {
+    let followUps = [];
+    if (row.followUps) {
+        try {
+            followUps = normalizeFollowUps(JSON.parse(row.followUps));
+        } catch {
+            followUps = [];
+        }
+    }
+    return { ...row, followUps };
 }
 
 const titleFrom = (text) => {
@@ -266,16 +296,15 @@ export async function AddConversationMessage(userId, conversationId, body) {
     );
     await db.execute('UPDATE conversations SET updated_at = NOW() WHERE id = ?', [conversationId]);
     const [rows] = await db.execute(
-        'SELECT id, sender, body, created_at AS createdAt FROM conversation_messages WHERE id = ?',
+        `SELECT ${MESSAGE_COLUMNS} FROM conversation_messages WHERE id = ?`,
         [result.insertId],
     );
-    return rows[0];
+    return withFollowUps(rows[0]);
 }
 
 // AI Assistant integration
 
-// Limits from ChatRequest in AI/app/schemas.py. The AI service itself only uses
-// the last MEDGEMMA_MAX_HISTORY_MESSAGES turns (10 by default).
+// Limits from ChatRequest in AI/app/schemas.py
 const AI_MAX_HISTORY = 20;
 const AI_MAX_CHARS = 8000;
 const AI_SEX = { Female: 'female', Male: 'male', 'Prefer not to say': 'unspecified' };
@@ -323,8 +352,8 @@ async function PatientContextFor(userId) {
     };
 }
 
-// Formats the AI service's reply into a single string for the patient. The AI service may return
-function replyText(result) {
+// Generates the text of the assistant's reply, including any visual observations, limitations, and follow-up questions.
+function replyText(result, followUps) {
     const parts = [result.reply.trim()];
     if (Array.isArray(result.visual_observations) && result.visual_observations.length) {
         parts.push(`What I can see in the photo:\n${result.visual_observations.map((o) => `• ${o}`).join('\n')}`);
@@ -332,8 +361,8 @@ function replyText(result) {
     if (typeof result.limitations === 'string' && result.limitations.trim()) {
         parts.push(result.limitations.trim());
     }
-    if (Array.isArray(result.follow_up_questions) && result.follow_up_questions.length) {
-        parts.push(result.follow_up_questions.map((q) => `• ${q}`).join('\n'));
+    if (followUps.length) {
+        parts.push(followUps.map((q) => `• ${q.question}`).join('\n'));
     }
     return parts.filter(Boolean).join('\n\n') || 'I could not produce a reply. Please try again.';
 }
@@ -368,20 +397,22 @@ export async function GenerateAssistantReply(userId, conversationId, { chat, ana
         ai = await chat(body, requestId);
     }
 
+    const followUps = normalizeFollowUps(ai.result.follow_up_questions);
     const [result] = await db.execute(
-        "INSERT INTO conversation_messages (conversation_id, sender, body) VALUES (?, 'assistant', ?)",
-        [conversationId, replyText(ai.result)],
+        "INSERT INTO conversation_messages (conversation_id, sender, body, follow_ups) VALUES (?, 'assistant', ?, ?)",
+        [conversationId, replyText(ai.result, followUps), followUps.length ? JSON.stringify(followUps) : null],
     );
     await db.execute('UPDATE conversations SET updated_at = NOW() WHERE id = ?', [conversationId]);
     const [rows] = await db.execute(
-        'SELECT id, sender, body, created_at AS createdAt FROM conversation_messages WHERE id = ?',
+        `SELECT ${MESSAGE_COLUMNS} FROM conversation_messages WHERE id = ?`,
         [result.insertId],
     );
 
     return {
         pending: true,
-        message: rows[0],
+        message: withFollowUps(rows[0]),
         triage: {
+            intent: ai.result.intent || 'consultation',
             urgency: ai.result.suggested_urgency,
             redFlags: ai.result.red_flags_identified,
             specialties: ai.result.recommended_specialties,

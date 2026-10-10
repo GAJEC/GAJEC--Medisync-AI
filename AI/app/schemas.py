@@ -17,6 +17,7 @@ Likelihood = Literal["more_likely", "possible", "less_likely"]
 
 MAX_STR = 600
 MAX_LIST = 6
+MAX_OPTIONS = 10
 
 
 def _clip(s: Any, n: int = MAX_STR) -> str:
@@ -36,7 +37,6 @@ def _clip_list(v: Any, n_items: int = MAX_LIST, n_chars: int = MAX_STR) -> list[
     return [x for x in out if x][:n_items]
 
 
-# ---------------------------------------------------------------- requests
 class HistoryMessage(BaseModel):
     role: Literal["user", "assistant"]
     content: str = Field(..., max_length=8000)
@@ -108,15 +108,67 @@ class SymptomSummary(BaseModel):
         return _clip(v, 120) or None
 
 
+class FollowUpQuestion(BaseModel):
+    """A follow-up question. `options` holds the likely answers the patient can pick from for a
+    close-ended question (fixed or measurable answer); it is empty for an open-ended question."""
+
+    question: str
+    options: list[str] = Field(default_factory=list)
+
+    @field_validator("question", mode="before")
+    @classmethod
+    def _qq(cls, v):
+        return _clip(v, 300)
+
+    @field_validator("options", mode="before")
+    @classmethod
+    def _opts(cls, v):
+        seen, out = set(), []
+        for o in _clip_list(v, 12, 80):
+            if o.lower() not in seen:
+                seen.add(o.lower())
+                out.append(o)
+        out = out[:MAX_OPTIONS]
+        return out if len(out) >= 2 else []
+
+
+def _follow_ups(v: Any) -> list[dict]:
+    """Accept plain strings (older prompt format) or {question, options} objects."""
+    if v is None:
+        return []
+    if isinstance(v, (str, dict)):
+        v = [v]
+    if not isinstance(v, list):
+        return []
+    out = []
+    for item in v:
+        if isinstance(item, str):
+            item = {"question": item}
+        if not isinstance(item, dict):
+            continue
+        question = item.get("question") or item.get("text") or item.get("q")
+        if not isinstance(question, str) or not question.strip():
+            continue
+        options = item.get("options", item.get("choices", item.get("answers")))
+        out.append({"question": question, "options": options if isinstance(options, list) else []})
+    return out[:3]
+
+
 class _CommonOutput(BaseModel):
     reply: str = ""
-    follow_up_questions: list[str] = Field(default_factory=list)
+    intent: Literal["consultation", "book_appointment"] = "consultation"
+    follow_up_questions: list[FollowUpQuestion] = Field(default_factory=list)
     possible_explanations: list[PossibleExplanation] = Field(default_factory=list)
     suggested_urgency: Urgency = "undetermined"
     red_flags_identified: list[str] = Field(default_factory=list)
     recommended_specialties: list[str] = Field(default_factory=list)
     care_advice: list[str] = Field(default_factory=list)
     uncertainty_note: str = ""
+
+    @field_validator("intent", mode="before")
+    @classmethod
+    def _i(cls, v):
+        return "book_appointment" if str(v).strip().lower() == "book_appointment" else "consultation"
 
     @field_validator("reply", mode="before")
     @classmethod
@@ -131,7 +183,7 @@ class _CommonOutput(BaseModel):
     @field_validator("follow_up_questions", mode="before")
     @classmethod
     def _q(cls, v):
-        return _clip_list(v, 3, 300)
+        return _follow_ups(v)
 
     @field_validator("red_flags_identified", "recommended_specialties", "care_advice", mode="before")
     @classmethod

@@ -53,15 +53,15 @@ export const AssistantAvatar = () => (
   </span>
 )
 
-export function AssistantThinking({ token, progressId, withImage = false }) {
-  const [elapsed, setElapsed] = useState(0)
+export function AssistantThinking({ token, progressId, withImage = false, startedAt }) {
+  const [start] = useState(() => startedAt ?? Date.now())
+  const [elapsed, setElapsed] = useState(() => Math.floor((Date.now() - start) / 1000))
   const [progress, setProgress] = useState(null)
 
   useEffect(() => {
-    const start = Date.now()
     const id = setInterval(() => setElapsed(Math.floor((Date.now() - start) / 1000)), 1000)
     return () => clearInterval(id)
-  }, [])
+  }, [start])
 
   useEffect(() => {
     if (!progressId) return undefined

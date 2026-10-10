@@ -45,7 +45,7 @@ class Settings(BaseSettings):
     medgemma_vision_dtype: Literal["auto", "bfloat16", "float16", "float32"] = Field(
         "auto", alias="MEDGEMMA_VISION_DTYPE"
     )
-    medgemma_max_new_tokens: int = Field(700, ge=64, le=2048, alias="MEDGEMMA_MAX_NEW_TOKENS")
+    medgemma_max_new_tokens: int = Field(850, ge=64, le=2048, alias="MEDGEMMA_MAX_NEW_TOKENS")
     medgemma_max_input_chars: int = Field(6000, ge=500, le=20000, alias="MEDGEMMA_MAX_INPUT_CHARS")
     medgemma_max_history_messages: int = Field(10, ge=0, le=40, alias="MEDGEMMA_MAX_HISTORY_MESSAGES")
 
