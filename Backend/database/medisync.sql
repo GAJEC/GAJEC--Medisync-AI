@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 10, 2026 at 03:08 AM
+-- Generation Time: Oct 10, 2026 at 03:16 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -95,6 +95,7 @@ CREATE TABLE `conversation_messages` (
   `conversation_id` int(11) NOT NULL,
   `sender` enum('patient','assistant') NOT NULL,
   `body` text NOT NULL,
+  `follow_ups` text DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -457,14 +458,6 @@ CREATE TABLE `user_sessions` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `user_sessions`
---
-
-INSERT INTO `user_sessions` (`id`, `user_id`, `user_agent`, `ip`, `created_at`, `last_seen_at`, `expires_at`, `revoked_at`) VALUES
-('5c190a424ba9ef7977e30e19cbeb8949', 1, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36', '127.0.0.1', '2026-10-10 01:07:40', '2026-10-10 01:07:40', '2026-10-10 10:07:40', '2026-10-10 09:07:49'),
-('e4af723e7d198d5154c0cb8f4b1c8edf', 2, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36', '127.0.0.1', '2026-10-10 01:08:13', '2026-10-10 01:08:13', '2026-10-10 10:08:13', NULL);
-
---
 -- Indexes for dumped tables
 --
 
@@ -606,7 +599,7 @@ ALTER TABLE `conversations`
 -- AUTO_INCREMENT for table `conversation_messages`
 --
 ALTER TABLE `conversation_messages`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `data_requests`
